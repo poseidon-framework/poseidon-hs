@@ -12,15 +12,17 @@ import           Country                    (Country, alphaTwoUpper,
 import qualified Data.Csv                   as Csv
 import qualified Data.Text                  as T
 import qualified Data.Text.Read             as T
+import           Data.Version               (makeVersion)
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
+import           Poseidon.PoseidonVersion
 import           SequenceFormats.Eigenstrat (Sex (..))
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)
 
 instance Makeable GeneticSex where
-    make x
+    make _ x
         | x == "F"  = pure (GeneticSex Female)
         | x == "M"  = pure (GeneticSex Male)
         | x == "U"  = pure (GeneticSex Unknown)
@@ -40,7 +42,7 @@ instance Ord GeneticSex where
     compare (GeneticSex Unknown) (GeneticSex Female) = LT
     compare _ _                                      = EQ
 instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
-instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
+instance FromFieldVersioned GeneticSex where parseFieldVersioned pv = parseTypeCSV pv "Genetic_Sex"
 
 -- | A datatype for the Group_Name .janno column
 newtype GroupName = GroupName T.Text deriving (Eq, Ord)
@@ -78,7 +80,7 @@ data JannoRelationDegree =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoRelationDegree where
-    make x
+    make _ x
         | x == "identical"    = pure Identical
         | x == "first"        = pure First
         | x == "second"       = pure Second
@@ -100,7 +102,7 @@ instance Show JannoRelationDegree where
     show Unrelated    = "unrelated"
     show OtherDegree  = "other"
 instance Csv.ToField JannoRelationDegree where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoRelationDegree where parseField = parseTypeCSV "Relation_Degree"
+instance FromFieldVersioned JannoRelationDegree where parseFieldVersioned pv = parseTypeCSV pv "Relation_Degree"
 
 -- | A datatype for the Relation_Type .janno column
 newtype JannoRelationType = JannoRelationType T.Text deriving (Eq)
@@ -122,7 +124,7 @@ $(makeInstances ''JannoCulturalEra "Cultural_Era")
 newtype JannoCulturalEraURL = JannoCulturalEraURL T.Text deriving (Eq, Ord, Generic)
 
 instance Makeable JannoCulturalEraURL where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ JannoCulturalEraURL x
         | otherwise                   = fail $ "Cultural_Era_URL " ++ show x ++ " is not a well structured URI."
 instance Suspicious JannoCulturalEraURL where
@@ -133,7 +135,7 @@ instance Suspicious JannoCulturalEraURL where
                             \or ChronOntology permalink."]
 instance Show JannoCulturalEraURL where          show (JannoCulturalEraURL x) = T.unpack x
 instance Csv.ToField JannoCulturalEraURL where   toField (JannoCulturalEraURL x) = Csv.toField x
-instance Csv.FromField JannoCulturalEraURL where parseField = parseTypeCSV "Cultural_Era_URL"
+instance FromFieldVersioned JannoCulturalEraURL where parseFieldVersioned pv = parseTypeCSV pv "Cultural_Era_URL"
 
 -- | A datatype for the Archaeological_Culture .janno column
 newtype JannoArchaeologicalCulture = JannoArchaeologicalCulture T.Text deriving (Eq)
@@ -143,7 +145,7 @@ $(makeInstances ''JannoArchaeologicalCulture "Archaeological_Culture")
 newtype JannoArchaeologicalCultureURL = JannoArchaeologicalCultureURL T.Text deriving (Eq, Ord, Generic)
 
 instance Makeable JannoArchaeologicalCultureURL where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ JannoArchaeologicalCultureURL x
         | otherwise                   = fail $ "Archaeological_Culture_URL " ++ show x ++ " is not a well structured URI."
 instance Suspicious JannoArchaeologicalCultureURL where
@@ -154,7 +156,7 @@ instance Suspicious JannoArchaeologicalCultureURL where
                             \or ChronOntology permalink."]
 instance Show JannoArchaeologicalCultureURL where          show (JannoArchaeologicalCultureURL x) = T.unpack x
 instance Csv.ToField JannoArchaeologicalCultureURL where   toField (JannoArchaeologicalCultureURL x) = Csv.toField x
-instance Csv.FromField JannoArchaeologicalCultureURL where parseField = parseTypeCSV "Archaeological_Culture_URL"
+instance FromFieldVersioned JannoArchaeologicalCultureURL where parseFieldVersioned pv = parseTypeCSV pv "Archaeological_Culture_URL"
 
 -- | A datatype for the Country .janno column
 newtype JannoCountry = JannoCountry T.Text deriving (Eq, Ord)
@@ -166,14 +168,14 @@ newtype JannoCountryISO = JannoCountryISO Country deriving (Eq, Ord)
 instance Show JannoCountryISO where
     show (JannoCountryISO x) = T.unpack $ alphaTwoUpper x
 instance Makeable JannoCountryISO where
-    make x = case decodeAlphaTwo x of
+    make _ x = case decodeAlphaTwo x of
         Nothing -> fail $
             "Country_ISO is set to " ++ show x ++ ". " ++
             "That is not a valid ISO-alpha2 code describing an existing country."
         Just c  -> return $ JannoCountryISO c
 instance Suspicious JannoCountryISO where inspect _ = Nothing
 instance Csv.ToField JannoCountryISO where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoCountryISO where parseField = parseTypeCSV "Country_ISO"
+instance FromFieldVersioned JannoCountryISO where parseFieldVersioned pv = parseTypeCSV pv "Country_ISO"
 
 -- | A datatype for the Location .janno column
 newtype JannoLocation = JannoLocation T.Text deriving (Eq)
@@ -187,7 +189,7 @@ $(makeInstances ''JannoSite "Site")
 newtype JannoLatitude = JannoLatitude Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoLatitude where
-    make x =
+    make _ x =
         case T.double x of
             Left e -> fail $ "Latitude can not be converted to Double because " ++ e
             Right (num, "") ->
@@ -198,13 +200,13 @@ instance Makeable JannoLatitude where
 instance Suspicious JannoLatitude where inspect _ = Nothing
 instance Show JannoLatitude where          show (JannoLatitude x) = show x
 instance Csv.ToField JannoLatitude where   toField (JannoLatitude x) = Csv.toField x
-instance Csv.FromField JannoLatitude where parseField = parseTypeCSV "Latitude"
+instance FromFieldVersioned JannoLatitude where parseFieldVersioned pv = parseTypeCSV pv "Latitude"
 
 -- | A datatype for the Longitude .janno column
 newtype JannoLongitude = JannoLongitude Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoLongitude where
-    make x =
+    make _ x =
         case T.double x of
             Left e -> fail $ "Longitude can not be converted to Double because " ++ e
             Right (num, "") ->
@@ -215,7 +217,7 @@ instance Makeable JannoLongitude where
 instance Suspicious JannoLongitude where inspect _ = Nothing
 instance Show JannoLongitude where          show (JannoLongitude x) = show x
 instance Csv.ToField JannoLongitude where   toField (JannoLongitude x) = Csv.toField x
-instance Csv.FromField JannoLongitude where parseField = parseTypeCSV "Longitude"
+instance FromFieldVersioned JannoLongitude where parseFieldVersioned pv = parseTypeCSV pv "Longitude"
 
 -- | A datatype for the Date_Type .janno column
 data JannoDateType =
@@ -225,7 +227,7 @@ data JannoDateType =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoDateType where
-    make x
+    make _ x
         | x == "C14"        = pure C14
         | x == "contextual" = pure Contextual
         | x == "modern"     = pure Modern
@@ -237,7 +239,7 @@ instance Show JannoDateType where
     show Contextual = "contextual"
     show Modern     = "modern"
 instance Csv.ToField JannoDateType where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoDateType where parseField = parseTypeCSV "Date_Type"
+instance FromFieldVersioned JannoDateType where parseFieldVersioned pv = parseTypeCSV pv "Date_Type"
 
 -- | A datatype for the Date_C14_Labnr .janno column
 newtype JannoDateC14Labnr = JannoDateC14Labnr T.Text deriving (Eq)
@@ -247,7 +249,7 @@ $(makeInstances ''JannoDateC14Labnr "Date_C14_Labnr")
 newtype JannoDateC14UncalBP = JannoDateC14UncalBP Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDateC14UncalBP where
-    make x =
+    make _ x =
         case T.decimal x of
             Left e -> fail $ "Date_C14_Uncal_BP can not be converted to Int because " ++ e
             Right (num, "") -> pure $ JannoDateC14UncalBP num
@@ -259,13 +261,13 @@ instance Suspicious JannoDateC14UncalBP where
         | otherwise = Nothing
 instance Show JannoDateC14UncalBP where          show (JannoDateC14UncalBP x) = show x
 instance Csv.ToField JannoDateC14UncalBP where   toField (JannoDateC14UncalBP x) = Csv.toField x
-instance Csv.FromField JannoDateC14UncalBP where parseField = parseTypeCSV "Date_C14_Uncal_BP"
+instance FromFieldVersioned JannoDateC14UncalBP where parseFieldVersioned pv = parseTypeCSV pv "Date_C14_Uncal_BP"
 
 -- | A datatype for the Date_C14_Uncal_BP_Err .janno column
 newtype JannoDateC14UncalBPErr = JannoDateC14UncalBPErr Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDateC14UncalBPErr where
-    make x =
+    make _ x =
         case T.decimal x of
             Left e -> fail $ "Date_C14_Uncal_BP_Err can not be converted to Int because " ++ e
             Right (num, "") -> pure $ JannoDateC14UncalBPErr num
@@ -273,13 +275,13 @@ instance Makeable JannoDateC14UncalBPErr where
 instance Suspicious JannoDateC14UncalBPErr where inspect _ = Nothing
 instance Show JannoDateC14UncalBPErr where          show (JannoDateC14UncalBPErr x) = show x
 instance Csv.ToField JannoDateC14UncalBPErr where   toField (JannoDateC14UncalBPErr x) = Csv.toField x
-instance Csv.FromField JannoDateC14UncalBPErr where parseField = parseTypeCSV "Date_C14_Uncal_BP_Err"
+instance FromFieldVersioned JannoDateC14UncalBPErr where parseFieldVersioned pv = parseTypeCSV pv "Date_C14_Uncal_BP_Err"
 
 -- | A datatype for the Date_BC_AD_Start .janno column
 newtype JannoDateBCADStart = JannoDateBCADStart Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDateBCADStart where
-    make x =
+    make _ x =
         let curYear = 2024 -- the current year
         in case T.signed T.decimal x of
             Left e -> fail $ "Date_BC_AD_Start can not be converted to Int because " ++ e
@@ -292,13 +294,13 @@ instance Makeable JannoDateBCADStart where
 instance Suspicious JannoDateBCADStart where inspect _ = Nothing
 instance Show JannoDateBCADStart where          show (JannoDateBCADStart x) = show x
 instance Csv.ToField JannoDateBCADStart where   toField (JannoDateBCADStart x) = Csv.toField x
-instance Csv.FromField JannoDateBCADStart where parseField = parseTypeCSV "Date_BC_AD_Start"
+instance FromFieldVersioned JannoDateBCADStart where parseFieldVersioned pv = parseTypeCSV pv "Date_BC_AD_Start"
 
 -- | A datatype for the Date_BC_AD_Median .janno column
 newtype JannoDateBCADMedian = JannoDateBCADMedian Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDateBCADMedian where
-    make x =
+    make _ x =
         let curYear = 2024 -- the current year
         in case T.signed T.decimal x of
             Left e -> fail $ "Date_BC_AD_Median can not be converted to Int because " ++ e
@@ -311,13 +313,13 @@ instance Makeable JannoDateBCADMedian where
 instance Suspicious JannoDateBCADMedian where inspect _ = Nothing
 instance Show JannoDateBCADMedian where          show (JannoDateBCADMedian x) = show x
 instance Csv.ToField JannoDateBCADMedian where   toField (JannoDateBCADMedian x) = Csv.toField x
-instance Csv.FromField JannoDateBCADMedian where parseField = parseTypeCSV "Date_BC_AD_Median"
+instance FromFieldVersioned JannoDateBCADMedian where parseFieldVersioned pv = parseTypeCSV pv "Date_BC_AD_Median"
 
 -- | A datatype for the Date_BC_AD_Stop .janno column
 newtype JannoDateBCADStop = JannoDateBCADStop Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDateBCADStop where
-    make x =
+    make _ x =
         let curYear = 2024 -- the current year
         in case T.signed T.decimal x of
             Left e -> fail $ "Date_BC_AD_Stop can not be converted to Int because " ++ e
@@ -330,7 +332,7 @@ instance Makeable JannoDateBCADStop where
 instance Suspicious JannoDateBCADStop where inspect _ = Nothing
 instance Show JannoDateBCADStop where          show (JannoDateBCADStop x) = show x
 instance Csv.ToField JannoDateBCADStop where   toField (JannoDateBCADStop x) = Csv.toField x
-instance Csv.FromField JannoDateBCADStop where parseField = parseTypeCSV "Date_BC_AD_Stop"
+instance FromFieldVersioned JannoDateBCADStop where parseFieldVersioned pv = parseTypeCSV pv "Date_BC_AD_Stop"
 
 -- | A datatype for the Chromosomal_Anomalies .janno column
 newtype JannoChromosomalAnomalies = JannoChromosomalAnomalies T.Text deriving (Eq)
@@ -356,7 +358,7 @@ data JannoSourceMaterial =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoSourceMaterial where
-    make x
+    make _ x
         | x == "petrous"  = pure MaterialPetrous
         | x == "bone"     = pure MaterialBone
         | x == "tooth"    = pure MaterialTooth
@@ -377,13 +379,13 @@ instance Show JannoSourceMaterial where
     show MaterialSediment = "sediment"
     show MaterialOther    = "other"
 instance Csv.ToField JannoSourceMaterial where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoSourceMaterial where parseField = parseTypeCSV "Source_Material"
+instance FromFieldVersioned JannoSourceMaterial where parseFieldVersioned pv = parseTypeCSV pv "Source_Material"
 
 -- | A datatype for the Nr_Libraries .janno column
 newtype JannoNrLibraries = JannoNrLibraries Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoNrLibraries where
-    make x =
+    make _ x =
         case T.signed T.decimal x of
             Left e -> fail $ "Nr_Libraries can not be converted to Int because " ++ e
             Right (num, "") ->
@@ -394,7 +396,7 @@ instance Makeable JannoNrLibraries where
 instance Suspicious JannoNrLibraries where inspect _ = Nothing
 instance Show JannoNrLibraries where          show (JannoNrLibraries x) = show x
 instance Csv.ToField JannoNrLibraries where   toField (JannoNrLibraries x) = Csv.toField x
-instance Csv.FromField JannoNrLibraries where parseField = parseTypeCSV "Nr_Libraries"
+instance FromFieldVersioned JannoNrLibraries where parseFieldVersioned pv = parseTypeCSV pv "Nr_Libraries"
 
 -- | A datatype for the Library_Names .janno column
 newtype JannoLibraryName = JannoLibraryName T.Text deriving (Eq)
@@ -414,7 +416,7 @@ data JannoCaptureType =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoCaptureType where
-    make x
+    make pv x
         | x == "Shotgun"            = pure Shotgun
         | x == "1240K"              = pure A1240K
         | x == "ArborComplete"      = pure ArborComplete
@@ -423,15 +425,14 @@ instance Makeable JannoCaptureType where
         | x == "TwistAncientDNA"    = pure TwistAncientDNA
         | x == "WISC2013"           = pure WISC2013
         | x == "OtherCapture"       = pure OtherCapture
-        | x == "ReferenceGenome"    = pure LegacyReferenceGenome
-        | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
-                             "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
-                             \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
-                             \OtherCapture]."
-instance Suspicious JannoCaptureType where
-    inspect LegacyReferenceGenome =  Just ["Capture_Type is set to ReferenceGenome, which is not a \
-                                           \capture setup. This option was retired in Poseidon v3.0.0."]
-    inspect _ = Nothing
+        | otherwise =
+            if x == "ReferenceGenome" && asVersion pv < makeVersion [3,0,0]
+            then pure LegacyReferenceGenome
+            else fail $ "Capture_Type is set to " ++ show x ++ ". " ++
+                        "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
+                        \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
+                        \OtherCapture]. Note that ReferenceGenome was retired in Poseidon v3.0.0."
+instance Suspicious JannoCaptureType where inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun               = "Shotgun"
     show A1240K                = "1240K"
@@ -443,7 +444,7 @@ instance Show JannoCaptureType where
     show OtherCapture          = "OtherCapture"
     show LegacyReferenceGenome = "ReferenceGenome"
 instance Csv.ToField JannoCaptureType where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoCaptureType where parseField = parseTypeCSV "Capture_Type"
+instance FromFieldVersioned JannoCaptureType where parseFieldVersioned pv = parseTypeCSV pv "Capture_Type"
 
 -- | A datatype for the UDG .janno column
 data JannoUDG =
@@ -454,7 +455,7 @@ data JannoUDG =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoUDG where
-    make x
+    make _ x
         | x == "minus" = pure Minus
         | x == "half"  = pure Half
         | x == "plus"  = pure Plus
@@ -468,7 +469,7 @@ instance Show JannoUDG where
     show Plus  = "plus"
     show Mixed = "mixed"
 instance Csv.ToField JannoUDG where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoUDG where parseField = parseTypeCSV "UDG"
+instance FromFieldVersioned JannoUDG where parseFieldVersioned pv = parseTypeCSV pv "UDG"
 
 -- | A datatype for the Library_Built .janno column
 data JannoLibraryBuilt =
@@ -479,7 +480,7 @@ data JannoLibraryBuilt =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoLibraryBuilt where
-    make x
+    make _ x
         | x == "ds"    = pure DS
         | x == "ss"    = pure SS
         | x == "mixed" = pure MixedSSDS
@@ -493,7 +494,7 @@ instance Show JannoLibraryBuilt where
     show MixedSSDS = "mixed"
     show Other     = "other"
 instance Csv.ToField JannoLibraryBuilt where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoLibraryBuilt where parseField = parseTypeCSV "Library_Built"
+instance FromFieldVersioned JannoLibraryBuilt where parseFieldVersioned pv = parseTypeCSV pv "Library_Built"
 
 -- | A datatype for the Genotype_Ploidy .janno column
 data JannoGenotypePloidy =
@@ -502,7 +503,7 @@ data JannoGenotypePloidy =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable JannoGenotypePloidy where
-    make x
+    make _ x
         | x == "diploid" = pure Diploid
         | x == "haploid" = pure Haploid
         | otherwise      = fail $ "Genotype_Ploidy is set to " ++ show x ++ ". " ++
@@ -512,42 +513,48 @@ instance Show JannoGenotypePloidy where
     show Diploid = "diploid"
     show Haploid = "haploid"
 instance Csv.ToField JannoGenotypePloidy where   toField x = Csv.toField $ show x
-instance Csv.FromField JannoGenotypePloidy where parseField = parseTypeCSV "Genotype_Ploidy"
+instance FromFieldVersioned JannoGenotypePloidy where parseFieldVersioned pv = parseTypeCSV pv "Genotype_Ploidy"
 
 -- | A datatype for the Genotype_Ploidy .janno column
 newtype JannoDataPreparationPipelineURL = JannoDataPreparationPipelineURL T.Text deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDataPreparationPipelineURL where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ JannoDataPreparationPipelineURL x
         | otherwise                   = fail $ "Data_Preparation_Pipeline_URL " ++ show x ++ " is not a well structured URI."
 instance Suspicious JannoDataPreparationPipelineURL where inspect _ = Nothing
 instance Show JannoDataPreparationPipelineURL where          show (JannoDataPreparationPipelineURL x) = T.unpack x
 instance Csv.ToField JannoDataPreparationPipelineURL where   toField (JannoDataPreparationPipelineURL x) = Csv.toField x
-instance Csv.FromField JannoDataPreparationPipelineURL where parseField = parseTypeCSV "Data_Preparation_Pipeline_URL"
+instance FromFieldVersioned JannoDataPreparationPipelineURL where parseFieldVersioned pv = parseTypeCSV pv "Data_Preparation_Pipeline_URL"
 
 -- | A datatype for the Endogenous .janno column
 newtype JannoEndogenous = JannoEndogenous Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoEndogenous where
-    make x =
+    make pv x =
         case T.double x of
             Left e -> fail $ "Endogenous can not be converted to Double because " ++ e
             Right (num, "") ->
-                if num >= 0 && num <= 100
-                then pure (JannoEndogenous num)
-                else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
+                if asVersion pv >= makeVersion [3,0,0]
+                then do
+                    if num >= 0 && num <= 1
+                    then pure (JannoEndogenous num)
+                    else fail $ "Endogenous " ++ show x ++ " not between 0 and 1."
+                else do
+                    if num >= 0 && num <= 100
+                    then pure (JannoEndogenous $ num / 100) -- rescale to 0-1
+                    else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Endogenous can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoEndogenous where inspect _ = Nothing
 instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
 instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = Csv.toField x
-instance Csv.FromField JannoEndogenous where parseField = parseTypeCSV "Endogenous"
+instance FromFieldVersioned JannoEndogenous where parseFieldVersioned pv = parseTypeCSV pv "Endogenous"
 
 -- | A datatype for the Nr_SNPs .janno column
 newtype JannoNrSNPs = JannoNrSNPs Int deriving (Eq, Ord, Generic)
 
 instance Makeable JannoNrSNPs where
-    make x =
+    make _ x =
         case T.signed T.decimal x of
             Left e -> fail $ "Nr_SNPs can not be converted to Int because " ++ e
             Right (num, "") ->
@@ -561,13 +568,13 @@ instance Suspicious JannoNrSNPs where
         | otherwise = Nothing
 instance Show JannoNrSNPs where          show (JannoNrSNPs x) = show x
 instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
-instance Csv.FromField JannoNrSNPs where parseField = parseTypeCSV "Nr_SNPs"
+instance FromFieldVersioned JannoNrSNPs where parseFieldVersioned pv = parseTypeCSV pv "Nr_SNPs"
 
 -- | A datatype for the Coverage_on_Target_SNPs .janno column
 newtype JannoCoverageOnTargets = JannoCoverageOnTargets Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoCoverageOnTargets where
-    make x =
+    make _ x =
         case T.double x of
             Left e -> fail $ "Coverage_on_Target_SNPs can not be converted to Double because " ++ e
             Right (num, "") ->  pure (JannoCoverageOnTargets num)
@@ -575,24 +582,30 @@ instance Makeable JannoCoverageOnTargets where
 instance Suspicious JannoCoverageOnTargets where inspect _ = Nothing
 instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets x) = show x
 instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = Csv.toField x
-instance Csv.FromField JannoCoverageOnTargets where parseField = parseTypeCSV "Coverage_on_Target_SNPs"
+instance FromFieldVersioned JannoCoverageOnTargets where parseFieldVersioned pv = parseTypeCSV pv "Coverage_on_Target_SNPs"
 
 -- | A datatype for the Damage .janno column
 newtype JannoDamage = JannoDamage Double deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDamage where
-    make x =
+    make pv x =
         case T.double x of
             Left e -> fail $ "Damage can not be converted to Double because " ++ e
             Right (num, "") ->
-                if num >= 0 && num <= 100
-                then pure (JannoDamage num)
-                else fail $ "Damage " ++ show x ++ " not between 0 and 100."
+                if asVersion pv >= makeVersion [3,0,0]
+                then do
+                    if num >= 0 && num <= 1
+                    then pure (JannoDamage num)
+                    else fail $ "Damage " ++ show x ++ " not between 0 and 1."
+                else do
+                    if num >= 0 && num <= 100
+                    then pure (JannoDamage $ num / 100) -- rescale to 0-1
+                    else fail $ "Damage " ++ show x ++ " not between 0 and 100."
             Right (_, rest) -> fail $ "Damage can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoDamage where inspect _ = Nothing
 instance Show JannoDamage where          show (JannoDamage x) = show x
 instance Csv.ToField JannoDamage where   toField (JannoDamage x) = Csv.toField x
-instance Csv.FromField JannoDamage where parseField = parseTypeCSV "Damage"
+instance FromFieldVersioned JannoDamage where parseFieldVersioned pv = parseTypeCSV pv "Damage"
 
 -- | A datatype for the Contamination .janno column
 newtype JannoContamination = JannoContamination T.Text deriving (Eq)
@@ -611,12 +624,12 @@ newtype JannoGeneticSourceAccessionID = JannoGeneticSourceAccessionID AccessionI
     deriving (Eq, Ord, Generic)
 
 instance Makeable JannoGeneticSourceAccessionID where
-    make x = JannoGeneticSourceAccessionID <$> makeAccessionID x
+    make _ x = JannoGeneticSourceAccessionID <$> makeAccessionID x
 instance Suspicious JannoGeneticSourceAccessionID where inspect _ = Nothing
 instance Show JannoGeneticSourceAccessionID where
     show (JannoGeneticSourceAccessionID x) = show x
 instance Csv.ToField JannoGeneticSourceAccessionID where   toField x  = Csv.toField $ show x
-instance Csv.FromField JannoGeneticSourceAccessionID where parseField = parseTypeCSV "Genetic_Source_Accession_IDs"
+instance FromFieldVersioned JannoGeneticSourceAccessionID where parseFieldVersioned pv = parseTypeCSV pv "Genetic_Source_Accession_IDs"
 
 -- | A datatype for the Primary_Contact .janno column
 newtype JannoPrimaryContact = JannoPrimaryContact T.Text deriving (Eq)

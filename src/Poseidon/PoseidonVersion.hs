@@ -9,11 +9,8 @@ newtype PoseidonVersion = PoseidonVersion Version
 instance FromJSON PoseidonVersion where parseJSON v = PoseidonVersion <$> parseJSON v
 instance ToJSON PoseidonVersion where toJSON (PoseidonVersion v) = toJSON v
 
-isPoseidonVersionBelow :: [Int] -> PoseidonVersion -> Bool
-isPoseidonVersionBelow v1 (PoseidonVersion v2) = v2 < makeVersion v1
-
 validPoseidonVersions :: [PoseidonVersion]
-validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,5,0], [2,6,0], [2,7,0], [2,7,1]]
+validPoseidonVersions = map (PoseidonVersion . makeVersion) [[2,5,0], [2,6,0], [2,7,0], [2,7,1], [3,0,0]]
 
 latestPoseidonVersion :: PoseidonVersion
 latestPoseidonVersion = last validPoseidonVersions

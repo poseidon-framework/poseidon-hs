@@ -24,6 +24,7 @@ module Poseidon.Janno (
 
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
+import           Poseidon.PoseidonVersion
 import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
@@ -45,6 +46,7 @@ import           Data.List                            (elemIndex, foldl',
 import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
+import           Data.Version                         (makeVersion)
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
@@ -184,62 +186,62 @@ jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
 -- instance Csv.FromNamedRecord JannoRow where
 --     parseNamedRecord m = JannoRow
-parseJannoRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
-parseJannoRowFromNamedRecord mandatory m = do
+parseJannoRowFromNamedRecord :: PoseidonVersion -> [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
+parseJannoRowFromNamedRecord pv mandatory m = do
     mapM_ (checkMandatory m) mandatory
     JannoRow
-        <$> filterLookup         m "Poseidon_ID"
-        <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookup         m "Group_Name"
-        <*> filterLookupOptional m "Individual_ID"
-        <*> filterLookupOptional m "Species"
-        <*> filterLookupOptional m "Alternative_IDs"
-        <*> filterLookupOptional m "Alternative_IDs_Context"
-        <*> filterLookupOptional m "Relation_To"
-        <*> filterLookupOptional m "Relation_Degree"
-        <*> filterLookupOptional m "Relation_Type"
-        <*> filterLookupOptional m "Collection_ID"
-        <*> filterLookupOptional m "Custodian_Institution"
-        <*> filterLookupOptional m "Cultural_Era"
-        <*> filterLookupOptional m "Cultural_Era_URL"
-        <*> filterLookupOptional m "Archaeological_Culture"
-        <*> filterLookupOptional m "Archaeological_Culture_URL"
-        <*> filterLookupOptional m "Country"
-        <*> filterLookupOptional m "Country_ISO"
-        <*> filterLookupOptional m "Location"
-        <*> filterLookupOptional m "Site"
-        <*> filterLookupOptional m "Latitude"
-        <*> filterLookupOptional m "Longitude"
-        <*> filterLookupOptional m "Date_Type"
-        <*> filterLookupOptional m "Date_C14_Labnr"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
-        <*> filterLookupOptional m "Date_BC_AD_Start"
-        <*> filterLookupOptional m "Date_BC_AD_Median"
-        <*> filterLookupOptional m "Date_BC_AD_Stop"
-        <*> filterLookupOptional m "Chromosomal_Anomalies"
-        <*> filterLookupOptional m "MT_Haplogroup"
-        <*> filterLookupOptional m "Y_Haplogroup"
-        <*> filterLookupOptional m "Source_Material"
-        <*> filterLookupOptional m "Nr_Libraries"
-        <*> filterLookupOptional m "Library_Names"
-        <*> filterLookupOptional m "Capture_Type"
-        <*> filterLookupOptional m "UDG"
-        <*> filterLookupOptional m "Library_Built"
-        <*> filterLookupOptional m "Genotype_Ploidy"
-        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
-        <*> filterLookupOptional m "Endogenous"
-        <*> filterLookupOptional m "Nr_SNPs"
-        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
-        <*> filterLookupOptional m "Damage"
-        <*> filterLookupOptional m "Contamination"
-        <*> filterLookupOptional m "Contamination_Err"
-        <*> filterLookupOptional m "Contamination_Meas"
-        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
-        <*> filterLookupOptional m "Primary_Contact"
-        <*> filterLookupOptional m "Publication"
-        <*> filterLookupOptional m "Note"
-        <*> filterLookupOptional m "Keywords"
+        <$> filterLookup         pv m "Poseidon_ID"
+        <*> filterLookup         pv m "Genetic_Sex"
+        <*> filterLookup         pv m "Group_Name"
+        <*> filterLookupOptional pv m "Individual_ID"
+        <*> filterLookupOptional pv m "Species"
+        <*> filterLookupOptional pv m "Alternative_IDs"
+        <*> filterLookupOptional pv m "Alternative_IDs_Context"
+        <*> filterLookupOptional pv m "Relation_To"
+        <*> filterLookupOptional pv m "Relation_Degree"
+        <*> filterLookupOptional pv m "Relation_Type"
+        <*> filterLookupOptional pv m "Collection_ID"
+        <*> filterLookupOptional pv m "Custodian_Institution"
+        <*> filterLookupOptional pv m "Cultural_Era"
+        <*> filterLookupOptional pv m "Cultural_Era_URL"
+        <*> filterLookupOptional pv m "Archaeological_Culture"
+        <*> filterLookupOptional pv m "Archaeological_Culture_URL"
+        <*> filterLookupOptional pv m "Country"
+        <*> filterLookupOptional pv m "Country_ISO"
+        <*> filterLookupOptional pv m "Location"
+        <*> filterLookupOptional pv m "Site"
+        <*> filterLookupOptional pv m "Latitude"
+        <*> filterLookupOptional pv m "Longitude"
+        <*> filterLookupOptional pv m "Date_Type"
+        <*> filterLookupOptional pv m "Date_C14_Labnr"
+        <*> filterLookupOptional pv m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional pv m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional pv m "Date_BC_AD_Start"
+        <*> filterLookupOptional pv m "Date_BC_AD_Median"
+        <*> filterLookupOptional pv m "Date_BC_AD_Stop"
+        <*> filterLookupOptional pv m "Chromosomal_Anomalies"
+        <*> filterLookupOptional pv m "MT_Haplogroup"
+        <*> filterLookupOptional pv m "Y_Haplogroup"
+        <*> filterLookupOptional pv m "Source_Material"
+        <*> filterLookupOptional pv m "Nr_Libraries"
+        <*> filterLookupOptional pv m "Library_Names"
+        <*> filterLookupOptional pv m "Capture_Type"
+        <*> filterLookupOptional pv m "UDG"
+        <*> filterLookupOptional pv m "Library_Built"
+        <*> filterLookupOptional pv m "Genotype_Ploidy"
+        <*> filterLookupOptional pv m "Data_Preparation_Pipeline_URL"
+        <*> filterLookupOptional pv m "Endogenous"
+        <*> filterLookupOptional pv m "Nr_SNPs"
+        <*> filterLookupOptional pv m "Coverage_on_Target_SNPs"
+        <*> filterLookupOptional pv m "Damage"
+        <*> filterLookupOptional pv m "Contamination"
+        <*> filterLookupOptional pv m "Contamination_Err"
+        <*> filterLookupOptional pv m "Contamination_Meas"
+        <*> filterLookupOptional pv m "Genetic_Source_Accession_IDs"
+        <*> filterLookupOptional pv m "Primary_Contact"
+        <*> filterLookupOptional pv m "Publication"
+        <*> filterLookupOptional pv m "Note"
+        <*> filterLookupOptional pv m "Keywords"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
@@ -415,8 +417,8 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path (jannoConcat <> "\n")
 
 -- | A function to load one janno file
-readJannoFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
-readJannoFile mandatoryCols jannoPath = do
+readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile pv mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
@@ -443,8 +445,13 @@ readJannoFile mandatoryCols jannoPath = do
         -- for each additional column a standard column is suggested: "Countro (Country?)"
             intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
             additional_columns (findSimilarNames missing_columns additional_columns)))
+    -- report outdated columns
+    OP.when ((asVersion pv >= makeVersion [3,0,0]) && "Source_Tissue" `elem` jannoColNames) $
+        logWarning $ ("Outdated .janno column in " ++
+                      jannoPath ++
+                      ": The Source_Tissue column was replaced by Source_Material in Poseidon v3.0.0.")
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow mandatoryCols jannoPath) jannoFileRowsWithHeader
+    jannoRepresentation <- mapM (readJannoFileRow pv mandatoryCols jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -471,12 +478,13 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: [Bchs.ByteString]
+readJannoFileRow :: PoseidonVersion
+                 -> [Bchs.ByteString]
                  -> FilePath
                  -> (Int, Bch.ByteString)
                  -> PoseidonIO (Either PoseidonException JannoRow)
-readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord mandatoryCols) decodingOptions row
+readJannoFileRow pv mandatoryCols jannoPath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord pv mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do
@@ -491,7 +499,7 @@ readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
                 logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
                 mapM_ logWarning inspectRes
             -- cross-column checks
-            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency pv jannoRow))
             mapM_ (logWarning . renderWarning) warnings
              -- return result
             case errOrJannoRow of
@@ -518,16 +526,16 @@ checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPosei
 
 -- Row-wise .janno consistency checks
 
-checkJannoRowConsistency :: JannoRow -> RowLog JannoRow
-checkJannoRowConsistency x =
+checkJannoRowConsistency :: PoseidonVersion -> JannoRow -> RowLog JannoRow
+checkJannoRowConsistency pv x =
     return x
     >>= checkMandatoryStringNotEmpty
-    >>= checkAlternativeIDsConsistent
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkAlternativeIDsConsistent else return)
     >>= checkC14ColsConsistent
     >>= checkContamColsConsistent
     >>= checkRelationColsConsistent
-    >>= checkCulturalEraConsistent
-    >>= checkArchaeologicalCultureConsistent
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkCulturalEraConsistent else return)
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkArchaeologicalCultureConsistent else return)
 
 checkMandatoryStringNotEmpty :: JannoRow -> RowLog JannoRow
 checkMandatoryStringNotEmpty x =

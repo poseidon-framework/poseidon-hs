@@ -10,30 +10,43 @@
 
 module Poseidon.ColumnTypesUtils where
 
-import qualified Control.Monad.Except  as E
-import qualified Control.Monad.Writer  as W
-import           Data.ByteString       as S
-import qualified Data.ByteString.Char8 as Bchs
-import           Data.Char             (chr, ord)
-import qualified Data.Csv              as Csv
-import qualified Data.HashMap.Strict   as HM
-import qualified Data.List             as L
-import qualified Data.Text             as T
-import qualified Data.Text.Encoding    as T
-import           Data.Typeable         (Typeable)
-import           Generics.SOP          (All, Generic (Code, from),
-                                        HCollapse (hcollapse), I (..), K (K),
-                                        Proxy (..), hcmap, unSOP, unZ)
-import           GHC.Generics          as G hiding (conName)
-import           Language.Haskell.TH   (Con (..), Dec (..), DecsQ, Info (..),
-                                        Name, conE, conP, conT, mkName, reify,
-                                        varE, varP)
-import qualified Text.Parsec           as P
-import qualified Text.Parsec.String    as P
+import qualified Control.Monad.Except     as E
+import qualified Control.Monad.Writer     as W
+import           Data.ByteString          as S
+import qualified Data.ByteString.Char8    as Bchs
+import           Data.Char                (chr, ord)
+import qualified Data.Csv                 as Csv
+import qualified Data.HashMap.Strict      as HM
+import qualified Data.List                as L
+import qualified Data.Text                as T
+import qualified Data.Text.Encoding       as T
+import           Data.Typeable            (Typeable)
+import           Generics.SOP             (All, Generic (Code, from),
+                                           HCollapse (hcollapse), I (..), K (K),
+                                           Proxy (..), hcmap, unSOP, unZ)
+import           GHC.Generics             as G hiding (conName)
+import           Language.Haskell.TH      (Con (..), Dec (..), DecsQ, Info (..),
+                                           Name, conE, conP, conT, mkName,
+                                           reify, varE, varP)
+import           Poseidon.PoseidonVersion (PoseidonVersion)
+import qualified Text.Parsec              as P
+import qualified Text.Parsec.String       as P
+
+-- a typeclass like cassavas FromField, but aware of PoseidonVersions
+class FromFieldVersioned a where
+    parseFieldVersioned :: PoseidonVersion -> Csv.Field -> Csv.Parser a
+
+instance FromFieldVersioned String where parseFieldVersioned _ = Csv.parseField
+instance FromFieldVersioned Int where parseFieldVersioned _ = Csv.parseField
+-- modified from cassava's FromField (Maybe a) instance
+instance FromFieldVersioned a => FromFieldVersioned (Maybe a) where
+    parseFieldVersioned pv s
+        | Bchs.null s  = pure Nothing
+        | otherwise = Just <$> parseFieldVersioned pv s
 
 -- a typeclass for types with smart constructors
 class Makeable a where
-    make :: MonadFail m => T.Text -> m a
+    make :: MonadFail m => PoseidonVersion -> T.Text -> m a
 
 -- a typeclass for .csv/.tsv column types that may require a logged warning when read
 class Suspicious a where
@@ -57,10 +70,10 @@ inspectEachField =
     . unZ . unSOP . Generics.SOP.from
 
 -- helper functions
-parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => String -> S.ByteString -> m a
-parseTypeCSV colname x = case T.decodeUtf8' x of
+parseTypeCSV :: forall a m. (MonadFail m, Makeable a, Typeable a) => PoseidonVersion -> String -> S.ByteString -> m a
+parseTypeCSV pv colname x = case T.decodeUtf8' x of
         Left e  -> fail $ show e ++ " in column " ++ colname
-        Right t -> make $ T.strip t
+        Right t -> make pv $ T.strip t
 
 -- template haskell function to generate repetitive instances
 makeInstances :: Name -> String -> DecsQ
@@ -68,11 +81,11 @@ makeInstances name col = do
     TyConI (NewtypeD _ _ _ _ (NormalC conName _) _) <- reify name
     let x = mkName "x"
     [d|
-      instance Makeable $(conT name) where      make txt = return $ $(conE conName) txt
+      instance Makeable $(conT name) where      make _ txt = return $ $(conE conName) txt
       instance Suspicious $(conT name) where    inspect _ = Nothing
       instance Show $(conT name) where          show $(conP conName [varP x]) = T.unpack $(varE x)
       instance Csv.ToField $(conT name) where   toField $(conP conName [varP x]) = Csv.toField $(varE x)
-      instance Csv.FromField $(conT name) where parseField = parseTypeCSV col
+      instance FromFieldVersioned $(conT name) where parseFieldVersioned pv = parseTypeCSV pv col
       |]
 
 -- general encoding/decoding options
@@ -113,13 +126,13 @@ checkMandatory m mandatory =
     Nothing -> fail ("Missing value in mandatory column: " <> Bchs.unpack mandatory)
     Just _  -> pure ()
 
-filterLookup :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
-filterLookup m name = case cleanInput $ HM.lookup name m of
+filterLookup :: FromFieldVersioned a => PoseidonVersion -> Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser a
+filterLookup pv m name = case cleanInput $ HM.lookup name m of
     Nothing -> fail $ "Missing value in mandatory column: " <> Bchs.unpack name
-    Just x  -> Csv.parseField  x
+    Just x  -> parseFieldVersioned pv x
 
-filterLookupOptional :: Csv.FromField a => Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
-filterLookupOptional m name = maybe (pure Nothing) Csv.parseField . cleanInput $ HM.lookup name m
+filterLookupOptional :: FromFieldVersioned a => PoseidonVersion -> Csv.NamedRecord -> Bchs.ByteString -> Csv.Parser (Maybe a)
+filterLookupOptional pv m name = maybe (pure Nothing) (\bs -> Just <$> parseFieldVersioned pv bs) . cleanInput $ HM.lookup name m
 
 cleanInput :: Maybe Bchs.ByteString -> Maybe Bchs.ByteString
 cleanInput Nothing           = Nothing
@@ -143,8 +156,8 @@ getMaybeListColumn (Just x) = getListColumn x
 
 instance (Csv.ToField a, Show a) => Csv.ToField (ListColumn a) where
     toField x = Bchs.intercalate ";" $ L.map Csv.toField $ getListColumn x
-instance (Csv.FromField a) => Csv.FromField (ListColumn a) where
-    parseField x = fmap ListColumn . mapM Csv.parseField $ Bchs.splitWith (==';') x
+instance (FromFieldVersioned a) => FromFieldVersioned (ListColumn a) where
+    parseFieldVersioned pv x = fmap ListColumn . mapM (parseFieldVersioned pv) $ Bchs.splitWith (==';') x
 
 -- helper functions for reformatting parser errors
 removeUselessSuffix :: String -> String

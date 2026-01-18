@@ -29,6 +29,7 @@ import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
+import           Poseidon.PoseidonVersion
 import qualified Text.Parsec                as P
 
 -- | A data type to represent a seqSourceFile
@@ -133,33 +134,33 @@ seqSourceRefHashMap = HM.fromList $ map (\x -> (x, ())) seqSourceHeader
 
 -- instance Csv.FromNamedRecord SeqSourceRow where
 --     parseNamedRecord m = SeqSourceRow
-parseSeqSourceRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser SeqSourceRow
-parseSeqSourceRowFromNamedRecord mandatory m = do
+parseSeqSourceRowFromNamedRecord :: PoseidonVersion -> [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser SeqSourceRow
+parseSeqSourceRowFromNamedRecord pv mandatory m = do
     mapM_ (checkMandatory m) mandatory
     SeqSourceRow
-        <$> filterLookupOptional m "poseidon_IDs"
-        <*> filterLookupOptional m "udg"
-        <*> filterLookupOptional m "library_built"
-        <*> filterLookupOptional m "sample_accession"
-        <*> filterLookupOptional m "study_accession"
-        <*> filterLookup         m "run_accession"
-        <*> filterLookupOptional m "sample_alias"
-        <*> filterLookupOptional m "secondary_sample_accession"
-        <*> filterLookupOptional m "first_public"
-        <*> filterLookupOptional m "last_updated"
-        <*> filterLookupOptional m "instrument_model"
-        <*> filterLookupOptional m "library_layout"
-        <*> filterLookupOptional m "library_source"
-        <*> filterLookupOptional m "instrument_platform"
-        <*> filterLookupOptional m "library_name"
-        <*> filterLookupOptional m "library_strategy"
-        <*> filterLookupOptional m "fastq_ftp"
-        <*> filterLookupOptional m "fastq_aspera"
-        <*> filterLookupOptional m "fastq_bytes"
-        <*> filterLookupOptional m "fastq_md5"
-        <*> filterLookupOptional m "read_count"
-        <*> filterLookupOptional m "submitted_ftp"
-        <*> filterLookupOptional m "submitted_md5"
+        <$> filterLookupOptional pv m "poseidon_IDs"
+        <*> filterLookupOptional pv m "udg"
+        <*> filterLookupOptional pv m "library_built"
+        <*> filterLookupOptional pv m "sample_accession"
+        <*> filterLookupOptional pv m "study_accession"
+        <*> filterLookupOptional pv m "run_accession"
+        <*> filterLookupOptional pv m "sample_alias"
+        <*> filterLookupOptional pv m "secondary_sample_accession"
+        <*> filterLookupOptional pv m "first_public"
+        <*> filterLookupOptional pv m "last_updated"
+        <*> filterLookupOptional pv m "instrument_model"
+        <*> filterLookupOptional pv m "library_layout"
+        <*> filterLookupOptional pv m "library_source"
+        <*> filterLookupOptional pv m "instrument_platform"
+        <*> filterLookupOptional pv m "library_name"
+        <*> filterLookupOptional pv m "library_strategy"
+        <*> filterLookupOptional pv m "fastq_ftp"
+        <*> filterLookupOptional pv m "fastq_aspera"
+        <*> filterLookupOptional pv m "fastq_bytes"
+        <*> filterLookupOptional pv m "fastq_md5"
+        <*> filterLookupOptional pv m "read_count"
+        <*> filterLookupOptional pv m "submitted_ftp"
+        <*> filterLookupOptional pv m "submitted_md5"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` seqSourceRefHashMap))
@@ -203,8 +204,8 @@ writeSeqSourceFile path (SeqSourceRows rows) = do
             V.fromList $ seqSourceHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . sAdditionalColumns) rows)))
 
 -- | A function to read one seqSourceFile
-readSeqSourceFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO SeqSourceRows
-readSeqSourceFile mandatoryCols seqSourcePath = do
+readSeqSourceFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO SeqSourceRows
+readSeqSourceFile pv mandatoryCols seqSourcePath = do
     logDebug $ "Reading: " ++ seqSourcePath
     seqSourceFile <- liftIO $ Bch.readFile seqSourcePath
     let seqSourceFileRows = Bch.lines seqSourceFile
@@ -221,7 +222,7 @@ readSeqSourceFile mandatoryCols seqSourcePath = do
         rowsOnly = tail seqSourceFileRowsWithNumberFiltered
         seqSourceFileRowsWithHeader = map (second (\x -> headerOnly <> "\n" <> x)) rowsOnly
     -- read seqSourceFile by rows
-    seqSourceRepresentation <- mapM (readSeqSourceFileRow mandatoryCols seqSourcePath) seqSourceFileRowsWithHeader
+    seqSourceRepresentation <- mapM (readSeqSourceFileRow pv mandatoryCols seqSourcePath) seqSourceFileRowsWithHeader
     -- error case management
     if not (null (lefts seqSourceRepresentation))
     then do
@@ -233,12 +234,13 @@ readSeqSourceFile mandatoryCols seqSourcePath = do
         return seqSource
 
 -- | A function to read one row of a seqSourceFile
-readSeqSourceFileRow :: [Bchs.ByteString]
+readSeqSourceFileRow :: PoseidonVersion
+                     -> [Bchs.ByteString]
                      -> FilePath
                      -> (Int, Bch.ByteString)
                      -> PoseidonIO (Either PoseidonException SeqSourceRow)
-readSeqSourceFileRow mandatoryCols seqSourcePath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWithP (parseSeqSourceRowFromNamedRecord mandatoryCols) decodingOptions row
+readSeqSourceFileRow pv mandatoryCols seqSourcePath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseSeqSourceRowFromNamedRecord pv mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do
