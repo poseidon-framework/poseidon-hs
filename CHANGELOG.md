@@ -1,5 +1,5 @@
 - V 1.6.9.1:
-    - Fixed [a bug](https://github.com/poseidon-framework/poseidon-hs/issues/365) related to forge-names of packages with hyphons and numbers.
+    - Fixed [a bug](https://github.com/poseidon-framework/poseidon-hs/issues/365) related to forge-names of packages with hyphens and numbers.
 - V 1.6.9.0:
     - Introduced new `retiredPackagesFile` field to be given in the Archive Specification YAML file of the server, to specify retired packages for serving. Retired packages are by default ignored in the `/packages`, `/groups`, `/bibliography` and `/individuals` endpoints, as well as ignored in the archive HTML page of the explorer. However, `/zip_file` still serves retired packages, so that they can be downloaded, and the retired packages are still available in the per-package explorer HTML page.
 - V 1.6.8.0:
