@@ -33,16 +33,16 @@
 </span><span id="line-29"></span><span>
 </span><span id="line-30"></span><span class="annot"><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-type">runInit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-31"></span><span id="runInit"><span class="annot"><span class="annottext">runInit :: InitOptions -&gt; PoseidonIO ()
-</span><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-var hs-var">runInit</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span id="local-6989586621679673516"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673516"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span></span><span> </span><span id="local-6989586621679673517"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673517"><span class="hs-identifier hs-var">outPathRaw</span></a></span></span><span> </span><span id="local-6989586621679673518"><span class="annot"><span class="annottext">Maybe [Char]
-</span><a href="#local-6989586621679673518"><span class="hs-identifier hs-var">maybeOutName</span></a></span></span><span> </span><span id="local-6989586621679673519"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679673519"><span class="hs-identifier hs-var">minimal</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="Poseidon.CLI.Init.html#runInit"><span class="hs-identifier hs-var hs-var">runInit</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Init.html#InitOptions"><span class="hs-identifier hs-type">InitOptions</span></a></span><span> </span><span id="local-6989586621679673552"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679673552"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span></span><span> </span><span id="local-6989586621679673553"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673553"><span class="hs-identifier hs-var">outPathRaw</span></a></span></span><span> </span><span id="local-6989586621679673554"><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679673554"><span class="hs-identifier hs-var">maybeOutName</span></a></span></span><span> </span><span id="local-6989586621679673555"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679673555"><span class="hs-identifier hs-var">minimal</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-32"></span><span>    </span><span class="hs-comment">-- create new directory</span><span>
-</span><span id="line-33"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673520"><span class="annot"><span class="annottext">outPath :: [Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var hs-var">outPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
+</span><span id="line-33"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673556"><span class="annot"><span class="annottext">outPath :: [Char]
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var hs-var">outPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
 </span><span class="hs-identifier hs-var">dropTrailingPathSeparator</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673517"><span class="hs-identifier hs-var">outPathRaw</span></a></span><span>
+</span><a href="#local-6989586621679673553"><span class="hs-identifier hs-var">outPathRaw</span></a></span><span>
 </span><span id="line-34"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -50,7 +50,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Creating new package directory: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span>
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span>
 </span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -59,10 +59,10 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [Char] -&gt; IO ()
 </span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span>
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span>
 </span><span id="line-36"></span><span>    </span><span class="hs-comment">-- compile genotype data structure</span><span>
-</span><span id="line-37"></span><span>    </span><span id="local-6989586621679673521"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673521"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">([Char], GenotypeDataSpec) -&gt; GenotypeDataSpec
+</span><span id="line-37"></span><span>    </span><span id="local-6989586621679673557"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679673557"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">([Char], GenotypeDataSpec) -&gt; GenotypeDataSpec
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(([Char], GenotypeDataSpec) -&gt; GenotypeDataSpec)
 -&gt; ReaderT Env IO ([Char], GenotypeDataSpec)
@@ -73,49 +73,49 @@ forall (m :: * -&gt; *).
 MonadThrow m =&gt;
 GenotypeDataSpec -&gt; m ([Char], GenotypeDataSpec)
 </span><a href="Poseidon.GenotypeData.html#reduceGenotypeFilepaths"><span class="hs-identifier hs-var">reduceGenotypeFilepaths</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673516"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span><span>
+</span><a href="#local-6989586621679673552"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span><span>
 </span><span id="line-38"></span><span>    </span><span class="hs-comment">-- genotype data</span><span>
 </span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;Copying genotype data&quot;</span></span><span>
-</span><span id="line-40"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673524"><span class="annot"><span class="annottext">sourceFiles :: [[Char]]
-</span><a href="#local-6989586621679673524"><span class="hs-identifier hs-var hs-var">sourceFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
+</span><span id="line-40"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673560"><span class="annot"><span class="annottext">sourceFiles :: [[Char]]
+</span><a href="#local-6989586621679673560"><span class="hs-identifier hs-var hs-var">sourceFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
 </span><a href="Poseidon.GenotypeData.html#genotypeFileSpec"><span class="hs-identifier hs-var">genotypeFileSpec</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673516"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-41"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeEigenstrat"><span class="hs-identifier hs-type">GenotypeEigenstrat</span></a></span><span> </span><span id="local-6989586621679673527"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673527"><span class="hs-identifier hs-var">genoFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673528"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673528"><span class="hs-identifier hs-var">snpFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673529"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673529"><span class="hs-identifier hs-var">indFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679673552"><span class="hs-identifier hs-var">genotypeDataIn</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-41"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeEigenstrat"><span class="hs-identifier hs-type">GenotypeEigenstrat</span></a></span><span> </span><span id="local-6989586621679673563"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673563"><span class="hs-identifier hs-var">genoFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673564"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673564"><span class="hs-identifier hs-var">snpFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673565"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673565"><span class="hs-identifier hs-var">indFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673527"><span class="hs-identifier hs-var">genoFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673528"><span class="hs-identifier hs-var">snpFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673529"><span class="hs-identifier hs-var">indFile</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-42"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypePlink"><span class="hs-identifier hs-type">GenotypePlink</span></a></span><span>      </span><span id="local-6989586621679673531"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673531"><span class="hs-identifier hs-var">genoFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673532"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673532"><span class="hs-identifier hs-var">snpFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673533"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673533"><span class="hs-identifier hs-var">indFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679673563"><span class="hs-identifier hs-var">genoFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673564"><span class="hs-identifier hs-var">snpFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673565"><span class="hs-identifier hs-var">indFile</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypePlink"><span class="hs-identifier hs-type">GenotypePlink</span></a></span><span>      </span><span id="local-6989586621679673567"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673567"><span class="hs-identifier hs-var">genoFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673568"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673568"><span class="hs-identifier hs-var">snpFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679673569"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673569"><span class="hs-identifier hs-var">indFile</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673531"><span class="hs-identifier hs-var">genoFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673532"><span class="hs-identifier hs-var">snpFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673533"><span class="hs-identifier hs-var">indFile</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-43"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeVCF"><span class="hs-identifier hs-type">GenotypeVCF</span></a></span><span>        </span><span id="local-6989586621679673535"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673535"><span class="hs-identifier hs-var">vcfFile</span></a></span></span><span>  </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679673567"><span class="hs-identifier hs-var">genoFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673568"><span class="hs-identifier hs-var">snpFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673569"><span class="hs-identifier hs-var">indFile</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-43"></span><span>            </span><span class="annot"><a href="Poseidon.GenotypeData.html#GenotypeVCF"><span class="hs-identifier hs-type">GenotypeVCF</span></a></span><span>        </span><span id="local-6989586621679673571"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673571"><span class="hs-identifier hs-var">vcfFile</span></a></span></span><span>  </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673535"><span class="hs-identifier hs-var">vcfFile</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679673571"><span class="hs-identifier hs-var">vcfFile</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-44"></span><span>    </span><span class="annot"><span class="annottext">[[Char]] -&gt; ([Char] -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
-</span><a href="#local-6989586621679673524"><span class="hs-identifier hs-var">sourceFiles</span></a></span><span> </span><span class="annot"><span class="annottext">(([Char] -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
+</span><a href="#local-6989586621679673560"><span class="hs-identifier hs-var">sourceFiles</span></a></span><span> </span><span class="annot"><span class="annottext">(([Char] -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
 -&gt; ([Char] -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679673536"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673536"><span class="hs-identifier hs-var">sourceFile</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679673572"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673572"><span class="hs-identifier hs-var">sourceFile</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-45"></span><span>        </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -123,15 +123,15 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Maybe [Char] -&gt; IO ()
 </span><a href="Poseidon.Utils.html#checkFile"><span class="hs-identifier hs-var">checkFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673536"><span class="hs-identifier hs-var">sourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679673572"><span class="hs-identifier hs-var">sourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-46"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673537"><span class="annot"><span class="annottext">targetFile :: [Char]
-</span><a href="#local-6989586621679673537"><span class="hs-identifier hs-var hs-var">targetFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><span id="line-46"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679673573"><span class="annot"><span class="annottext">targetFile :: [Char]
+</span><a href="#local-6989586621679673573"><span class="hs-identifier hs-var hs-var">targetFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
 </span><span class="hs-identifier hs-var">takeFileName</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673536"><span class="hs-identifier hs-var">sourceFile</span></a></span><span>
+</span><a href="#local-6989586621679673572"><span class="hs-identifier hs-var">sourceFile</span></a></span><span>
 </span><span id="line-47"></span><span>        </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -139,14 +139,14 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; IO ()
 </span><span class="hs-identifier hs-var">copyFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673536"><span class="hs-identifier hs-var">sourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673537"><span class="hs-identifier hs-var">targetFile</span></a></span><span>
+</span><a href="#local-6989586621679673572"><span class="hs-identifier hs-var">sourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673573"><span class="hs-identifier hs-var">targetFile</span></a></span><span>
 </span><span id="line-48"></span><span>    </span><span class="hs-comment">-- create new package</span><span>
 </span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;Creating new package entity&quot;</span></span><span>
-</span><span id="line-50"></span><span>    </span><span id="local-6989586621679673538"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673538"><span class="hs-identifier hs-var">outName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Char] -&gt; ReaderT Env IO [Char]
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679673574"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673574"><span class="hs-identifier hs-var">outName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [Char] -&gt; ReaderT Env IO [Char]
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [Char] -&gt; ReaderT Env IO [Char])
@@ -154,25 +154,25 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char] -&gt; [Char] -&gt; IO [Char]
 </span><a href="Poseidon.Utils.html#determinePackageOutName"><span class="hs-identifier hs-var">determinePackageOutName</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
-</span><a href="#local-6989586621679673518"><span class="hs-identifier hs-var">maybeOutName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span>
-</span><span id="line-51"></span><span>    </span><span id="local-6989586621679673539"><span class="annot"><span class="annottext">[EigenstratIndEntry]
-</span><a href="#local-6989586621679673539"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; GenotypeDataSpec -&gt; PoseidonIO [EigenstratIndEntry]
+</span><a href="#local-6989586621679673554"><span class="hs-identifier hs-var">maybeOutName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span>
+</span><span id="line-51"></span><span>    </span><span id="local-6989586621679673575"><span class="annot"><span class="annottext">[EigenstratIndEntry]
+</span><a href="#local-6989586621679673575"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; GenotypeDataSpec -&gt; PoseidonIO [EigenstratIndEntry]
 </span><a href="Poseidon.GenotypeData.html#loadIndividuals"><span class="hs-identifier hs-var">loadIndividuals</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673521"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span>
-</span><span id="line-52"></span><span>    </span><span id="local-6989586621679673540"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679673540"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679673519"><span class="hs-identifier hs-var">minimal</span></a></span><span>
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679673557"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span>
+</span><span id="line-52"></span><span>    </span><span id="local-6989586621679673576"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679673576"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679673555"><span class="hs-identifier hs-var">minimal</span></a></span><span>
 </span><span id="line-53"></span><span>           </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[Char]
 -&gt; [Char] -&gt; GenotypeDataSpec -&gt; ReaderT Env IO PoseidonPackage
 forall (m :: * -&gt; *).
 MonadThrow m =&gt;
 [Char] -&gt; [Char] -&gt; GenotypeDataSpec -&gt; m PoseidonPackage
 </span><a href="Poseidon.Package.html#newMinimalPackageTemplate"><span class="hs-identifier hs-var">newMinimalPackageTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673538"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673521"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span>
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673574"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679673557"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span>
 </span><span id="line-54"></span><span>           </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[Char]
 -&gt; [Char]
 -&gt; GenotypeDataSpec
@@ -181,15 +181,15 @@ MonadThrow m =&gt;
 -&gt; BibTeX
 -&gt; ReaderT Env IO PoseidonPackage
 </span><a href="Poseidon.Package.html#newPackageTemplate"><span class="hs-identifier hs-var">newPackageTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673538"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679673521"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Either [EigenstratIndEntry] JannoRows
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679673574"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679673557"><span class="hs-identifier hs-var">genotypeDataOut</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Either [EigenstratIndEntry] JannoRows
 -&gt; Maybe (Either [EigenstratIndEntry] JannoRows)
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[EigenstratIndEntry] -&gt; Either [EigenstratIndEntry] JannoRows
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">[EigenstratIndEntry]
-</span><a href="#local-6989586621679673539"><span class="hs-identifier hs-var">inds</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">SeqSourceRows
+</span><a href="#local-6989586621679673575"><span class="hs-identifier hs-var">inds</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">SeqSourceRows
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">BibEntry
 </span><a href="Poseidon.BibFile.html#dummyBibEntry"><span class="hs-identifier hs-var">dummyBibEntry</span></a></span><span class="hs-special">]</span><span>
@@ -204,11 +204,11 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; IO ()
 </span><a href="Poseidon.Package.html#writePoseidonPackage"><span class="hs-identifier hs-var">writePoseidonPackage</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679673540"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679673576"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-58"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679673519"><span class="hs-identifier hs-var">minimal</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679673555"><span class="hs-identifier hs-var">minimal</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-59"></span><span>        </span><span class="hs-comment">-- janno</span><span>
@@ -222,15 +222,15 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; JannoRows -&gt; IO ()
 </span><a href="Poseidon.Janno.html#writeJannoFile"><span class="hs-identifier hs-var">writeJannoFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673538"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679673574"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;janno&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(JannoRows -&gt; IO ()) -&gt; JannoRows -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; JannoRows
 </span><a href="Poseidon.Package.html#posPacJanno"><span class="hs-identifier hs-var">posPacJanno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679673540"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679673576"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-62"></span><span>        </span><span class="hs-comment">-- bib</span><span>
 </span><span id="line-63"></span><span>        </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
@@ -242,13 +242,13 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; BibTeX -&gt; IO ()
 </span><a href="Poseidon.BibFile.html#writeBibTeXFile"><span class="hs-identifier hs-var">writeBibTeXFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673520"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679673556"><span class="hs-identifier hs-var">outPath</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 </span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679673538"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679673574"><span class="hs-identifier hs-var">outName</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 </span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;bib&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(BibTeX -&gt; IO ()) -&gt; BibTeX -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; BibTeX
 </span><a href="Poseidon.Package.html#posPacBib"><span class="hs-identifier hs-var">posPacBib</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679673540"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679673576"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-65"></span></pre></body></html>
