@@ -209,7 +209,11 @@ instance EntitySpec PoseidonEntity where
                     then return (prevPart ++ curPart)
                     else parseNamePart (prevPart ++ curPart ++ "-")
                 _ -> return (prevPart ++ curPart)
-        probeForVersion  = P.lookAhead (parseVersion >> return True) <|> pure False
+        probeForVersion  = P.lookAhead (P.try (parseVersion >> return True)) <|> pure False
+                                -- we use try to avoid
+                                -- consuming input if there is no version, and lookAhead to not
+                                -- consume the version if it is there, because we want to parse
+                                -- it later in the normal flow
         parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` [':', ',', '<', '>', '*'])))
         parseSimpleInd   = Ind <$> P.between (P.char '<') (P.char '>') parseName
         parseSpecificInd = do
