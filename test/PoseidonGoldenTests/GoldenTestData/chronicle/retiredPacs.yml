@@ -1,0 +1,7 @@
+title: "retiredPacs"
+version: "0.1.0"
+lastModified: "2024-06-01"
+packages:
+  - name: "Lamnidis_2018"
+    version: "1.0.1"
+    comment: "retired just for fun"

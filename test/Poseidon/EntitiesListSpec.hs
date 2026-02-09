@@ -42,6 +42,14 @@ testReadPoseidonEntitiesString =
             [Include $ Pac (PacNameAndVersion "c" Nothing)]
         fromRight [] (readEntitiesFromString "*c-1.2.3*") `shouldBe`
             [Include $ Pac (PacNameAndVersion "c" (Just $ makeVersion [1,2,3]))]
+        fromRight [] (readEntitiesFromString "*2023-07*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "2023-07" Nothing)]
+        fromRight [] (readEntitiesFromString "*2023-07-24-duerrnberg*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "2023-07-24-duerrnberg" Nothing)]
+        fromRight [] (readEntitiesFromString "*2023-07-24-duerrnberg-1.2.3*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "2023-07-24-duerrnberg" (Just $ makeVersion [1,2,3]))]
+        fromRight [] (readEntitiesFromString "*my-package-with-hyphons-1.2.3*") `shouldBe`
+            [Include $ Pac (PacNameAndVersion "my-package-with-hyphons" (Just $ makeVersion [1,2,3]))]
     it "should parse longer entity lists correctly" $ do
         fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
             map Include [
