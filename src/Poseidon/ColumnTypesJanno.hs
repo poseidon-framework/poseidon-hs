@@ -425,7 +425,11 @@ instance Makeable JannoCaptureType where
         | x == "TwistAncientDNA"    = pure TwistAncientDNA
         | x == "WISC2013"           = pure WISC2013
         | x == "OtherCapture"       = pure OtherCapture
-        | otherwise =
+        | x == "ReferenceGenome" && asVersion pv < makeVersion [3,0,0] = pure LegacyReferenceGenome
+        | otherwise = fail $ "Capture_Type is set to " ++ show x ++ ". " ++
+                        "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
+                        \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
+                        \OtherCapture]. Note that ReferenceGenome was retired in Poseidon v3.0.0."
             if x == "ReferenceGenome" && asVersion pv < makeVersion [3,0,0]
             then pure LegacyReferenceGenome
             else fail $ "Capture_Type is set to " ++ show x ++ ". " ++
