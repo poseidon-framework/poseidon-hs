@@ -24,6 +24,7 @@ module Poseidon.Janno (
 
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
+import           Poseidon.PoseidonVersion
 import           Poseidon.Utils
 
 import           Control.Exception                    (throwIO)
@@ -39,11 +40,13 @@ import qualified Data.Csv                             as Csv
 import           Data.Either                          (lefts, rights)
 import qualified Data.HashMap.Strict                  as HM
 import           Data.List                            (elemIndex, foldl',
-                                                       intercalate, nub, sort,
-                                                       transpose, (\\))
+                                                       insertBy, intercalate,
+                                                       nub, sort, transpose,
+                                                       (\\))
 import           Data.Maybe                           (catMaybes, fromJust)
 import qualified Data.Text                            as T
 import qualified Data.Vector                          as V
+import           Data.Version                         (makeVersion)
 import           Generics.SOP.TH                      (deriveGeneric)
 import           GHC.Generics                         (Generic)
 import           Options.Applicative.Help.Levenshtein (editDistance)
@@ -80,12 +83,19 @@ data JannoRow = JannoRow
     { jPoseidonID                 :: String
     , jGeneticSex                 :: GeneticSex
     , jGroupName                  :: ListColumn GroupName
+    , jIndividualID               :: Maybe JannoIndividualID
+    , jSpecies                    :: Maybe JannoSpecies
     , jAlternativeIDs             :: Maybe (ListColumn JannoAlternativeID)
+    , jAlternativeIDsContext      :: Maybe (ListColumn JannoAlternativeIDContext)
     , jRelationTo                 :: Maybe (ListColumn JannoRelationTo)
     , jRelationDegree             :: Maybe (ListColumn JannoRelationDegree)
     , jRelationType               :: Maybe (ListColumn JannoRelationType)
-    , jRelationNote               :: Maybe JannoRelationNote
-    , jCollectionID               :: Maybe JannoCollectionID
+    , jCollectionID               :: Maybe (ListColumn JannoCollectionID)
+    , jCustodianInstitution       :: Maybe (ListColumn JannoCustodianInstitution)
+    , jCulturalEra                :: Maybe (ListColumn JannoCulturalEra)
+    , jCulturalEraURL             :: Maybe (ListColumn JannoCulturalEraURL)
+    , jArchaeologicalCulture      :: Maybe (ListColumn JannoArchaeologicalCulture)
+    , jArchaeologicalCultureURL   :: Maybe (ListColumn JannoArchaeologicalCultureURL)
     , jCountry                    :: Maybe JannoCountry
     , jCountryISO                 :: Maybe JannoCountryISO
     , jLocation                   :: Maybe JannoLocation
@@ -99,10 +109,10 @@ data JannoRow = JannoRow
     , jDateBCADStart              :: Maybe JannoDateBCADStart
     , jDateBCADMedian             :: Maybe JannoDateBCADMedian
     , jDateBCADStop               :: Maybe JannoDateBCADStop
-    , jDateNote                   :: Maybe JannoDateNote
+    , jChromosomalAnomalies       :: Maybe (ListColumn JannoChromosomalAnomalies)
     , jMTHaplogroup               :: Maybe JannoMTHaplogroup
     , jYHaplogroup                :: Maybe JannoYHaplogroup
-    , jSourceTissue               :: Maybe (ListColumn JannoSourceTissue)
+    , jSourceMaterial             :: Maybe (ListColumn JannoSourceMaterial)
     , jNrLibraries                :: Maybe JannoNrLibraries
     , jLibraryNames               :: Maybe (ListColumn JannoLibraryName)
     , jCaptureType                :: Maybe (ListColumn JannoCaptureType)
@@ -113,11 +123,10 @@ data JannoRow = JannoRow
     , jEndogenous                 :: Maybe JannoEndogenous
     , jNrSNPs                     :: Maybe JannoNrSNPs
     , jCoverageOnTargets          :: Maybe JannoCoverageOnTargets
-    , jDamage                     :: Maybe JannoDamage
+    , jDamage                     :: Maybe (ListColumn JannoDamage)
     , jContamination              :: Maybe (ListColumn JannoContamination)
     , jContaminationErr           :: Maybe (ListColumn JannoContaminationErr)
     , jContaminationMeas          :: Maybe (ListColumn JannoContaminationMeas)
-    , jContaminationNote          :: Maybe JannoContaminationNote
     , jGeneticSourceAccessionIDs  :: Maybe (ListColumn JannoGeneticSourceAccessionID)
     , jPrimaryContact             :: Maybe JannoPrimaryContact
     , jPublication                :: Maybe (ListColumn JannoPublication)
@@ -136,22 +145,25 @@ jannoHeader = [
       "Poseidon_ID"
     , "Genetic_Sex"
     , "Group_Name"
-    , "Alternative_IDs"
-    , "Relation_To", "Relation_Degree", "Relation_Type", "Relation_Note"
-    , "Collection_ID"
+    , "Individual_ID"
+    , "Species"
+    , "Alternative_IDs", "Alternative_IDs_Context"
+    , "Relation_To", "Relation_Degree", "Relation_Type"
+    , "Collection_ID", "Custodian_Institution"
+    , "Cultural_Era", "Cultural_Era_URL", "Archaeological_Culture", "Archaeological_Culture_URL"
     , "Country", "Country_ISO"
     , "Location", "Site", "Latitude", "Longitude"
     , "Date_Type"
     , "Date_C14_Labnr", "Date_C14_Uncal_BP", "Date_C14_Uncal_BP_Err"
     , "Date_BC_AD_Start", "Date_BC_AD_Median", "Date_BC_AD_Stop"
-    , "Date_Note"
+    , "Chromosomal_Anomalies"
     , "MT_Haplogroup", "Y_Haplogroup"
-    , "Source_Tissue"
+    , "Source_Material"
     , "Nr_Libraries", "Library_Names"
     , "Capture_Type", "UDG", "Library_Built", "Genotype_Ploidy"
     , "Data_Preparation_Pipeline_URL"
     , "Endogenous", "Nr_SNPs", "Coverage_on_Target_SNPs", "Damage"
-    , "Contamination", "Contamination_Err", "Contamination_Meas", "Contamination_Note"
+    , "Contamination", "Contamination_Err", "Contamination_Meas"
     , "Genetic_Source_Accession_IDs"
     , "Primary_Contact"
     , "Publication"
@@ -174,56 +186,62 @@ jannoRefHashMap = HM.fromList $ map (\x -> (x, ())) jannoHeader
 
 -- instance Csv.FromNamedRecord JannoRow where
 --     parseNamedRecord m = JannoRow
-parseJannoRowFromNamedRecord :: [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
-parseJannoRowFromNamedRecord mandatory m = do
+parseJannoRowFromNamedRecord :: PoseidonVersion -> [Bchs.ByteString] -> Csv.NamedRecord -> Csv.Parser JannoRow
+parseJannoRowFromNamedRecord pv mandatory m = do
     mapM_ (checkMandatory m) mandatory
     JannoRow
-        <$> filterLookup         m "Poseidon_ID"
-        <*> filterLookup         m "Genetic_Sex"
-        <*> filterLookup         m "Group_Name"
-        <*> filterLookupOptional m "Alternative_IDs"
-        <*> filterLookupOptional m "Relation_To"
-        <*> filterLookupOptional m "Relation_Degree"
-        <*> filterLookupOptional m "Relation_Type"
-        <*> filterLookupOptional m "Relation_Note"
-        <*> filterLookupOptional m "Collection_ID"
-        <*> filterLookupOptional m "Country"
-        <*> filterLookupOptional m "Country_ISO"
-        <*> filterLookupOptional m "Location"
-        <*> filterLookupOptional m "Site"
-        <*> filterLookupOptional m "Latitude"
-        <*> filterLookupOptional m "Longitude"
-        <*> filterLookupOptional m "Date_Type"
-        <*> filterLookupOptional m "Date_C14_Labnr"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP"
-        <*> filterLookupOptional m "Date_C14_Uncal_BP_Err"
-        <*> filterLookupOptional m "Date_BC_AD_Start"
-        <*> filterLookupOptional m "Date_BC_AD_Median"
-        <*> filterLookupOptional m "Date_BC_AD_Stop"
-        <*> filterLookupOptional m "Date_Note"
-        <*> filterLookupOptional m "MT_Haplogroup"
-        <*> filterLookupOptional m "Y_Haplogroup"
-        <*> filterLookupOptional m "Source_Tissue"
-        <*> filterLookupOptional m "Nr_Libraries"
-        <*> filterLookupOptional m "Library_Names"
-        <*> filterLookupOptional m "Capture_Type"
-        <*> filterLookupOptional m "UDG"
-        <*> filterLookupOptional m "Library_Built"
-        <*> filterLookupOptional m "Genotype_Ploidy"
-        <*> filterLookupOptional m "Data_Preparation_Pipeline_URL"
-        <*> filterLookupOptional m "Endogenous"
-        <*> filterLookupOptional m "Nr_SNPs"
-        <*> filterLookupOptional m "Coverage_on_Target_SNPs"
-        <*> filterLookupOptional m "Damage"
-        <*> filterLookupOptional m "Contamination"
-        <*> filterLookupOptional m "Contamination_Err"
-        <*> filterLookupOptional m "Contamination_Meas"
-        <*> filterLookupOptional m "Contamination_Note"
-        <*> filterLookupOptional m "Genetic_Source_Accession_IDs"
-        <*> filterLookupOptional m "Primary_Contact"
-        <*> filterLookupOptional m "Publication"
-        <*> filterLookupOptional m "Note"
-        <*> filterLookupOptional m "Keywords"
+        <$> filterLookup         pv m "Poseidon_ID"
+        <*> filterLookup         pv m "Genetic_Sex"
+        <*> filterLookup         pv m "Group_Name"
+        <*> filterLookupOptional pv m "Individual_ID"
+        <*> filterLookupOptional pv m "Species"
+        <*> filterLookupOptional pv m "Alternative_IDs"
+        <*> filterLookupOptional pv m "Alternative_IDs_Context"
+        <*> filterLookupOptional pv m "Relation_To"
+        <*> filterLookupOptional pv m "Relation_Degree"
+        <*> filterLookupOptional pv m "Relation_Type"
+        <*> filterLookupOptional pv m "Collection_ID"
+        <*> filterLookupOptional pv m "Custodian_Institution"
+        <*> filterLookupOptional pv m "Cultural_Era"
+        <*> filterLookupOptional pv m "Cultural_Era_URL"
+        <*> filterLookupOptional pv m "Archaeological_Culture"
+        <*> filterLookupOptional pv m "Archaeological_Culture_URL"
+        <*> filterLookupOptional pv m "Country"
+        <*> filterLookupOptional pv m "Country_ISO"
+        <*> filterLookupOptional pv m "Location"
+        <*> filterLookupOptional pv m "Site"
+        <*> filterLookupOptional pv m "Latitude"
+        <*> filterLookupOptional pv m "Longitude"
+        <*> filterLookupOptional pv m "Date_Type"
+        <*> filterLookupOptional pv m "Date_C14_Labnr"
+        <*> filterLookupOptional pv m "Date_C14_Uncal_BP"
+        <*> filterLookupOptional pv m "Date_C14_Uncal_BP_Err"
+        <*> filterLookupOptional pv m "Date_BC_AD_Start"
+        <*> filterLookupOptional pv m "Date_BC_AD_Median"
+        <*> filterLookupOptional pv m "Date_BC_AD_Stop"
+        <*> filterLookupOptional pv m "Chromosomal_Anomalies"
+        <*> filterLookupOptional pv m "MT_Haplogroup"
+        <*> filterLookupOptional pv m "Y_Haplogroup"
+        <*> filterLookupOptional pv m "Source_Material"
+        <*> filterLookupOptional pv m "Nr_Libraries"
+        <*> filterLookupOptional pv m "Library_Names"
+        <*> filterLookupOptional pv m "Capture_Type"
+        <*> filterLookupOptional pv m "UDG"
+        <*> filterLookupOptional pv m "Library_Built"
+        <*> filterLookupOptional pv m "Genotype_Ploidy"
+        <*> filterLookupOptional pv m "Data_Preparation_Pipeline_URL"
+        <*> filterLookupOptional pv m "Endogenous"
+        <*> filterLookupOptional pv m "Nr_SNPs"
+        <*> filterLookupOptional pv m "Coverage_on_Target_SNPs"
+        <*> filterLookupOptional pv m "Damage"
+        <*> filterLookupOptional pv m "Contamination"
+        <*> filterLookupOptional pv m "Contamination_Err"
+        <*> filterLookupOptional pv m "Contamination_Meas"
+        <*> filterLookupOptional pv m "Genetic_Source_Accession_IDs"
+        <*> filterLookupOptional pv m "Primary_Contact"
+        <*> filterLookupOptional pv m "Publication"
+        <*> filterLookupOptional pv m "Note"
+        <*> filterLookupOptional pv m "Keywords"
         -- beyond that read everything that is not in the set of defined variables
         -- as a separate hashmap
         <*> pure (CsvNamedRecord (m `HM.difference` jannoRefHashMap))
@@ -233,12 +251,19 @@ instance Csv.ToNamedRecord JannoRow where
           "Poseidon_ID"                     Csv..= jPoseidonID j
         , "Genetic_Sex"                     Csv..= jGeneticSex j
         , "Group_Name"                      Csv..= jGroupName j
+        , "Individual_ID"                   Csv..= jIndividualID j
+        , "Species"                         Csv..= jSpecies j
         , "Alternative_IDs"                 Csv..= jAlternativeIDs j
+        , "Alternative_IDs_Context"         Csv..= jAlternativeIDsContext j
         , "Relation_To"                     Csv..= jRelationTo j
         , "Relation_Degree"                 Csv..= jRelationDegree j
         , "Relation_Type"                   Csv..= jRelationType j
-        , "Relation_Note"                   Csv..= jRelationNote j
         , "Collection_ID"                   Csv..= jCollectionID j
+        , "Custodian_Institution"           Csv..= jCustodianInstitution j
+        , "Cultural_Era"                    Csv..= jCulturalEra j
+        , "Cultural_Era_URL"                Csv..= jCulturalEraURL j
+        , "Archaeological_Culture"          Csv..= jArchaeologicalCulture j
+        , "Archaeological_Culture_URL"      Csv..= jArchaeologicalCultureURL j
         , "Country"                         Csv..= jCountry j
         , "Country_ISO"                     Csv..= jCountryISO j
         , "Location"                        Csv..= jLocation j
@@ -252,10 +277,10 @@ instance Csv.ToNamedRecord JannoRow where
         , "Date_BC_AD_Start"                Csv..= jDateBCADStart j
         , "Date_BC_AD_Median"               Csv..= jDateBCADMedian j
         , "Date_BC_AD_Stop"                 Csv..= jDateBCADStop j
-        , "Date_Note"                       Csv..= jDateNote j
+        , "Chromosomal_Anomalies"           Csv..= jChromosomalAnomalies j
         , "MT_Haplogroup"                   Csv..= jMTHaplogroup j
         , "Y_Haplogroup"                    Csv..= jYHaplogroup j
-        , "Source_Tissue"                   Csv..= jSourceTissue j
+        , "Source_Material"                 Csv..= jSourceMaterial j
         , "Nr_Libraries"                    Csv..= jNrLibraries j
         , "Library_Names"                   Csv..= jLibraryNames j
         , "Capture_Type"                    Csv..= jCaptureType j
@@ -270,7 +295,6 @@ instance Csv.ToNamedRecord JannoRow where
         , "Contamination"                   Csv..= jContamination j
         , "Contamination_Err"               Csv..= jContaminationErr j
         , "Contamination_Meas"              Csv..= jContaminationMeas j
-        , "Contamination_Note"              Csv..= jContaminationNote j
         , "Genetic_Source_Accession_IDs"    Csv..= jGeneticSourceAccessionIDs j
         , "Primary_Contact"                 Csv..= jPrimaryContact j
         , "Publication"                     Csv..= jPublication j
@@ -291,12 +315,19 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
           jPoseidonID                   = Bchs.unpack id_ -- TODO: this will have to change. We need to make PoseidonID itself ByteString
         , jGeneticSex                   = GeneticSex sex
         , jGroupName                    = ListColumn [GroupName . T.pack . Bchs.unpack $ pop] -- same thing, see above.
+        , jIndividualID                 = Nothing
+        , jSpecies                      = Nothing
         , jAlternativeIDs               = Nothing
+        , jAlternativeIDsContext        = Nothing
         , jRelationTo                   = Nothing
         , jRelationDegree               = Nothing
         , jRelationType                 = Nothing
-        , jRelationNote                 = Nothing
         , jCollectionID                 = Nothing
+        , jCustodianInstitution         = Nothing
+        , jCulturalEra                  = Nothing
+        , jCulturalEraURL               = Nothing
+        , jArchaeologicalCulture        = Nothing
+        , jArchaeologicalCultureURL     = Nothing
         , jCountry                      = Nothing
         , jCountryISO                   = Nothing
         , jLocation                     = Nothing
@@ -310,10 +341,10 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jDateBCADStart                = Nothing
         , jDateBCADMedian               = Nothing
         , jDateBCADStop                 = Nothing
-        , jDateNote                     = Nothing
+        , jChromosomalAnomalies         = Nothing
         , jMTHaplogroup                 = Nothing
         , jYHaplogroup                  = Nothing
-        , jSourceTissue                 = Nothing
+        , jSourceMaterial               = Nothing
         , jNrLibraries                  = Nothing
         , jLibraryNames                 = Nothing
         , jCaptureType                  = Nothing
@@ -328,21 +359,44 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
         , jContamination                = Nothing
         , jContaminationErr             = Nothing
         , jContaminationMeas            = Nothing
-        , jContaminationNote            = Nothing
         , jGeneticSourceAccessionIDs    = Nothing
         , jPrimaryContact               = Nothing
         , jPublication                  = Nothing
         , jComments                     = Nothing
         , jKeywords                     = Nothing
-        -- The template should of course not have any additional columns
-        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList []
+        -- additional, non-specified columns
+        , jAdditionalColumns            = CsvNamedRecord $ HM.fromList [
+              ("Relation_Note","n/a")
+            , ("Date_Note","n/a")
+            , ("Chromosomal_Anomalies_Note","n/a")
+            , ("Source_Material_Note","n/a")
+            , ("Contamination_Note","n/a")
+            ]
     }
 
 -- Janno file writing
 
 makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
 makeHeaderWithAdditionalColumns rows =
-    V.fromList $ jannoHeader ++ sort (HM.keys (HM.unions (map (getCsvNR . jAdditionalColumns) rows)))
+    let addCols = sort . HM.keys . HM.unions . map (getCsvNR . jAdditionalColumns) $ rows
+        nonNoteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x /= "Note") addCols
+        noteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x == "Note") addCols
+        allNoneNoteCols = jannoHeader ++ nonNoteAddCols
+    in V.fromList $ weave noteAddCols allNoneNoteCols
+    where
+        weave :: [Bchs.ByteString] -> [Bchs.ByteString] -> [Bchs.ByteString]
+        weave inserts = reverse . insertByMulti findSpot inserts . reverse
+        -- reverse, because Note columns should be at the end of column groups (e.g. Date_*)
+        insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+        insertByMulti _ [] xs       = xs
+        insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
+        findSpot :: Bchs.ByteString -> Bchs.ByteString -> Ordering
+        findSpot i x
+            | removeSuffix i == x = LT
+            | removeSuffix x == x = GT
+            | otherwise = findSpot i (removeSuffix x)
+        removeSuffix :: Bchs.ByteString -> Bchs.ByteString
+        removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
 
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
@@ -363,8 +417,8 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path (jannoConcat <> "\n")
 
 -- | A function to load one janno file
-readJannoFile :: [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
-readJannoFile mandatoryCols jannoPath = do
+readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile pv mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
     let jannoFileRows = Bch.lines jannoFile
@@ -391,8 +445,13 @@ readJannoFile mandatoryCols jannoPath = do
         -- for each additional column a standard column is suggested: "Countro (Country?)"
             intercalate ", " (zipWith (\x y -> x ++ " (" ++ y ++ "?)")
             additional_columns (findSimilarNames missing_columns additional_columns)))
+    -- report outdated columns
+    OP.when ((asVersion pv >= makeVersion [3,0,0]) && "Source_Tissue" `elem` jannoColNames) $
+        logWarning $ ("Outdated .janno column in " ++
+                      jannoPath ++
+                      ": The Source_Tissue column was replaced by Source_Material in Poseidon v3.0.0.")
     -- load janno by rows
-    jannoRepresentation <- mapM (readJannoFileRow mandatoryCols jannoPath) jannoFileRowsWithHeader
+    jannoRepresentation <- mapM (readJannoFileRow pv mandatoryCols jannoPath) jannoFileRowsWithHeader
     -- error case management
     if not (null (lefts jannoRepresentation))
     then do
@@ -419,12 +478,13 @@ findSimilarNames reference = map (findSimilar reference)
             in ref !! fromJust (elemIndex (minimum dists) dists)
 
 -- | A function to load one row of a janno file
-readJannoFileRow :: [Bchs.ByteString]
+readJannoFileRow :: PoseidonVersion
+                 -> [Bchs.ByteString]
                  -> FilePath
                  -> (Int, Bch.ByteString)
                  -> PoseidonIO (Either PoseidonException JannoRow)
-readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
-    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord mandatoryCols) decodingOptions row
+readJannoFileRow pv mandatoryCols jannoPath (lineNumber, row) = do
+    let decoded = Csv.decodeByNameWithP (parseJannoRowFromNamedRecord pv mandatoryCols) decodingOptions row
         simplifiedDecoded = (\(_,rs) -> V.head rs) <$> decoded
     case simplifiedDecoded of
         Left e -> do
@@ -439,7 +499,7 @@ readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
                 logWarning $ "Value anomaly in " ++ jannoPath ++ " in line " ++ renderLocation ++ ": "
                 mapM_ logWarning inspectRes
             -- cross-column checks
-            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency jannoRow))
+            let (errOrJannoRow, warnings) = W.runWriter (E.runExceptT (checkJannoRowConsistency pv jannoRow))
             mapM_ (logWarning . renderWarning) warnings
              -- return result
             case errOrJannoRow of
@@ -453,7 +513,7 @@ readJannoFileRow mandatoryCols jannoPath (lineNumber, row) = do
                 renderLocation =  show lineNumber ++
                                   " (Poseidon_ID: " ++ jPoseidonID jannoRow ++ ")"
 
--- Global janno consistency checks
+-- Global .janno consistency checks
 
 checkJannoConsistency :: FilePath -> JannoRows -> Either PoseidonException JannoRows
 checkJannoConsistency jannoPath xs
@@ -464,20 +524,20 @@ checkJannoConsistency jannoPath xs
 checkIndividualUnique :: JannoRows -> Bool
 checkIndividualUnique (JannoRows rows) = length rows == length (nub $ map jPoseidonID rows)
 
--- Row-wise janno consistency checks
+-- Row-wise .janno consistency checks
 
-type JannoRowWarnings = [String]
-type JannoRowLog = E.ExceptT String (W.Writer JannoRowWarnings)
-
-checkJannoRowConsistency :: JannoRow -> JannoRowLog JannoRow
-checkJannoRowConsistency x =
+checkJannoRowConsistency :: PoseidonVersion -> JannoRow -> RowLog JannoRow
+checkJannoRowConsistency pv x =
     return x
     >>= checkMandatoryStringNotEmpty
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkAlternativeIDsConsistent else return)
     >>= checkC14ColsConsistent
     >>= checkContamColsConsistent
     >>= checkRelationColsConsistent
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkCulturalEraConsistent else return)
+    >>= (if asVersion pv >= makeVersion [3,0,0] then checkArchaeologicalCultureConsistent else return)
 
-checkMandatoryStringNotEmpty :: JannoRow -> JannoRowLog JannoRow
+checkMandatoryStringNotEmpty :: JannoRow -> RowLog JannoRow
 checkMandatoryStringNotEmpty x =
     let notEmpty = (not . null . jPoseidonID $ x) &&
                    (not . null . getListColumn . jGroupName $ x) &&
@@ -486,14 +546,23 @@ checkMandatoryStringNotEmpty x =
         False -> E.throwError "Poseidon_ID or Group_Name are empty"
         True  -> return x
 
-getCellLength :: Maybe (ListColumn a) -> Int
-getCellLength = maybe 0 (length . getListColumn)
+checkAlternativeIDsConsistent :: JannoRow -> RowLog JannoRow
+checkAlternativeIDsConsistent x =
+    let lAlternativeIDs = getCellLength $ jAlternativeIDs x
+        lAlternativeIDsContext = getCellLength $ jAlternativeIDsContext x
+        anyAlts = lAlternativeIDs > 0
+        anyContext = lAlternativeIDsContext > 0
+        allSameLength = allEqual [lAlternativeIDs, lAlternativeIDsContext]
+    in case (anyAlts, anyContext, allSameLength) of
+        (False,_,_) -> return x
+        (True,False,_) -> do
+            W.tell ["Alternative_IDs should be contextualised with Alternative_IDs_Context"]
+            return x
+        (True,True,True) -> return x
+        (True,True,False) -> E.throwError "Alternative_IDs_Context and Alternative_IDs \
+                                          \do not have the same lengths"
 
-allEqual :: Eq a => [a] -> Bool
-allEqual [] = True
-allEqual x  = length (nub x) == 1
-
-checkC14ColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkC14ColsConsistent :: JannoRow -> RowLog JannoRow
 checkC14ColsConsistent x =
     let isTypeC14        = jDateType x == Just C14
         lLabnr           = getCellLength $ jDateC14Labnr x
@@ -515,7 +584,7 @@ checkC14ColsConsistent x =
             W.tell ["Date_Type is \"C14\", but either Date_C14_Uncal_BP or Date_C14_Uncal_BP_Err are empty"]
             return x
 
-checkContamColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkContamColsConsistent :: JannoRow -> RowLog JannoRow
 checkContamColsConsistent x =
     let lContamination      = getCellLength $ jContamination x
         lContaminationErr   = getCellLength $ jContaminationErr x
@@ -526,7 +595,7 @@ checkContamColsConsistent x =
                       \do not have the same lengths"
         True  -> return x
 
-checkRelationColsConsistent :: JannoRow -> JannoRowLog JannoRow
+checkRelationColsConsistent :: JannoRow -> RowLog JannoRow
 checkRelationColsConsistent x =
     let lRelationTo     = getCellLength $ jRelationTo x
         lRelationDegree = getCellLength $ jRelationDegree x
@@ -536,6 +605,24 @@ checkRelationColsConsistent x =
     in case allSameLength of
         False -> E.throwError "Relation_To, Relation_Degree and Relation_Type \
                       \do not have the same lengths. Relation_Type can be empty"
+        True  -> return x
+
+checkCulturalEraConsistent :: JannoRow -> RowLog JannoRow
+checkCulturalEraConsistent x =
+    let lCulturalEra = getCellLength $ jCulturalEra x
+        lCulturalEraURL = getCellLength $ jCulturalEraURL x
+    in case allEqual [lCulturalEra, lCulturalEraURL] || lCulturalEraURL == 0 of
+        False -> E.throwError "Cultural_Era and Cultural_Era_URL \
+                      \do not have the same lengths. Cultural_Era_URL can be empty"
+        True  -> return x
+
+checkArchaeologicalCultureConsistent :: JannoRow -> RowLog JannoRow
+checkArchaeologicalCultureConsistent x =
+    let lArchaeologicalCulture = getCellLength $ jArchaeologicalCulture x
+        lArchaeologicalCultureURL = getCellLength $ jArchaeologicalCultureURL x
+    in case allEqual [lArchaeologicalCulture, lArchaeologicalCultureURL] || lArchaeologicalCultureURL == 0 of
+        False -> E.throwError "Archaeological_Culture and Archaeological_Culture_URL \
+                      \do not have the same lengths. Archaeological_Culture_URL can be empty"
         True  -> return x
 
 -- | a convenience function to construct Eigenstrat Ind entries out of jannoRows

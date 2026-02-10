@@ -7,4 +7,5 @@ Initializing packages...
 Trying to parse genotype data for package: Lamnidis_2018
 SNPs:         0    0s
 Packages loaded: 1
+For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno columns Endogenous and Damage were rescaled from percent (0-100) to fractions (0-1).
 Validation passed

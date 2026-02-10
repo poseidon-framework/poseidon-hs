@@ -25,7 +25,7 @@ data SSFUDG =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable SSFUDG where
-    make x
+    make _ x
         | x == "minus" = pure SSFMinus
         | x == "half"  = pure SSFHalf
         | x == "plus"  = pure SSFPlus
@@ -37,7 +37,7 @@ instance Show SSFUDG where
     show SSFHalf  = "half"
     show SSFPlus  = "plus"
 instance Csv.ToField SSFUDG where   toField x = Csv.toField $ show x
-instance Csv.FromField SSFUDG where parseField = parseTypeCSV "udg"
+instance FromFieldVersioned SSFUDG where parseFieldVersioned pv = parseTypeCSV pv "udg"
 
 -- | A datatype for the library_built .ssf column
 data SSFLibraryBuilt =
@@ -46,7 +46,7 @@ data SSFLibraryBuilt =
     deriving (Eq, Ord, Generic, Enum, Bounded)
 
 instance Makeable SSFLibraryBuilt where
-    make x
+    make _ x
         | x == "ds"    = pure SSFDS
         | x == "ss"    = pure SSFSS
         | otherwise    = fail $ "library_built is set to " ++ show x ++ ". " ++
@@ -56,14 +56,14 @@ instance Show SSFLibraryBuilt where
     show SSFDS = "ds"
     show SSFSS = "ss"
 instance Csv.ToField SSFLibraryBuilt where   toField x = Csv.toField $ show x
-instance Csv.FromField SSFLibraryBuilt where parseField = parseTypeCSV "library_built"
+instance FromFieldVersioned SSFLibraryBuilt where parseFieldVersioned pv = parseTypeCSV pv "library_built"
 
 -- | A datatype for the sample_accession .ssf column
 newtype SSFAccessionIDSample = SSFAccessionIDSample AccessionID
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFAccessionIDSample where
-    make x = do
+    make _ x = do
         accID <- makeAccessionID x
         return $ SSFAccessionIDSample accID
 instance Suspicious SSFAccessionIDSample where
@@ -76,14 +76,14 @@ instance Suspicious SSFAccessionIDSample where
 instance Show SSFAccessionIDSample where
     show (SSFAccessionIDSample x) = show x
 instance Csv.ToField SSFAccessionIDSample where   toField x  = Csv.toField $ show x
-instance Csv.FromField SSFAccessionIDSample where parseField = parseTypeCSV "sample_accession"
+instance FromFieldVersioned SSFAccessionIDSample where parseFieldVersioned pv = parseTypeCSV pv "sample_accession"
 
 -- | A datatype for the study_accession .ssf column
 newtype SSFAccessionIDStudy = SSFAccessionIDStudy AccessionID
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFAccessionIDStudy where
-    make x = do
+    make _ x = do
         accID <- makeAccessionID x
         return $ SSFAccessionIDStudy accID
 instance Suspicious SSFAccessionIDStudy where
@@ -96,14 +96,14 @@ instance Suspicious SSFAccessionIDStudy where
 instance Show SSFAccessionIDStudy where
     show (SSFAccessionIDStudy x) = show x
 instance Csv.ToField SSFAccessionIDStudy where   toField x  = Csv.toField $ show x
-instance Csv.FromField SSFAccessionIDStudy where parseField = parseTypeCSV "study_accession"
+instance FromFieldVersioned SSFAccessionIDStudy where parseFieldVersioned pv = parseTypeCSV pv "study_accession"
 
 -- | A datatype for the run_accession .ssf column
 newtype SSFAccessionIDRun = SSFAccessionIDRun AccessionID
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFAccessionIDRun where
-    make x = do
+    make _ x = do
         accID <- makeAccessionID x
         return $ SSFAccessionIDRun accID
 instance Suspicious SSFAccessionIDRun where
@@ -115,7 +115,7 @@ instance Suspicious SSFAccessionIDRun where
 instance Show SSFAccessionIDRun where
     show (SSFAccessionIDRun x) = show x
 instance Csv.ToField SSFAccessionIDRun where   toField x  = Csv.toField $ show x
-instance Csv.FromField SSFAccessionIDRun where parseField = parseTypeCSV "run_accession"
+instance FromFieldVersioned SSFAccessionIDRun where parseFieldVersioned pv = parseTypeCSV pv "run_accession"
 
 -- | A datatype for the sample_alias .ssf column
 newtype SSFSampleAlias = SSFSampleAlias T.Text deriving (Eq, Ord)
@@ -130,7 +130,7 @@ newtype SSFFirstPublicSimpleDate = SSFFirstPublicSimpleDate Day
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFFirstPublicSimpleDate where
-    make x = do
+    make _ x = do
           case parseTimeM False defaultTimeLocale "%Y-%-m-%-d" (T.unpack x) :: Maybe Day of
             Nothing -> fail $ "first_public date " ++ T.unpack x ++
                               " is not a correct date in the format YYYY-MM-DD."
@@ -140,15 +140,15 @@ instance Show SSFFirstPublicSimpleDate where
     show (SSFFirstPublicSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
 instance Csv.ToField SSFFirstPublicSimpleDate where
     toField (SSFFirstPublicSimpleDate x) = Csv.toField $ show x
-instance Csv.FromField SSFFirstPublicSimpleDate where
-    parseField = parseTypeCSV "first_public"
+instance FromFieldVersioned SSFFirstPublicSimpleDate where
+    parseFieldVersioned pv = parseTypeCSV pv "first_public"
 
 -- | A datatype for the last_updated .ssf column
 newtype SSFLastUpdatedSimpleDate = SSFLastUpdatedSimpleDate Day
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFLastUpdatedSimpleDate where
-    make x = do
+    make _ x = do
           case parseTimeM False defaultTimeLocale "%Y-%-m-%-d" (T.unpack x) :: Maybe Day of
             Nothing -> fail $ "last_updated date " ++ T.unpack x ++
                               " is not a correct date in the format YYYY-MM-DD."
@@ -158,8 +158,8 @@ instance Show SSFLastUpdatedSimpleDate where
     show (SSFLastUpdatedSimpleDate x) = formatTime defaultTimeLocale "%Y-%-m-%-d" x
 instance Csv.ToField SSFLastUpdatedSimpleDate where
     toField (SSFLastUpdatedSimpleDate x) = Csv.toField $ show x
-instance Csv.FromField SSFLastUpdatedSimpleDate where
-    parseField = parseTypeCSV "last_updated"
+instance FromFieldVersioned SSFLastUpdatedSimpleDate where
+    parseFieldVersioned pv = parseTypeCSV pv "last_updated"
 
 -- | A datatype for the instrument_model .ssf column
 newtype SSFInstrumentModel = SSFInstrumentModel T.Text deriving (Eq, Ord)
@@ -190,34 +190,34 @@ newtype SSFFastqFTPURI = SSFFastqFTPURI T.Text
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFFastqFTPURI where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ SSFFastqFTPURI x
         | otherwise                   = fail $ "fastq_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Suspicious SSFFastqFTPURI where inspect _ = Nothing
 instance Show SSFFastqFTPURI where show (SSFFastqFTPURI x) = T.unpack x
 instance Csv.ToField SSFFastqFTPURI where toField x = Csv.toField $ show x
-instance Csv.FromField SSFFastqFTPURI where parseField = parseTypeCSV "fastq_ftp"
+instance FromFieldVersioned SSFFastqFTPURI where parseFieldVersioned pv = parseTypeCSV pv "fastq_ftp"
 
 -- | A datatype for the fastq_aspera .ssf column
 newtype SSFFastqASPERAURI = SSFFastqASPERAURI T.Text
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFFastqASPERAURI where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ SSFFastqASPERAURI x
         | otherwise                   = fail $ "fastq_aspera entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Suspicious SSFFastqASPERAURI where inspect _ = Nothing
 instance Show SSFFastqASPERAURI where show (SSFFastqASPERAURI x) = T.unpack x
 instance Csv.ToField SSFFastqASPERAURI where toField x = Csv.toField $ show x
-instance Csv.FromField SSFFastqASPERAURI where parseField = parseTypeCSV "fastq_aspera"
+instance FromFieldVersioned SSFFastqASPERAURI where parseFieldVersioned pv = parseTypeCSV pv "fastq_aspera"
 
 -- | A datatype for the fastq_bytes .ssf column
 newtype SSFFastqBytes = SSFFastqBytes Integer deriving (Eq, Ord, Generic)
 
 instance Makeable SSFFastqBytes where
-    make x =
+    make _ x =
         case T.decimal x of
             Left e -> fail $ "fastq_bytes can not be converted to Integer because " ++ e
             Right (num, "") -> pure $ SSFFastqBytes num
@@ -225,13 +225,13 @@ instance Makeable SSFFastqBytes where
 instance Suspicious SSFFastqBytes where inspect _ = Nothing
 instance Show SSFFastqBytes where          show (SSFFastqBytes x) = show x
 instance Csv.ToField SSFFastqBytes where   toField (SSFFastqBytes x) = Csv.toField x
-instance Csv.FromField SSFFastqBytes where parseField = parseTypeCSV "fastq_bytes"
+instance FromFieldVersioned SSFFastqBytes where parseFieldVersioned pv = parseTypeCSV pv "fastq_bytes"
 
 -- | A datatype for the fastq_md5 .ssf column
 newtype SSFFastqMD5 = SSFFastqMD5 T.Text deriving (Eq, Ord, Generic)
 
 instance Makeable SSFFastqMD5 where
-    make x
+    make _ x
         | isMD5Hash x = pure $ SSFFastqMD5 x
         | otherwise   = fail $ "fastq_md5 " ++ show x ++
                                " does not contain a well-structured MD5 hash"
@@ -240,13 +240,13 @@ isMD5Hash x = T.length x == 32 && T.all isHexDigit x
 instance Suspicious SSFFastqMD5 where inspect _ = Nothing
 instance Show SSFFastqMD5 where show (SSFFastqMD5 x) = T.unpack x
 instance Csv.ToField SSFFastqMD5 where   toField x = Csv.toField $ show x
-instance Csv.FromField SSFFastqMD5 where parseField = parseTypeCSV "fastq_md5"
+instance FromFieldVersioned SSFFastqMD5 where parseFieldVersioned pv = parseTypeCSV pv "fastq_md5"
 
 -- | A datatype for the fastq_bytes .ssf column
 newtype SSFReadCount = SSFReadCount Integer deriving (Eq, Ord, Generic)
 
 instance Makeable SSFReadCount where
-    make x =
+    make _ x =
         case T.signed T.decimal x of -- the ENA uses -1 in case the read count failed
             Left e -> fail $ "read_count can not be converted to Integer because " ++ e
             Right (num, "") ->
@@ -260,19 +260,31 @@ instance Suspicious SSFReadCount where
         | otherwise = pure []
 instance Show SSFReadCount where          show (SSFReadCount x) = show x
 instance Csv.ToField SSFReadCount where   toField (SSFReadCount x) = Csv.toField x
-instance Csv.FromField SSFReadCount where parseField = parseTypeCSV "read_count"
+instance FromFieldVersioned SSFReadCount where parseFieldVersioned pv = parseTypeCSV pv "read_count"
 
 -- | A datatype for the submitted_ftp .ssf column
 newtype SSFSubmittedFTPURI = SSFSubmittedFTPURI T.Text
     deriving (Eq, Ord, Generic)
 
 instance Makeable SSFSubmittedFTPURI where
-    make x
+    make _ x
         | isURIReference (T.unpack x) = pure $ SSFSubmittedFTPURI x
         | otherwise                   = fail $ "submitted_ftp entry " ++ show x ++
                                                " is not a well-structured URI."
 instance Suspicious SSFSubmittedFTPURI where inspect _ = Nothing
 instance Show SSFSubmittedFTPURI where show (SSFSubmittedFTPURI x) = T.unpack x
 instance Csv.ToField SSFSubmittedFTPURI where toField x = Csv.toField $ show x
-instance Csv.FromField SSFSubmittedFTPURI where parseField = parseTypeCSV "submitted_ftp"
+instance FromFieldVersioned SSFSubmittedFTPURI where parseFieldVersioned pv = parseTypeCSV pv "submitted_ftp"
 
+-- | A datatype for the submitted_md5 .ssf column
+newtype SSFSubmittedMD5 = SSFSubmittedMD5 T.Text deriving (Eq, Ord, Generic)
+
+instance Makeable SSFSubmittedMD5 where
+    make _ x
+        | isMD5Hash x = pure $ SSFSubmittedMD5 x
+        | otherwise   = fail $ "submitted_md5 " ++ show x ++
+                               " does not contain a well-structured MD5 hash"
+instance Suspicious SSFSubmittedMD5 where inspect _ = Nothing
+instance Show SSFSubmittedMD5 where show (SSFSubmittedMD5 x) = T.unpack x
+instance Csv.ToField SSFSubmittedMD5 where   toField x = Csv.toField $ show x
+instance FromFieldVersioned SSFSubmittedMD5 where parseFieldVersioned pv = parseTypeCSV pv "submitted_md5"

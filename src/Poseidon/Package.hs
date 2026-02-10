@@ -59,7 +59,8 @@ import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
-import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
+                                             latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
@@ -80,6 +81,7 @@ import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM, forM_, unless, void,
                                              when)
+import qualified Control.Monad              as OP
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -125,7 +127,7 @@ import           System.IO                  (IOMode (ReadMode), hGetContents,
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
-    { _posYamlPoseidonVersion     :: Version
+    { _posYamlPoseidonVersion     :: PoseidonVersion
     , _posYamlTitle               :: String
     , _posYamlDescription         :: Maybe String
     , _posYamlContributor         :: [ContributorSpec]
@@ -222,7 +224,7 @@ instance HasNameAndVersion PoseidonYamlStruct where
 data PoseidonPackage = PoseidonPackage
     { posPacBaseDir             :: FilePath
     -- ^ the base directory of the YAML file
-    , posPacPoseidonVersion     :: Version
+    , posPacPoseidonVersion     :: PoseidonVersion
     -- ^ the version of the package
     , posPacNameAndVersion      :: PacNameAndVersion
     -- ^ the title and version of the package
@@ -355,6 +357,11 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     -- report number of valid packages
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    -- warn about adjustments to old package versions
+    OP.when (any (\x -> asVersion (posPacPoseidonVersion x) < makeVersion [3,0,0]) finalPackageList) $ do
+        logWarning "For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno \
+                   \columns Endogenous and Damage were rescaled from percent (0-100) to \
+                   \fractions (0-1)."
     -- return package list
     return (finalPackageList, skipIndicator)
   where
@@ -430,7 +437,7 @@ readPoseidonPackage opts ymlPath = do
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
+            loadedJanno <- readJannoFile ver (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
@@ -443,7 +450,7 @@ readPoseidonPackage opts ymlPath = do
             then return mempty
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
-        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
+        Just p  -> readSeqSourceFile ver (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)
@@ -733,7 +740,7 @@ newMinimalPackageTemplate baseDir name gd = do
     reducedGD <- snd <$> reduceGenotypeFilepaths gd
     return $ PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
+    ,   posPacPoseidonVersion = latestPoseidonVersion
     ,   posPacNameAndVersion = PacNameAndVersion name Nothing
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
@@ -864,7 +871,7 @@ packagesToPackageInfos withBaseDir pacs = do
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
-            pPosVersion    = posPacPoseidonVersion pac,
+            pPosVersion    = asVersion $ posPacPoseidonVersion pac,
             pDescription   = posPacDescription pac,
             pLastModified  = posPacLastModified pac,
             pNrIndividuals = (length . getJannoRowsFromPac) pac,
