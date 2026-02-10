@@ -458,7 +458,7 @@ parsePoseidonVersion longName = OP.option (OP.eitherReader parsePV) (
     parsePV s = case readVersion s of
         Just v -> if PoseidonVersion v `elem` validPoseidonVersions
                   then Right (PoseidonVersion v)
-                  else Left $ "must be one of " ++ show validPoseidonVersions
+                  else Left $ "must be one of " ++ intercalate ", " (map showPoseidonVersion validPoseidonVersions)
         Nothing -> Left "invalid version string"
     readVersion = fmap makeVersion . traverse readMaybe . splitOn "."
 
