@@ -37,13 +37,14 @@ import           Control.Applicative        ((<|>))
 import qualified Data.ByteString.Char8      as Bchs
 import           Data.List                  (intercalate)
 import           Data.List.Split            (splitOn)
-import           Data.Version               (Version)
+import           Data.Version               (Version, makeVersion)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath            (splitExtension, splitExtensions,
                                              takeExtension, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
+import Poseidon.PoseidonVersion
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -434,17 +435,32 @@ parseInPoseidonYamlFile = OP.strOption (
     OP.metavar "FILE" <>
     OP.help "Path to a POSEIDON.yml file.")
 
-parseInJannoFile :: OP.Parser FilePath
-parseInJannoFile = OP.strOption (
+parseInJannoFile :: OP.Parser VersionedFile
+parseInJannoFile = VersionedFile <$> parsePoseidonVersion <*> OP.strOption (
     OP.long "janno" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .janno file.")
 
-parseInSSFile :: OP.Parser FilePath
-parseInSSFile = OP.strOption (
+parseInSSFile :: OP.Parser VersionedFile
+parseInSSFile = VersionedFile <$> parsePoseidonVersion <*> OP.strOption (
     OP.long "ssf" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .ssf file.")
+
+parsePoseidonVersion :: OP.Parser PoseidonVersion
+parsePoseidonVersion = OP.option (OP.eitherReader parsePV) (
+    OP.long "pVersion" <>
+    OP.metavar "VERSION" <>
+    OP.help "Poseidon version (e.g. 2.7.1)." <>
+    OP.value latestPoseidonVersion <>
+    OP.showDefaultWith showPoseidonVersion)
+  where
+    parsePV s = case readVersion s of
+        Just v -> if PoseidonVersion v `elem` validPoseidonVersions
+                  then Right (PoseidonVersion v)
+                  else Left $ "must be one of " ++ show validPoseidonVersions
+        Nothing -> Left "invalid version string"
+    readVersion = fmap makeVersion . traverse readMaybe . splitOn "."
 
 parseInBibFile :: OP.Parser FilePath
 parseInBibFile = OP.strOption (

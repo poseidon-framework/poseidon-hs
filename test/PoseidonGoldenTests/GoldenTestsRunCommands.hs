@@ -39,6 +39,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
+import           Poseidon.PoseidonVersion   (VersionedFile (..),
+                                             latestPoseidonVersion)
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
@@ -346,10 +348,14 @@ testPipelineValidate testDir checkFilePath = do
             }
     } & run 6
     validateOpts1 {
-          _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
+          _validatePlan = ValPlanJanno $ VersionedFile
+              latestPoseidonVersion
+              (testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno")
     } & run 7
     validateOpts1 {
-          _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
+          _validatePlan = ValPlanSSF $ VersionedFile
+              latestPoseidonVersion
+              (testPacsDir </> "Schiffels_2016" </> "ena_table.ssf")
     } & run 8
     validateOpts1 {
           _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
