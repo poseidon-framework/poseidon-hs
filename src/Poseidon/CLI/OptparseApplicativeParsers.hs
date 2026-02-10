@@ -24,6 +24,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
+import           Poseidon.PoseidonVersion
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
@@ -44,7 +45,6 @@ import           System.FilePath            (splitExtension, splitExtensions,
                                              takeExtension, (<.>))
 import qualified Text.Parsec                as P
 import           Text.Read                  (readMaybe)
-import Poseidon.PoseidonVersion
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)
@@ -436,20 +436,20 @@ parseInPoseidonYamlFile = OP.strOption (
     OP.help "Path to a POSEIDON.yml file.")
 
 parseInJannoFile :: OP.Parser VersionedFile
-parseInJannoFile = VersionedFile <$> parsePoseidonVersion <*> OP.strOption (
+parseInJannoFile = VersionedFile <$> parsePoseidonVersion "pvJanno" <*> OP.strOption (
     OP.long "janno" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .janno file.")
 
 parseInSSFile :: OP.Parser VersionedFile
-parseInSSFile = VersionedFile <$> parsePoseidonVersion <*> OP.strOption (
+parseInSSFile = VersionedFile <$> parsePoseidonVersion "pvSSF" <*> OP.strOption (
     OP.long "ssf" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .ssf file.")
 
-parsePoseidonVersion :: OP.Parser PoseidonVersion
-parsePoseidonVersion = OP.option (OP.eitherReader parsePV) (
-    OP.long "pVersion" <>
+parsePoseidonVersion :: String -> OP.Parser PoseidonVersion
+parsePoseidonVersion longName = OP.option (OP.eitherReader parsePV) (
+    OP.long longName <>
     OP.metavar "VERSION" <>
     OP.help "Poseidon version (e.g. 2.7.1)." <>
     OP.value latestPoseidonVersion <>
@@ -895,16 +895,18 @@ parseMaybeArchiveName = OP.option (Just <$> OP.str) (
 
 parseJannocoalSourceSpec :: OP.Parser JannoSourceSpec
 parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <$> parseBasePaths)
-  where
-    parseJannocoalSingleSource = OP.option (JannoSourceSingle <$> OP.str) (
-        OP.long "sourceFile" <>
-        OP.short 's' <>
-        OP.metavar "FILE" <>
-        OP.help "The source .janno file."
-        )
+    where
+        parseJannocoalSingleSource :: OP.Parser JannoSourceSpec
+        parseJannocoalSingleSource =
+            JannoSourceSingle <$> (VersionedFile <$> parsePoseidonVersion "pvSource" <*> OP.strOption (
+                OP.long "sourceFile" <>
+                OP.short 's' <>
+                OP.metavar "FILE" <>
+                OP.help "The source .janno file."
+                ))
 
-parseJannocoalTargetFile :: OP.Parser FilePath
-parseJannocoalTargetFile = OP.strOption (
+parseJannocoalTargetFile :: OP.Parser VersionedFile
+parseJannocoalTargetFile = VersionedFile <$> parsePoseidonVersion "pvTarget" <*> OP.strOption (
     OP.long "targetFile" <>
     OP.short 't' <>
     OP.metavar "FILE" <>

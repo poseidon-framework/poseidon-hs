@@ -10,6 +10,8 @@ import           Poseidon.Package         (PackageReadOptions (..),
                                            defaultPackageReadOptions,
                                            getJointJanno,
                                            readPoseidonPackageCollection)
+import           Poseidon.PoseidonVersion (VersionedFile (..),
+                                           latestPoseidonVersion)
 import           Poseidon.Utils           (PoseidonException (..), PoseidonIO,
                                            logDebug, logInfo, logWarning)
 
@@ -22,13 +24,12 @@ import qualified Data.HashMap.Strict      as HM
 import qualified Data.IORef               as R
 import           Data.List                ((\\))
 import           Data.Text                (pack, replace, unpack)
-import           Poseidon.PoseidonVersion (latestPoseidonVersion)
 import           System.Directory         (createDirectoryIfMissing)
 import           System.FilePath          (takeDirectory)
 import           Text.Regex.TDFA          ((=~))
 
 -- the source can be a single janno file, or a set of base directories as usual.
-data JannoSourceSpec = JannoSourceSingle FilePath | JannoSourceBaseDirs [FilePath]
+data JannoSourceSpec = JannoSourceSingle VersionedFile | JannoSourceBaseDirs [FilePath]
 
 data CoalesceJannoColumnSpec =
       AllJannoColumns
@@ -37,7 +38,7 @@ data CoalesceJannoColumnSpec =
 
 data JannoCoalesceOptions = JannoCoalesceOptions
     { _jannocoalesceSource           :: JannoSourceSpec
-    , _jannocoalesceTarget           :: FilePath
+    , _jannocoalesceTarget           :: VersionedFile
     , _jannocoalesceOutSpec          :: Maybe FilePath -- Nothing means "in place"
     , _jannocoalesceJannoColumns     :: CoalesceJannoColumnSpec
     , _jannocoalesceOverwriteColumns :: Bool
@@ -47,9 +48,9 @@ data JannoCoalesceOptions = JannoCoalesceOptions
     }
 
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
-runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrite sKey tKey maybeStrip) = do
+runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV targetPath) outSpec fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
-        JannoSourceSingle sourceFile -> readJannoFile latestPoseidonVersion [] sourceFile
+        JannoSourceSingle (VersionedFile sourcePV sourcePath) -> readJannoFile sourcePV [] sourcePath
         JannoSourceBaseDirs sourceDirs -> do
             let pacReadOpts = defaultPackageReadOptions {
                       _readOptIgnoreChecksums      = True
@@ -58,11 +59,11 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec target outSpec fields overwrit
                     , _readOptOnlyLatest           = True
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
-    JannoRows targetRows <- readJannoFile latestPoseidonVersion [] target
+    JannoRows targetRows <- readJannoFile targetPV [] targetPath
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
-    let outPath = maybe target id outSpec
+    let outPath = maybe targetPath id outSpec
     logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
     liftIO $ do
         createDirectoryIfMissing True (takeDirectory outPath)
