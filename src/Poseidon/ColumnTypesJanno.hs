@@ -430,12 +430,7 @@ instance Makeable JannoCaptureType where
                         "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
                         \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
                         \OtherCapture]. Note that ReferenceGenome was retired in Poseidon v3.0.0."
-            if x == "ReferenceGenome" && asVersion pv < makeVersion [3,0,0]
-            then pure LegacyReferenceGenome
-            else fail $ "Capture_Type is set to " ++ show x ++ ". " ++
-                        "That is not in the allowed set [Shotgun, 1240K, ArborComplete, \
-                        \ArborPrimePlus, ArborAncestralPlus, TwistAncientDNA, WISC2013, \
-                        \OtherCapture]. Note that ReferenceGenome was retired in Poseidon v3.0.0."
+
 instance Suspicious JannoCaptureType where inspect _ = Nothing
 instance Show JannoCaptureType where
     show Shotgun               = "Shotgun"
