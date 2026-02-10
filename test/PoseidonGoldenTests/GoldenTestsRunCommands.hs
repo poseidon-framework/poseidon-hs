@@ -39,6 +39,8 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
+import           Poseidon.PoseidonVersion   (VersionedFile (..),
+                                             latestPoseidonVersion)
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (LogMode (..), TestMode (..),
@@ -346,10 +348,14 @@ testPipelineValidate testDir checkFilePath = do
             }
     } & run 6
     validateOpts1 {
-          _validatePlan = ValPlanJanno $ testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno"
+          _validatePlan = ValPlanJanno $ VersionedFile
+              latestPoseidonVersion
+              (testPacsDir </> "Schiffels_2016" </> "Schiffels_2016.janno")
     } & run 7
     validateOpts1 {
-          _validatePlan = ValPlanSSF $ testPacsDir </> "Schiffels_2016" </> "ena_table.ssf"
+          _validatePlan = ValPlanSSF $ VersionedFile
+              latestPoseidonVersion
+              (testPacsDir </> "Schiffels_2016" </> "ena_table.ssf")
     } & run 8
     validateOpts1 {
           _validatePlan = ValPlanBib $ testPacsDir </> "Schiffels_2016" </> "sources.bib"
@@ -1416,8 +1422,10 @@ testPipelineJannocoalesce :: FilePath -> FilePath -> IO ()
 testPipelineJannocoalesce testDir checkFilePath = do
     -- simple coalesce
     let jannocoalesceOpts1 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
+            _jannocoalesceSource           = JannoSourceSingle $ VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target1.janno"),
             _jannocoalesceJannoColumns     = AllJannoColumns,
             _jannocoalesceOverwriteColumns = False,
@@ -1430,8 +1438,10 @@ testPipelineJannocoalesce testDir checkFilePath = do
         ]
     -- only coalesce certain columns (--includeColumns)
     let jannocoalesceOpts2 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
+            _jannocoalesceSource           = JannoSourceSingle $ VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target2.janno"),
             _jannocoalesceJannoColumns     = IncludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,
@@ -1444,8 +1454,10 @@ testPipelineJannocoalesce testDir checkFilePath = do
         ]
     -- do not coalesce certain columns (--excludeColumns)
     let jannocoalesceOpts3 = JannoCoalesceOptions {
-            _jannocoalesceSource           = JannoSourceSingle "test/testDat/testJannoFiles/normal.janno",
-            _jannocoalesceTarget           = "test/testDat/testJannoFiles/minimal.janno",
+            _jannocoalesceSource           = JannoSourceSingle $ VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/normal.janno",
+            _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
+                                             "test/testDat/testJannoFiles/minimal.janno",
             _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target3.janno"),
             _jannocoalesceJannoColumns     = ExcludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,
