@@ -390,13 +390,13 @@ makeHeaderWithAdditionalColumns rows =
         insertByMulti :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
         insertByMulti _ [] xs       = xs
         insertByMulti f (i:rest) xs = insertBy f i (insertByMulti f rest xs)
-        removeSuffix :: Bchs.ByteString -> Bchs.ByteString
-        removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
         findSpot :: Bchs.ByteString -> Bchs.ByteString -> Ordering
         findSpot i x
             | removeSuffix i == x = LT
             | removeSuffix x == x = GT
             | otherwise = findSpot i (removeSuffix x)
+        removeSuffix :: Bchs.ByteString -> Bchs.ByteString
+        removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
 
 writeJannoFile :: FilePath -> JannoRows -> IO ()
 writeJannoFile path (JannoRows rows) = do
