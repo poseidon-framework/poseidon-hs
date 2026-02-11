@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Poseidon.ColumnTypesJanno where
 
@@ -44,22 +44,22 @@ instance Ord GeneticSex where
     compare (GeneticSex Unknown) (GeneticSex Female) = LT
     compare _ _                                      = EQ
 instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
-instance Csv.FromField GeneticSex where parseField :: Csv.Field -> Csv.Parser GeneticSex
-                                        parseField = parseTypeCSV "Genetic_Sex"
+instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
 
 newtype PoseidonID = PoseidonID {unPoseidonID :: B.ByteString} deriving (Eq, Ord)
 
 instance Makeable PoseidonID where
-    make txt =
-        if T.all isValidPoseidonIDChar txt
-        then return . PoseidonID . B.pack . T.unpack $ txt
-        else fail $ "PoseidonID contains invalid characters: " ++ T.unpack txt
+    make = return . PoseidonID . B.pack . T.unpack
 
-isValidPoseidonIDChar :: Char -> Bool
-isValidPoseidonIDChar c =
+isRecommendedPoseidonIDChar :: Char -> Bool
+isRecommendedPoseidonIDChar c =
     C.isAscii c && (C.isAlphaNum c || c `elem` ['_', '-', '.'])
 
-instance Suspicious PoseidonID where inspect _ = Nothing
+instance Suspicious PoseidonID where
+    inspect id_ = if B.all isRecommendedPoseidonIDChar (unPoseidonID id_)
+                  then Nothing
+                  else Just ["PoseidonID should only contain alphanumeric characters and '_', '-', '.': "  ++
+                             B.unpack (unPoseidonID id_)]
 
 instance Show PoseidonID where
     show (PoseidonID x) = B.unpack x
@@ -78,12 +78,13 @@ instance IsString PoseidonID where
 newtype GroupName = GroupName {unGroupName :: B.ByteString} deriving (Eq, Ord)
 
 instance Makeable GroupName where
-    make txt =
-        if T.all isValidPoseidonIDChar txt
-        then return . GroupName . B.pack . T.unpack $ txt
-        else fail $ "GroupName contains invalid characters: " ++ T.unpack txt
+    make = return . GroupName . B.pack . T.unpack
 
-instance Suspicious GroupName where inspect _ = Nothing
+instance Suspicious GroupName where
+    inspect groupName = if B.all isRecommendedPoseidonIDChar (unGroupName groupName)
+                        then Nothing
+                        else Just ["Group_Name should only contain alphanumeric characters and '_', '-', '.': " ++
+                                   B.unpack (unGroupName groupName)]
 
 instance Show GroupName where
     show (GroupName x) = B.unpack x
@@ -92,6 +93,7 @@ instance Csv.ToField GroupName where
     toField (GroupName x) = Csv.toField x
 
 instance Csv.FromField GroupName where
+    parseField :: Csv.Field -> Csv.Parser GroupName
     parseField = parseTypeCSV "Group_Name"
 
 -- the IsString instance allows us to write GroupName "MyGroup" directly, mainly for testing purposes.

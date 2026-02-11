@@ -9,14 +9,12 @@ import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              readJannoFile)
 import           Poseidon.Utils             (testLog)
 
-import           Control.Monad              (forM_)
 import           Country                    (decodeAlphaTwo)
 import qualified Data.Csv                   as C
 import           Data.HashMap.Strict        (fromList)
-import qualified Data.Text                  as T
 import           SequenceFormats.Eigenstrat (Sex (..))
 import           System.FilePath            ((</>))
-import           Test.Hspec                 (Spec, anyException, anyIOException,
+import           Test.Hspec                 (Spec, anyException,
                                              describe, it, shouldBe,
                                              shouldThrow)
 
@@ -24,7 +22,6 @@ spec :: Spec
 spec = do
     testEnAndDecoding
     testPoseidonSampleFromJannoFile
-    testIllegalCharacterCheck
 
 testEnAndDecoding :: Spec
 testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ do
@@ -60,24 +57,6 @@ checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
         cassavaCycle :: (C.FromField a, C.ToField a) => [a] -> [Either String a]
         cassavaCycle = map (C.runParser . C.parseField . C.toField)
         cassavaResult = map Right
-
-testIllegalCharacterCheck :: Spec
-testIllegalCharacterCheck = describe "Poseidon.Janno: illegal character check" $ do
-    it "should identify illegal characters in Poseidon IDs" $ do
-        let illegalIDs = ["invàlïd", "in valid", "invalid,comma", "invalid;semi", "invalid\nnewline", "invalid\rcarriage", "invalid\"quote"]
-        let legalIDs = ["validID1", "valid_ID-2"]
-        forM_ illegalIDs $ \pid -> do
-            parsePoseidonID pid `shouldThrow` anyIOException
-            parseGroupName pid `shouldThrow` anyIOException
-        forM_ legalIDs $ \pid -> do
-            _ <- parsePoseidonID pid
-            _ <- parseGroupName pid
-            return ()
-  where
-    parsePoseidonID :: T.Text -> IO PoseidonID
-    parsePoseidonID = make
-    parseGroupName :: T.Text -> IO GroupName
-    parseGroupName = make
 
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
