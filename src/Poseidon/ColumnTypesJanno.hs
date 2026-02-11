@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Poseidon.ColumnTypesJanno where
 
@@ -9,7 +10,10 @@ import           Poseidon.ColumnTypesUtils
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)
+import qualified Data.ByteString.Char8      as B
+import qualified Data.Char                  as C
 import qualified Data.Csv                   as Csv
+import           Data.String                (IsString (..))
 import qualified Data.Text                  as T
 import qualified Data.Text.Read             as T
 import           GHC.Generics               (Generic)
@@ -42,9 +46,59 @@ instance Ord GeneticSex where
 instance Csv.ToField GeneticSex where   toField x  = Csv.toField $ show x
 instance Csv.FromField GeneticSex where parseField = parseTypeCSV "Genetic_Sex"
 
+newtype PoseidonID = PoseidonID {unPoseidonID :: B.ByteString} deriving (Eq, Ord)
+
+instance Makeable PoseidonID where
+    make = return . PoseidonID . B.pack . T.unpack
+
+isRecommendedPoseidonIDChar :: Char -> Bool
+isRecommendedPoseidonIDChar c =
+    C.isAscii c && (C.isAlphaNum c || c `elem` ['_', '-', '.'])
+
+instance Suspicious PoseidonID where
+    inspect id_ = if B.all isRecommendedPoseidonIDChar (unPoseidonID id_)
+                  then Nothing
+                  else Just ["PoseidonID should only contain alphanumeric characters and '_', '-', '.': "  ++
+                             B.unpack (unPoseidonID id_)]
+
+instance Show PoseidonID where
+    show (PoseidonID x) = B.unpack x
+
+instance Csv.ToField PoseidonID where
+    toField (PoseidonID x) = Csv.toField x
+
+instance Csv.FromField PoseidonID where
+    parseField = parseTypeCSV "PoseidonID"
+
+-- the IsString instance allows us to write PoseidonID "MyID" directly, mainly for testing purposes.
+instance IsString PoseidonID where
+    fromString str = PoseidonID (B.pack str)
+
 -- | A datatype for the Group_Name .janno column
-newtype GroupName = GroupName T.Text deriving (Eq, Ord)
-$(makeInstances ''GroupName "Group_Name")
+newtype GroupName = GroupName {unGroupName :: B.ByteString} deriving (Eq, Ord)
+
+instance Makeable GroupName where
+    make = return . GroupName . B.pack . T.unpack
+
+instance Suspicious GroupName where
+    inspect groupName = if B.all isRecommendedPoseidonIDChar (unGroupName groupName)
+                        then Nothing
+                        else Just ["Group_Name should only contain alphanumeric characters and '_', '-', '.': " ++
+                                   B.unpack (unGroupName groupName)]
+
+instance Show GroupName where
+    show (GroupName x) = B.unpack x
+
+instance Csv.ToField GroupName where
+    toField (GroupName x) = Csv.toField x
+
+instance Csv.FromField GroupName where
+    parseField :: Csv.Field -> Csv.Parser GroupName
+    parseField = parseTypeCSV "Group_Name"
+
+-- the IsString instance allows us to write GroupName "MyGroup" directly, mainly for testing purposes.
+instance IsString GroupName where
+    fromString str = GroupName (B.pack str)
 
 -- | A datatype for the Alternative_IDs .janno column
 newtype JannoAlternativeID = JannoAlternativeID T.Text deriving (Eq)

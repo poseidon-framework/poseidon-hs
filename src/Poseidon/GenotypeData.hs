@@ -3,7 +3,8 @@ module Poseidon.GenotypeData where
 
 import           Paths_poseidon_hs                (version)
 import           Poseidon.ColumnTypesJanno        (GroupName (..),
-                                                   JannoGenotypePloidy (..))
+                                                   JannoGenotypePloidy (..),
+                                                   PoseidonID (..))
 import           Poseidon.ColumnTypesUtils        (ListColumn (..))
 import           Poseidon.Janno                   (JannoRow (..))
 import           Poseidon.Utils                   (LogA, PoseidonException (..),
@@ -424,12 +425,12 @@ selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.!
 
 writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
 writeVCF logA jannoRows vcfFile = do
-    let sampleNames = map (B.pack . jPoseidonID) jannoRows
-        groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
+    let sampleNames = map (unPoseidonID . jPoseidonID) jannoRows
+        groupNames  = map (B.unpack . unGroupName . head . getListColumn . jGroupName) jannoRows
         sex         = map jGeneticSex jannoRows
     forM_ jannoRows $ \jannoRow -> do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
-            "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
+            "Missing GenotypePloidy for individual ++ " ++ show (jPoseidonID jannoRow) ++
             ". For VCF output I will assume diploid genotypes. " ++
             "Please set the GenotypePloidy column explitly in the Janno File to haploid or diploid."
     let metaInfoLines = map B.pack [
@@ -463,7 +464,7 @@ createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoL
         (Missing, Just Haploid) -> return ["."]
         (HomRef , Just Haploid) -> return ["0"]
         (Het    , Just Haploid) -> do
-            logWithEnv logA . logWarning $ "Encountered a heterozygous genotype for " ++ s ++
+            logWithEnv logA . logWarning $ "Encountered a heterozygous genotype for " ++ show (unPoseidonID s) ++
                 " at position " ++ show chrom ++ ":" ++ show pos ++ ", but the individual's GenotypePloidy is given as " ++
                 " Haploid in the Janno-File. I have to encode this in the VCF as a diploid genotype. Consider changing this " ++
                 "individual's GenotypePloidy to diploid!"

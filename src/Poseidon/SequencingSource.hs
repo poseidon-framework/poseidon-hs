@@ -8,6 +8,7 @@
 
 module Poseidon.SequencingSource where
 
+import           Poseidon.ColumnTypesJanno  (PoseidonID)
 import           Poseidon.ColumnTypesSSF
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Utils
@@ -56,7 +57,7 @@ instance Monoid SeqSourceRows where
 -- See https://github.com/poseidon-framework/poseidon2-schema/blob/master/seqSourceFile_columns.tsv
 -- for more details
 data SeqSourceRow = SeqSourceRow
-    { sPoseidonID               :: Maybe (ListColumn String)
+    { sPoseidonID               :: Maybe (ListColumn PoseidonID)
     , sUDG                      :: Maybe SSFUDG
     , sLibraryBuilt             :: Maybe SSFLibraryBuilt
     , sSampleAccession          :: Maybe SSFAccessionIDSample
