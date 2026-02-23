@@ -913,15 +913,16 @@ parseJannocoalTargetFile = VersionedFile <$> parsePoseidonVersion "pvTarget" <*>
     OP.help "The target .janno file to fill."
     )
 
-parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
-parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
+parseJannocoalOutFile :: OP.Parser FilePath
+parseJannocoalOutFile = OP.strOption (
     OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "FILE" <>
-    OP.value Nothing <>
     OP.showDefault <>
-    OP.help "An optional file to write the results to. \
-            \If not specified, change the target file in place."
+    OP.help ("File path to write the result to. Can be identical to --targetFile to overwrite the \
+             \target file in place. Note that trident only writes .janno files in the \
+             \latest Poseidon version it supports, so in this case v" ++
+             showPoseidonVersion latestPoseidonVersion ++ ".")
     )
 
 parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec

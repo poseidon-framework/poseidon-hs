@@ -39,7 +39,7 @@ data CoalesceJannoColumnSpec =
 data JannoCoalesceOptions = JannoCoalesceOptions
     { _jannocoalesceSource           :: JannoSourceSpec
     , _jannocoalesceTarget           :: VersionedFile
-    , _jannocoalesceOutSpec          :: Maybe FilePath -- Nothing means "in place"
+    , _jannocoalesceOutFile          :: FilePath
     , _jannocoalesceJannoColumns     :: CoalesceJannoColumnSpec
     , _jannocoalesceOverwriteColumns :: Bool
     , _jannocoalesceSourceKey        :: String -- by default set to "Poseidon_ID"
@@ -48,7 +48,7 @@ data JannoCoalesceOptions = JannoCoalesceOptions
     }
 
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
-runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV targetPath) outSpec fields overwrite sKey tKey maybeStrip) = do
+runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV targetPath) outPath fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
         JannoSourceSingle (VersionedFile sourcePV sourcePath) -> readJannoFile sourcePV [] sourcePath
         JannoSourceBaseDirs sourceDirs -> do
@@ -63,7 +63,6 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV target
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
-    let outPath = maybe targetPath id outSpec
     logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
     liftIO $ do
         createDirectoryIfMissing True (takeDirectory outPath)

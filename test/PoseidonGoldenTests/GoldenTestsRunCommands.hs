@@ -1426,7 +1426,7 @@ testPipelineJannocoalesce testDir checkFilePath = do
                                              "test/testDat/testJannoFiles/normal.janno",
             _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
                                              "test/testDat/testJannoFiles/minimal.janno",
-            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target1.janno"),
+            _jannocoalesceOutFile          = testDir </> "jannocoalesce" </> "target1.janno",
             _jannocoalesceJannoColumns     = AllJannoColumns,
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
@@ -1442,7 +1442,7 @@ testPipelineJannocoalesce testDir checkFilePath = do
                                              "test/testDat/testJannoFiles/normal.janno",
             _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
                                              "test/testDat/testJannoFiles/minimal.janno",
-            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target2.janno"),
+            _jannocoalesceOutFile          = testDir </> "jannocoalesce" </> "target2.janno",
             _jannocoalesceJannoColumns     = IncludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
@@ -1458,7 +1458,7 @@ testPipelineJannocoalesce testDir checkFilePath = do
                                              "test/testDat/testJannoFiles/normal.janno",
             _jannocoalesceTarget           = VersionedFile latestPoseidonVersion
                                              "test/testDat/testJannoFiles/minimal.janno",
-            _jannocoalesceOutSpec          = Just (testDir </> "jannocoalesce" </> "target3.janno"),
+            _jannocoalesceOutFile          = testDir </> "jannocoalesce" </> "target3.janno",
             _jannocoalesceJannoColumns     = ExcludeJannoColumns ["Latitude", "Longitude"],
             _jannocoalesceOverwriteColumns = False,
             _jannocoalesceSourceKey        = "Poseidon_ID",
