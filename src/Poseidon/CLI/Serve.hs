@@ -337,7 +337,7 @@ extractPosJannoRow archiveName pacName pacVersion row = case (jLatitude row, jLo
         let poseidonID = jPoseidonID row
             loc = show <$> jLocation row
             age = show <$> jDateBCADMedian row
-        in Just $ MapMarker lat lon poseidonID pacName pacVersion archiveName loc age
+        in Just $ MapMarker lat lon (show poseidonID) pacName pacVersion archiveName loc age
     _                                                     -> Nothing
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
@@ -360,7 +360,7 @@ prepSamples pac = return $ getJannoRowsFromPac pac
 
 prepSample :: String -> [JannoRow] -> ActionM JannoRow
 prepSample sampleName rows = do
-    case filter (\r -> jPoseidonID r == sampleName) rows of
+    case filter (\r -> show (jPoseidonID r) == sampleName) rows of
        []  -> fail $ "Sample " <> sampleName <> " does not exist"
        [x] -> return x
        _   -> fail $ "Sample " <> sampleName <> " exists multiple times"

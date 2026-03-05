@@ -14,8 +14,9 @@ import qualified Data.Csv                   as C
 import           Data.HashMap.Strict        (fromList)
 import           SequenceFormats.Eigenstrat (Sex (..))
 import           System.FilePath            ((</>))
-import           Test.Hspec                 (Spec, anyException, describe, it,
-                                             shouldBe, shouldThrow)
+import           Test.Hspec                 (Spec, anyException,
+                                             describe, it, shouldBe,
+                                             shouldThrow)
 
 spec :: Spec
 spec = do
@@ -57,7 +58,6 @@ checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
         cassavaCycle = map (C.runParser . C.parseField . C.toField)
         cassavaResult = map Right
 
-
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let minimalFullJannoPath      = "test/testDat/testJannoFiles/minimal_full.janno"
@@ -81,7 +81,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
         map jDateType janno                     `shouldBe` [Nothing, Nothing, Nothing]
         map jCaptureType janno                  `shouldBe` [Nothing, Nothing, Nothing]
         map jGenotypePloidy janno               `shouldBe` [Nothing, Nothing, Nothing]
-        map jGroupName janno                    `shouldBe` [ListColumn [GroupName "POP1"], ListColumn [GroupName "POP2"], ListColumn [GroupName "POP1"]]
+        map jGroupName janno                    `shouldBe` [ListColumn ["POP1"], ListColumn ["POP2"], ListColumn ["POP1"]]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
         map jCoverageOnTargets janno            `shouldBe` [Nothing, Nothing, Nothing]
         map jUDG janno                          `shouldBe` [Nothing, Nothing, Nothing]
