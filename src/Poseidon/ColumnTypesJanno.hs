@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE InstanceSigs #-}
 
 module Poseidon.ColumnTypesJanno where
 
@@ -93,7 +92,6 @@ instance Csv.ToField GroupName where
     toField (GroupName x) = Csv.toField x
 
 instance Csv.FromField GroupName where
-    parseField :: Csv.Field -> Csv.Parser GroupName
     parseField = parseTypeCSV "Group_Name"
 
 -- the IsString instance allows us to write GroupName "MyGroup" directly, mainly for testing purposes.
