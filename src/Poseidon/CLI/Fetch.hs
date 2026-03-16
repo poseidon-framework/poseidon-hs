@@ -80,7 +80,7 @@ runFetch (FetchOptions baseDirs entityInputs archiveE@(ArchiveEndpoint remoteURL
     -- load remote information to decide what to download
     logInfo "Downloading individual list from remote"
     remoteIndList <- do
-        r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive) False
+        r <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ "&includeRetired") False
         case r of
             ApiReturnExtIndividualInfo extIndInfos -> return $ extIndInfo2IndInfoCollection extIndInfos
             _                               -> error "should not happen"

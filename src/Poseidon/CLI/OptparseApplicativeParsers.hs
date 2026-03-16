@@ -16,8 +16,8 @@ import           Poseidon.CLI.Validate      (ValidatePlan (..))
 import           Poseidon.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
 import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
-                                             PoseidonEntity, SignedEntitiesList,
-                                             SignedEntity,
+                                             EntitySpec, PoseidonEntity,
+                                             SignedEntitiesList, SignedEntity,
                                              readEntitiesFromString)
 import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
@@ -329,10 +329,11 @@ parseFetchEntitiesDirect = OP.option (OP.eitherReader readEntities) (
         \You can combine multiple values with comma, so for example: \"*package_1*, *package_2*, *package_3*\". \
         \fetchString uses the same parser as forgeString, but does not allow excludes. If groups or individuals are \
         \specified, then packages which include these groups or individuals are included in the download.")
-  where
-    readEntities s = case readEntitiesFromString s of
-        Left e  -> Left $ renderPoseidonException e
-        Right e -> Right e
+
+readEntities :: EntitySpec a => String -> Either String [a]
+readEntities s = case readEntitiesFromString s of
+    Left e  -> Left $ renderPoseidonException e
+    Right e -> Right e
 
 parseForgeEntitiesFromFile :: OP.Parser FilePath
 parseForgeEntitiesFromFile = OP.strOption (
@@ -867,7 +868,7 @@ parseArchiveConfigCLI = ArchiveConfig <$> OP.some parseArchiveSpec
         in  case parts of
                 [name, fp] -> do
                     let fps = splitOn "," fp
-                    return $ ArchiveSpec name fps Nothing Nothing Nothing []
+                    return $ ArchiveSpec name fps Nothing Nothing Nothing [] Nothing
                 _ -> Left $ "could not parse archive and base directory " ++ str ++
                             ". Please use format name=path1,path2,... "
 
@@ -877,7 +878,7 @@ parseArchiveConfigPath = OP.strOption (
     OP.metavar "FILE" <>
     OP.help "Path to a .yml config file for the server archive configuration. \
             \This file must include a list of \"archives:\", each with the fields\
-            \ \"name\", \"paths\", \"description\", \"URL\" and \"dataURL\"."
+            \ \"name\", \"paths\", \"description\", \"URL\", \"dataURL\" and \"retiredPackages\"."
     )
 
 parseMaybeArchiveName :: OP.Parser (Maybe String)
