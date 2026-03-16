@@ -27,7 +27,7 @@ import qualified Data.ByteString.Char8     as Bchs
 import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
 import           Poseidon.EntityTypes      (IndividualInfo (..))
-import           Poseidon.PoseidonVersion  (latestPoseidonVersion)
+import           Poseidon.PoseidonVersion  (VersionedFile (..))
 import           System.Exit               (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command
@@ -50,8 +50,8 @@ data ValidatePlan =
       }
     | ValPlanPoseidonYaml FilePath
     | ValPlanGeno GenotypeDataSpec
-    | ValPlanJanno FilePath
-    | ValPlanSSF FilePath
+    | ValPlanJanno VersionedFile
+    | ValPlanSSF VersionedFile
     | ValPlanBib FilePath
 
 runValidate :: ValidateOptions -> PoseidonIO ()
@@ -105,14 +105,14 @@ runValidate (ValidateOptions (ValPlanGeno geno) _ _ noExitCode _) = do
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanJanno path) mandatoryJannoCols _ noExitCode _) = do
+runValidate (ValidateOptions (ValPlanJanno (VersionedFile pv path)) mandatoryJannoCols _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (JannoRows entries) <- readJannoFile latestPoseidonVersion mandatoryJannoCols path
+    (JannoRows entries) <- readJannoFile pv mandatoryJannoCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
-runValidate (ValidateOptions (ValPlanSSF path) _ mandatorySSFCols noExitCode _) = do
+runValidate (ValidateOptions (ValPlanSSF (VersionedFile pv path)) _ mandatorySSFCols noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (SeqSourceRows entries) <- readSeqSourceFile latestPoseidonVersion mandatorySSFCols path
+    (SeqSourceRows entries) <- readSeqSourceFile pv mandatorySSFCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanBib path) _ _ noExitCode _) = do

@@ -1,5 +1,4 @@
 - V X.X.X.X:
-    - Introduced smart .janno field construction based on the relevant Poseidon version.
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.
         - New column `Individual_ID`.
@@ -16,6 +15,10 @@
         - Changed the handling of `_Note` columns. Previously they were explicitly specified and part of the `JannoRow` record type. Now they are just treated as arbitrary additional columns that get algorithmically sorted in when writing .janno files (e.g. in `forge`). See `makeHeaderWithAdditionalColumns`.
     - Changes to .ssf columns according to Poseidon v3.0.0:
         - New column `submitted_md5`.
+    - Changes to trident to accomodate the schema changes:
+        - Introduced smart .janno field construction based on the relevant Poseidon version. Smart here means that different checks and even minor data transformations are applied depending on the input version. The written output always adheres to the latest Poseidon version a given trident version supports. trident does not perform a comprehensive "upgrade" of old data, though, which would e.g. entail replacing .janno columns.
+        - Added command line arguments to set the expected Poseidon version for individual input files when no `POSEIDON.yml` file is available in `validate` and `jannocoalesce`: `--pvJanno`, `--pvSSF`, `--pvSource`, and `--pvTarget`.
+        - Made `-o,--outFile` mandatory in `jannocoalesce`, even when a `-t,--targetFile` is overwritten, to avoid any confusion which version is written (always the latest trident supports!).
 - V 1.6.8.0:
     - Added a mechanism to check for the presence and completeness of usually optional .janno and .ssf columns. It is exclusively used in `validate`, where a user can set one or multiple of these additional mandatory columns with `-j,--mandatoryJannoColumn` and `-s,--mandatorySSFColumn`.
     - Fixed the golden tests for `validate`. They had become ineffective, because `validate` does not generate stdout any more.

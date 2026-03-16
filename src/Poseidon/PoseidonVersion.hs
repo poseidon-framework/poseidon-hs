@@ -24,3 +24,6 @@ showPoseidonVersion (PoseidonVersion x) = showVersion x
 -- this is for the server
 minimalRequiredClientVersion :: Version
 minimalRequiredClientVersion = makeVersion [1, 1, 8, 5]
+
+-- and this for validate and jannocoalesce
+data VersionedFile = VersionedFile PoseidonVersion FilePath
