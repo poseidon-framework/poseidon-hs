@@ -1,5 +1,4 @@
-<<<<<<< Schema_300_dev
-- V X.X.X.X:
+- V 1.7.0.0:
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.
         - New column `Individual_ID`.
@@ -17,15 +16,14 @@
     - Changes to .ssf columns according to Poseidon v3.0.0:
         - New column `submitted_md5`.
     - Changes to trident to accomodate the schema changes:
+        - Added warnings for characters outside of the recommended range in `Poseidon_ID`s and `Group_Names`.
         - Introduced smart .janno field construction based on the relevant Poseidon version. Smart here means that different checks and even minor data transformations are applied depending on the input version. The written output always adheres to the latest Poseidon version a given trident version supports. trident does not perform a comprehensive "upgrade" of old data, though, which would e.g. entail replacing .janno columns.
         - Added command line arguments to set the expected Poseidon version for individual input files when no `POSEIDON.yml` file is available in `validate` and `jannocoalesce`: `--pvJanno`, `--pvSSF`, `--pvSource`, and `--pvTarget`.
         - Made `-o,--outFile` mandatory in `jannocoalesce`, even when a `-t,--targetFile` is overwritten, to avoid any confusion which version is written (always the latest trident supports!).
-=======
 - V 1.6.9.1:
     - Fixed [a bug](https://github.com/poseidon-framework/poseidon-hs/issues/365) related to forge-names of packages with hyphens and numbers.
 - V 1.6.9.0:
     - Introduced new `retiredPackagesFile` field to be given in the Archive Specification YAML file of the server, to specify retired packages for serving. Retired packages are by default ignored in the `/packages`, `/groups`, `/bibliography` and `/individuals` endpoints, as well as ignored in the archive HTML page of the explorer. However, `/zip_file` still serves retired packages, so that they can be downloaded, and the retired packages are still available in the per-package explorer HTML page.
->>>>>>> master
 - V 1.6.8.0:
     - Added a mechanism to check for the presence and completeness of usually optional .janno and .ssf columns. It is exclusively used in `validate`, where a user can set one or multiple of these additional mandatory columns with `-j,--mandatoryJannoColumn` and `-s,--mandatorySSFColumn`.
     - Fixed the golden tests for `validate`. They had become ineffective, because `validate` does not generate stdout any more.

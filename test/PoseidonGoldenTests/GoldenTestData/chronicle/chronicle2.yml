@@ -5,25 +5,25 @@ lastModified: 2026-03-16
 packages:
 - title: Lamnidis_2018
   version: 1.0.0
-  commit: 5ce5118ec23a5ca2df3266c545fc4ae5d13b4fbf
+  commit: 7c9f7ae03822d10d672198835fbf7e7f03839050
   path: Lamnidis_2018
 - title: Lamnidis_2018
   version: 1.0.1
-  commit: 5ce5118ec23a5ca2df3266c545fc4ae5d13b4fbf
+  commit: 7c9f7ae03822d10d672198835fbf7e7f03839050
   path: Lamnidis_2018_newVersion
 - title: Schiffels
   version: 1.1.1
-  commit: c89fa6c2e0f3cd61f7d5a8accfc221002ad652d4
+  commit: 1cbc1bca28d5b0157ba97a28239f19ad037ab43f
   path: Schiffels
 - title: Schiffels_2016
   version: 1.0.1
-  commit: 5ce5118ec23a5ca2df3266c545fc4ae5d13b4fbf
+  commit: 7c9f7ae03822d10d672198835fbf7e7f03839050
   path: Schiffels_2016
 - title: Schmid_2028
   version: 1.0.0
-  commit: 5ce5118ec23a5ca2df3266c545fc4ae5d13b4fbf
+  commit: 7c9f7ae03822d10d672198835fbf7e7f03839050
   path: Schmid_2028
 - title: Wang_2020
   version: 0.1.0
-  commit: 5ce5118ec23a5ca2df3266c545fc4ae5d13b4fbf
+  commit: 7c9f7ae03822d10d672198835fbf7e7f03839050
   path: Wang_2020
