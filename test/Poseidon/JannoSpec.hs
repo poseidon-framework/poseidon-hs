@@ -87,7 +87,6 @@ checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
         cassavaCycle = map (C.runParser . (parseFieldVersioned latestPoseidonVersion) . C.toField)
         cassavaResult = map Right
 
-
 testPoseidonSampleFromJannoFile :: Spec
 testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
     let minimalJannoPath      = "test/testDat/testJannoFiles/minimal.janno"
