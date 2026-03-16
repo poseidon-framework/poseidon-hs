@@ -50,7 +50,7 @@ instance FromFieldVersioned GeneticSex where parseFieldVersioned pv = parseTypeC
 newtype PoseidonID = PoseidonID {unPoseidonID :: B.ByteString} deriving (Eq, Ord)
 
 instance Makeable PoseidonID where
-    make = return . PoseidonID . B.pack . T.unpack
+    make _ x = (return . PoseidonID . B.pack . T.unpack) x
 
 isRecommendedPoseidonIDChar :: Char -> Bool
 isRecommendedPoseidonIDChar c =
@@ -68,8 +68,8 @@ instance Show PoseidonID where
 instance Csv.ToField PoseidonID where
     toField (PoseidonID x) = Csv.toField x
 
-instance Csv.FromField PoseidonID where
-    parseField = parseTypeCSV "PoseidonID"
+instance FromFieldVersioned PoseidonID where
+    parseFieldVersioned pv = parseTypeCSV pv "PoseidonID"
 
 -- the IsString instance allows us to write PoseidonID "MyID" directly, mainly for testing purposes.
 instance IsString PoseidonID where
@@ -79,7 +79,7 @@ instance IsString PoseidonID where
 newtype GroupName = GroupName {unGroupName :: B.ByteString} deriving (Eq, Ord)
 
 instance Makeable GroupName where
-    make = return . GroupName . B.pack . T.unpack
+    make _ x = (return . GroupName . B.pack . T.unpack) x
 
 instance Suspicious GroupName where
     inspect groupName = if B.all isRecommendedPoseidonIDChar (unGroupName groupName)
@@ -93,8 +93,8 @@ instance Show GroupName where
 instance Csv.ToField GroupName where
     toField (GroupName x) = Csv.toField x
 
-instance Csv.FromField GroupName where
-    parseField = parseTypeCSV "Group_Name"
+instance FromFieldVersioned GroupName where
+    parseFieldVersioned pv = parseTypeCSV pv "Group_Name"
 
 -- the IsString instance allows us to write GroupName "MyGroup" directly, mainly for testing purposes.
 instance IsString GroupName where
