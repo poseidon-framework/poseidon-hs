@@ -116,7 +116,7 @@ runAdmixPops (
             GenotypeOutFormatVCF ->
                 return $ GenotypeVCF
                     (outName <.> "vcf" <.> gz) Nothing
-    let genotypeData = GenotypeDataSpec genotypeFileData Nothing -- we set no snpSet
+    let genotypeData = GenotypeDataSpec genotypeFileData Nothing Nothing Nothing -- we set no snpSet and no assembly info.
     pac <- newMinimalPackageTemplate outPath outName genotypeData
     liftIO $ writePoseidonPackage pac
     -- compile genotype data
