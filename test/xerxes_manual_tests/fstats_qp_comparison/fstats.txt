@@ -1,0 +1,5 @@
+F3star(French, Italian_North, Mbuti)
+F3star(French, Han, Mbuti)
+F3star(Sardinian, Pima, French)
+F4(French, Russian, Han, Mbuti)
+F4(Sardinian, French, Pima, Mbuti)

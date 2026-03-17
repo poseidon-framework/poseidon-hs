@@ -1,0 +1,5 @@
+genotypename:   /Users/schiffels/dev/poseidon-framework/published_data/2012_PattersonGenetics/2012_PattersonGenetics.geno
+snpname:   /Users/schiffels/dev/poseidon-framework/published_data/2012_PattersonGenetics/2012_PattersonGenetics.snp
+indivname:   /Users/schiffels/dev/poseidon-framework/published_data/2012_PattersonGenetics/2012_PattersonGenetics.ind
+popfilename:  4pop_tests.txt
+f4mode:   YES
