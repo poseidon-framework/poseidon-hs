@@ -8,12 +8,13 @@ import           Data.Aeson                 ((.:))
 import           Data.Aeson.Key             (toString)
 import           Data.Aeson.KeyMap          (toList)
 import           Data.Aeson.Types           (Object, Parser)
-import qualified Data.Text                  as T
+import qualified Data.ByteString.Char8      as B
 import qualified Data.Vector                as V
 import           Pipes                      (Pipe, cat)
 import qualified Pipes.Prelude              as P
 import           Poseidon.ColumnTypesJanno  (GroupName (..),
-                                             JannoGenotypePloidy (..))
+                                             JannoGenotypePloidy (..),
+                                             PoseidonID (..))
 import           Poseidon.ColumnTypesUtils  (ListColumn (..))
 import           Poseidon.EntityTypes       (IndividualInfo (..),
                                              SignedEntitiesList,
@@ -50,9 +51,9 @@ addGroupDefs groupDefs pacs = do -- this loops through all input packages
             let oldGroupNames = getListColumn . jGroupName $ jannoRow
             let additionalGroupNames = do -- this loops through each new group definition and returns those group names that apply to this janno-row
                     (groupName, signedEntityList) <- groupDefs
-                    let indInfo = IndividualInfo (jPoseidonID jannoRow) (map (\(GroupName n) -> T.unpack n) oldGroupNames) (makePacNameAndVersion pac)
+                    let indInfo = IndividualInfo (B.unpack . unPoseidonID . jPoseidonID $ jannoRow) (map (\(GroupName n) -> B.unpack n) oldGroupNames) (makePacNameAndVersion pac)
                     True <- return $ indInfoConformsToEntitySpecs indInfo isLatest signedEntityList -- this checks whether a new group-def applies to this janno-row
-                    return . GroupName . T.pack $ groupName -- only returns if the previous row pattern-matched, i.e. if the group applies
+                    return . GroupName . B.pack $ groupName -- only returns if the previous row pattern-matched, i.e. if the group applies
             return $ jannoRow {jGroupName = ListColumn (oldGroupNames ++ additionalGroupNames)} -- returns a new janno-row with the new group definitions
     return $ pac {posPacJanno = newJanno} -- returns a new package with the new janno
 
@@ -138,7 +139,7 @@ makePloidyVec (JannoRows jannoRows) = do
     ploidyList <- forM jannoRows $ \jannoRow -> do
         case jGenotypePloidy jannoRow of
             Nothing -> do
-                logWarning $ "no ploidy information for " ++ jPoseidonID jannoRow ++
+                logWarning $ "no ploidy information for " ++ show (jPoseidonID jannoRow) ++
                     ". Assuming Diploid. Use the Janno-column \"Genotype_Ploidy\" to specify"
                 return Diploid
             Just pl -> return pl
