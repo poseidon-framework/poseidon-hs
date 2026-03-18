@@ -32,7 +32,7 @@ testAddGroupDefs :: Spec
 testAddGroupDefs = do
     describe "addGroupDefs" $ do
         it "should correctly add groups" $ do
-            pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testPackages"]
+            pacs <- testLog $ readPoseidonPackageCollection testPacReadOpts ["test/testDat/testPackages/ancient"]
             let groupDefs = [
                     ("MyNewGroup1", [Include (Group "POP1"), Exclude (Ind "XXX011")]),
                     ("MyNewGroup2", [Include (Ind "XXX011"), Include (Ind "XXX012")])
