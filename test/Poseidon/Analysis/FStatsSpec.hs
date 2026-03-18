@@ -1,12 +1,13 @@
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.Analysis.FStatsSpec (spec) where
 
 
 import           Poseidon.Analysis.CLI.FStats   (collectStatSpecGroups)
 import           Poseidon.Analysis.FStatsConfig (AscertainmentSpec (..),
                                                  FStatSpec (..), FStatType (..),
-                                                 fStatSpecParser, readFStatsSimpleText)
+                                                 fStatSpecParser,
+                                                 readFStatsSimpleText)
 import           Poseidon.EntityTypes           (PoseidonEntity (..))
 
 import qualified Data.ByteString.Char8          as B
