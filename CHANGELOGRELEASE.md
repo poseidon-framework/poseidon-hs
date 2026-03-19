@@ -1,3 +1,42 @@
+### V 1.7.0.0
+
+This is a major release to add compatibility with Poseidon v3.0.0. It includes features to accomodate the new schema, and various other changes added since the last release V 1.6.7.3.
+
+#### `.janno`-related changes for Poseidon v3.0.0
+
+For the new schema release we modified the data structures that internally store `.janno`, `.ssf` and even `POSEIDON.yml` files. Please consult the [schema changelog](https://www.poseidon-adna.org/#/changelog) for the list of affected columns.
+
+To keep it possible to read older Poseidon packages we introduced "smart" `.janno` (and `.ssf`) field constructors based on the relevant Poseidon version. Smart here means that different checks and even minor data transformations are applied depending on the input version. This renders all valid input minimally compatible with Poseidon v3.0.0. trident does not perform a comprehensive "upgrade" of old data, though. That would also entail replacing outdated `.janno` columns like `Source_Tissue`. The most intrusive change that is actually implemented is a rescaling of the columns `Endogenous` and `Damage`, which are not stored as percentages any more in Poseidon v3.0.0. The output of trident, e.g. of `forge`, thus always adheres to the latest supported Poseidon version, but may carry along additional columns as free-text.
+
+Another possibly surprising change in this context concerns the handling of `_Note` columns in the `.janno` file. Poseidon v3.0.0 does not explcitly define individual `_Note` columns any more, so trident equally does not validate them. It instead treats them as unspecified, free-text columns. It does sort them, though, so that `_Note` columns are at least positioned sensibly when trident writes `.janno` files.
+
+#### Minor interface changes that emerged as a result
+
+Beyond these changes in the handling of `.janno` files, V 1.7.0.0 also comes with some minor changes in the trident CLI interface:
+
+1. The fact that we introduced smart, version-aware constructors when reading `.janno` and `.ssf` files has the consequence that the schema version must be known upon reading. We therefore added command line arguments for `validate` and `jannocoalesce` to set the expected Poseidon version when no `POSEIDON.yml` file is available: `--pvJanno`, `--pvSSF`, `--pvSource`, and `--pvTarget`. By default the latest supported schema version is assumed.
+2. As explained above trident now can read different Poseidon version more explicitly, but it can always only write data following the latest schema. To avoid any confusion we made `-o,--outFile` mandatory in `jannocoalesce`, even when a `-t,--targetFile` is overwritten. Otherwise `--pvTarget` may be confused for a way to set the output version number.
+3. Poseidon v3.0.0 recommends that `Poseidon_ID`s and `Group_Names` only include the ASCII characters "A-Za-z0-9_-.". trident now prints a warning if it encounters any characters outside of this recommended range in these fields.
+
+#### New features for archive maintenance
+
+trident is not only a CLI tool for personal data management, but also includes essential tooling for the maintenance and distribution of the public Poseidon archives. https://server.poseidon-adna.org is run by trident. In this context trident V 1.7.0.0 sports two new features:
+
+1. The `--archiveConfigFile`, so the archive specification YAML file of the server, can now include a `retiredPackagesFile` field to specify retired packages. Retired packages are by default ignored in the `/packages`, `/groups`, `/bibliography` and `/individuals` endpoints,of the web API, as well as ignored in the archive HTML page of the explorer. However, the `/zip_file` API endpoint still serves retired packages, so that they can be downloaded. The retired packages are still available in the per-package explorer HTML page. This feature allows us to retire outdated packages, e.g. in the [community-archive](https://github.com/poseidon-framework/community-archive/blob/master/archive.retired).
+2. `validate` now includes a mechanism to check for the presence and completeness of usually optional `.janno` and `.ssf` columns with `-j,--mandatoryJannoColumn` and `-s,--mandatorySSFColumn`. This feature will allow us to gradually make more fields mandatory in the public archives, beyond the three that are already required by the schema (`Poseidon_ID`, `Genetic_Sex`, `Group_Names`).
+
+#### Fixed a subtle bug in the forge language
+
+A user reported [an issue](https://github.com/poseidon-framework/poseidon-hs/issues/365) in the selection language parsing of `forge`, where package names with multiple hyphens and numbers caused the parsing to fail:
+
+```
+option --forgeString: Error when parsing the forge selection (either -f or --forgeFile):
+unexpected "-"
+expecting digit
+```
+
+We identified and fixed this bug.
+
 ### V 1.6.7.3
 
 This is a minor release with few changes in the behaviour of trident. It mainly includes internal alterations that allow for better error reporting. On the user side there are three notable changes:
