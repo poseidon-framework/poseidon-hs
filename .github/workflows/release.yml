@@ -107,7 +107,9 @@ jobs:
         run: docker create --name linuxcontainer linux
 
       - name: Copy executable
-        run: docker cp linuxcontainer:/root/.local/bin/trident trident-conda-linux
+        run: |
+          docker cp linuxcontainer:/root/.local/bin/trident trident-conda-linux
+          docker cp linuxcontainer:/root/.local/bin/xerxes xerxes-conda-linux
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -117,5 +119,7 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: trident-conda-linux
+          artifacts: |
+            trident-conda-linux
+            xerxes-conda-linux
           artifactContentType: application/octet-stream
