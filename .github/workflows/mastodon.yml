@@ -20,4 +20,4 @@ jobs:
           # GitHub event payload
           # https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#release
           # repo name can be queried with ${{ github.event.repository.name }}
-          message: "New trident release ${{ github.event.release.tag_name }}! Please see the changelog here: ${{ github.event.release.html_url }} #aDNA #OpenData #Haskell"
+          message: "New release of trident and xerxes: ${{ github.event.release.tag_name }}! Please see the changelog here: ${{ github.event.release.html_url }} #aDNA #OpenData #Haskell"
