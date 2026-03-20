@@ -55,22 +55,29 @@ jobs:
         id: binarypath
         run: |
              if [ "$RUNNER_OS" == "Windows" ]; then
-                 newEXE="trident-$RUNNER_OS.exe"
+                 TRIDENT="trident-$RUNNER_OS.exe"
+                 XERXES="xerxes-$RUNNER_OS.exe"
              elif [ "$RUNNER_OS" == "macOS" ]; then
-                 newEXE="trident-$RUNNER_OS-$RUNNER_ARCH"
+                 TRIDENT="trident-$RUNNER_OS-$RUNNER_ARCH"
+                 XERXES="xerxes-$RUNNER_OS-$RUNNER_ARCH"
              else
-                 newEXE="trident-$RUNNER_OS"
+                 TRIDENT="trident-$RUNNER_OS"
+                 XERXES="xerxes-$RUNNER_OS"
              fi
-             currentEXE="${{ steps.stack.outputs.local-bin }}/trident"
-             mv $currentEXE $newEXE
-             echo "BINARY_PATH=$newEXE" >> $GITHUB_OUTPUT
+             BIN_DIR="${{ steps.stack.outputs.local-bin }}"
+             mv "$BIN_DIR/trident" "$TRIDENT"
+             mv "$BIN_DIR/xerxes" "$XERXES"
+             echo "TRIDENT_PATH=$TRIDENT" >> $GITHUB_OUTPUT
+             echo "XERXES_PATH=$XERXES" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Compress binary
         if: ${{ runner.os != 'macOS' }} # upx is crashing for macOS Ventura or above!
         uses: svenstaro/upx-action@v2
         with:
-          files: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          files: |
+            ${{ steps.binarypath.outputs.TRIDENT_PATH }}
+            ${{ steps.binarypath.outputs.XERXES_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -80,7 +87,9 @@ jobs:
           draft: true
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ${{ steps.binarypath.outputs.BINARY_PATH }}
+          artifacts: |
+            ${{ steps.binarypath.outputs.TRIDENT_PATH }}
+            ${{ steps.binarypath.outputs.XERXES_PATH }}
           artifactContentType: application/octet-stream
 
   build_centos_artifact:
