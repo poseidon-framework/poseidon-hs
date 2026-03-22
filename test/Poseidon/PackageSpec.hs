@@ -8,7 +8,8 @@ import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
 import           Poseidon.Janno             (createMinimalJanno)
-import           Poseidon.Package           (PackageReadOptions (..),
+import           Poseidon.Package           (LicenseSpec (..),
+                                             PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
                                              checkJannoIndConsistency,
@@ -17,6 +18,7 @@ import           Poseidon.Package           (PackageReadOptions (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
@@ -71,6 +73,9 @@ contributor:
     email: schiffels@institute.org
     orcid: 0000-0002-1017-9150
 packageVersion: 1.0.0
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 lastModified: 2020-02-28
 bibFile: sources.bib
 genotypeData:
@@ -89,7 +94,7 @@ replace from to s =
 
 truePackageRelPaths :: PoseidonYamlStruct
 truePackageRelPaths = PoseidonYamlStruct {
-    _posYamlPoseidonVersion = makeVersion [2, 0, 1],
+    _posYamlPoseidonVersion = PoseidonVersion $ makeVersion [2, 0, 1],
     _posYamlTitle           = "Schiffels_2016",
     _posYamlDescription     = Just "Genetic data published in Schiffels et al. 2016",
     _posYamlContributor     = [
@@ -100,6 +105,7 @@ truePackageRelPaths = PoseidonYamlStruct {
         ],
     _posYamlPackageVersion  = Just $ makeVersion [1, 0, 0],
     _posYamlLastModified    = Just $ fromGregorian 2020 2 28,
+    _posYamlLicense         = Just $ LicenseSpec "CC-BY-4.0" (Just "https://creativecommons.org/licenses/by/4.0/") Nothing,
     _posYamlGenotypeData    = GenotypeDataSpec {
         genotypeFileSpec   = GenotypePlink {
             _plGenoFile = "Schiffels_2016.bed",
@@ -109,7 +115,9 @@ truePackageRelPaths = PoseidonYamlStruct {
             _plIndFile  = "Schiffels_2016.fam",
             _plIndFileChkSum = Nothing
         },
-        genotypeSnpSet = Just SNPSet1240K
+        genotypeSnpSet = Just SNPSet1240K,
+        genotypeRefAssemblyName = Nothing,
+        genotypeRefAssemblyURL = Nothing
     },
     _posYamlJannoFile       = Just "Schiffels_2016.janno",
     _posYamlJannoFileChkSum = Nothing,
@@ -175,12 +183,13 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
         decodeTest bs = decodeEither' bs
         dummyPackageYamlStruct :: PoseidonYamlStruct
         dummyPackageYamlStruct = PoseidonYamlStruct {
-            _posYamlPoseidonVersion = makeVersion [0, 0, 0],
+            _posYamlPoseidonVersion = PoseidonVersion $ makeVersion [0, 0, 0],
             _posYamlTitle           = "dummyPackage",
             _posYamlDescription     = Nothing,
             _posYamlContributor     = [],
             _posYamlPackageVersion  = Nothing,
             _posYamlLastModified    = Nothing,
+            _posYamlLicense         = Nothing,
             _posYamlGenotypeData    = GenotypeDataSpec {
                 genotypeFileSpec   = GenotypePlink {
                     _plGenoFile = "test.bed",
@@ -190,7 +199,9 @@ testPoseidonFromYAML = describe "PoseidonPackage.fromYAML" $ do
                     _plIndFile  = "test.fam",
                     _plIndFileChkSum = Nothing
                 },
-                genotypeSnpSet = Nothing
+                genotypeSnpSet = Nothing,
+                genotypeRefAssemblyName = Nothing,
+                genotypeRefAssemblyURL = Nothing
             },
             _posYamlJannoFile       = Nothing,
             _posYamlJannoFileChkSum = Nothing,

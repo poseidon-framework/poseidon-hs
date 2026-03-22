@@ -7,6 +7,7 @@ import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
 import           Poseidon.ColumnTypesJanno
 import           Poseidon.ColumnTypesUtils
 import           Poseidon.Janno             (JannoRow (..), createMinimalSample)
+import           Poseidon.PoseidonVersion
 import           Poseidon.Utils             (testLog)
 
 import           Control.Monad.IO.Class     (liftIO)
@@ -26,7 +27,6 @@ jannoTargetRow =
     in  row {
             jCountry = Just $ JannoCountry "Austria",
             jSite = Just $ JannoSite "Vienna",
-            jDateNote = Just $ JannoDateNote "dating didn't work",
             jAdditionalColumns = CsvNamedRecord $ HM.fromList [
                 ("AdditionalColumn2", "C")
             ]
@@ -38,8 +38,8 @@ jannoSourceRow =
     in  row {
             jCountry   = Just $ JannoCountry "Austria",
             jSite      = Just $ JannoSite "Salzburg",
-            jLatitude  = make "30.0",
-            jLongitude = make "30.0",
+            jLatitude  = make latestPoseidonVersion "30.0",
+            jLongitude = make latestPoseidonVersion "30.0",
             jAdditionalColumns = CsvNamedRecord $ HM.fromList [
                 ("AdditionalColumn1", "A"),
                 ("AdditionalColumn2", "B")
@@ -71,8 +71,8 @@ testMergeSingleRow =
             merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow AllJannoColumns False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just (JannoSite "Vienna")
             jGroupName merged `shouldBe` ListColumn [GroupName "SamplePop"]
-            jLatitude merged  `shouldBe` make "30.0"
-            jLongitude merged `shouldBe` make "30.0"
+            jLatitude merged  `shouldBe` make latestPoseidonVersion "30.0"
+            jLongitude merged `shouldBe` make latestPoseidonVersion "30.0"
             jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "C")
@@ -82,8 +82,8 @@ testMergeSingleRow =
             merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow AllJannoColumns True "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just (JannoSite "Salzburg")
             jGroupName merged `shouldBe` ListColumn [GroupName "SamplePop2"]
-            jLatitude merged  `shouldBe` make "30.0"
-            jLongitude merged `shouldBe` make "30.0"
+            jLatitude merged  `shouldBe` make latestPoseidonVersion "30.0"
+            jLongitude merged `shouldBe` make latestPoseidonVersion "30.0"
             jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "B")
@@ -93,7 +93,7 @@ testMergeSingleRow =
             merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) False "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just (JannoSite "Vienna")
             jGroupName merged `shouldBe` ListColumn [GroupName "SamplePop"]
-            jLatitude merged  `shouldBe` make "30.0"
+            jLatitude merged  `shouldBe` make latestPoseidonVersion "30.0"
             jLongitude merged `shouldBe` Nothing
             jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn2", "C")
@@ -104,7 +104,7 @@ testMergeSingleRow =
             jSite merged      `shouldBe` Just (JannoSite "Vienna")
             jGroupName merged `shouldBe` ListColumn [GroupName "SamplePop"]
             jLatitude merged  `shouldBe` Nothing
-            jLongitude merged `shouldBe` make "30.0"
+            jLongitude merged `shouldBe` make latestPoseidonVersion "30.0"
             jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn1", "A"),
                     ("AdditionalColumn2", "C")
@@ -114,7 +114,7 @@ testMergeSingleRow =
             merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow (IncludeJannoColumns ["Group_Name", "Latitude"]) True "Poseidon_ID" "Poseidon_ID"
             jSite merged      `shouldBe` Just (JannoSite "Vienna")
             jGroupName merged `shouldBe` ListColumn [GroupName "SamplePop2"]
-            jLatitude merged  `shouldBe` make "30.0"
+            jLatitude merged  `shouldBe` make latestPoseidonVersion "30.0"
             jLongitude merged `shouldBe` Nothing
             jAdditionalColumns merged `shouldBe` CsvNamedRecord (HM.fromList [
                     ("AdditionalColumn2", "C")

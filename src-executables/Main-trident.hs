@@ -273,7 +273,7 @@ serveOptParser = ServeOptions <$> parseArchiveConfig
 jannocoalesceOptParser :: OP.Parser JannoCoalesceOptions
 jannocoalesceOptParser = JannoCoalesceOptions <$> parseJannocoalSourceSpec
                                               <*> parseJannocoalTargetFile
-                                              <*> parseJannocoalOutSpec
+                                              <*> parseJannocoalOutFile
                                               <*> parseJannocoalJannoColumns
                                               <*> parseJannocoalOverride
                                               <*> parseJannocoalSourceKey

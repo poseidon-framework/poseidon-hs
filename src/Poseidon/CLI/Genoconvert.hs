@@ -157,7 +157,7 @@ convertGenoTo outFormat onlyGeno outPath removeOld outPlinkPopMode outZip pac = 
                 GenotypeOutFormatPlink      -> return $
                     GenotypePlink      (outFilesRel !! 0) Nothing (outFilesRel !! 1) Nothing (outFilesRel !! 2) Nothing
                 GenotypeOutFormatVCF        -> return $ GenotypeVCF (outFilesRel !! 0) Nothing
-        let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac)
+        let newGenotypeData = GenotypeDataSpec gFileSpec (genotypeSnpSet . posPacGenotypeData $ pac) Nothing Nothing
             newPac = pac { posPacGenotypeData = newGenotypeData }
         logInfo $ "Adjusting POSEIDON.yml for " ++ show (posPacNameAndVersion pac)
         liftIO $ writePoseidonPackage newPac

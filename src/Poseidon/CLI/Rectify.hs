@@ -4,32 +4,34 @@ module Poseidon.CLI.Rectify (
     runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
-import           Poseidon.Contributor   (ContributorSpec (..))
-import           Poseidon.EntityTypes   (HasNameAndVersion (..),
-                                         PacNameAndVersion (..),
-                                         renderNameWithVersion)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
-                                         GenotypeFileSpec (..))
-import           Poseidon.Janno         (writeJannoFileWithoutEmptyCols)
-import           Poseidon.Package       (PackageReadOptions (..),
-                                         PoseidonPackage (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection,
-                                         writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonIO, getChecksum, logDebug,
-                                         logInfo, logWarning)
-import           Poseidon.Version       (VersionComponent (..),
-                                         updateThreeComponentVersion)
+import           Poseidon.Contributor     (ContributorSpec (..))
+import           Poseidon.EntityTypes     (HasNameAndVersion (..),
+                                           PacNameAndVersion (..),
+                                           renderNameWithVersion)
+import           Poseidon.GenotypeData    (GenotypeDataSpec (..),
+                                           GenotypeFileSpec (..))
+import           Poseidon.Janno           (writeJannoFileWithoutEmptyCols)
+import           Poseidon.Package         (PackageReadOptions (..),
+                                           PoseidonPackage (..),
+                                           defaultPackageReadOptions,
+                                           readPoseidonPackageCollection,
+                                           writePoseidonPackage)
+import           Poseidon.PoseidonVersion (PoseidonVersion (..))
+import           Poseidon.Utils           (PoseidonIO, getChecksum, logDebug,
+                                           logInfo, logWarning)
+import           Poseidon.Version         (VersionComponent (..),
+                                           updateThreeComponentVersion)
 
-import           Control.DeepSeq        ((<$!!>))
-import           Control.Monad          (when)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.List              (nub)
-import           Data.Maybe             (fromJust)
-import           Data.Time              (UTCTime (..), getCurrentTime)
-import           Data.Version           (Version (..), makeVersion, showVersion)
-import           System.Directory       (doesFileExist, removeFile)
-import           System.FilePath        ((</>))
+import           Control.DeepSeq          ((<$!!>))
+import           Control.Monad            (when)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Data.List                (nub)
+import           Data.Maybe               (fromJust)
+import           Data.Time                (UTCTime (..), getCurrentTime)
+import           Data.Version             (Version (..), makeVersion,
+                                           showVersion)
+import           System.Directory         (doesFileExist, removeFile)
+import           System.FilePath          ((</>))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
@@ -96,7 +98,7 @@ updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO Poseidon
 updatePoseidonVersion Nothing    pac = return pac
 updatePoseidonVersion (Just ver) pac = do
     logDebug "Updating Poseidon version"
-    return pac { posPacPoseidonVersion = ver }
+    return pac { posPacPoseidonVersion = PoseidonVersion ver }
 
 addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
 addContributors Nothing pac = return pac

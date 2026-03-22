@@ -1,3 +1,25 @@
+- V 1.7.0.0:
+    - Changes to .janno columns according to Poseidon v3.0.0:
+        - Replaced column `Source_Tissue`  with column `Source_Material`.
+        - New column `Individual_ID`.
+        - New column `Species`.
+        - New column `Alternative_IDs_Context` linked to `Alternative_IDs`.
+        - New column `Custodian_Institution`.
+        - New columns `Cultural_Era` + `Cultural_Era_URL` and `Archaeological_Culture` + `Archaeological_Culture_URL`.
+        - New column `Chromosomal_Anomalies`.
+        - Made column `Collection_ID` a list column.
+        - Soft-retired the option `ReferenceGenome` in the column `Capture_Type`.
+        - Added rescaling feature for the columns `Endogenous` and `Damage` for packages below Poseidon v3.0.0..
+        - Made column `Damage` a list column.
+        - Added the option `WISC2013` to the column `Capture_Type`.
+        - Changed the handling of `_Note` columns. Previously they were explicitly specified and part of the `JannoRow` record type. Now they are just treated as arbitrary additional columns that get algorithmically sorted in when writing .janno files (e.g. in `forge`). See `makeHeaderWithAdditionalColumns`.
+    - Changes to .ssf columns according to Poseidon v3.0.0:
+        - New column `submitted_md5`.
+    - Changes to trident to accomodate the schema changes:
+        - Added warnings for characters outside of the recommended range in `Poseidon_ID`s and `Group_Names`.
+        - Introduced smart .janno field construction based on the relevant Poseidon version. Smart here means that different checks and even minor data transformations are applied depending on the input version. The written output always adheres to the latest Poseidon version a given trident version supports. trident does not perform a comprehensive "upgrade" of old data, though, which would e.g. entail replacing .janno columns.
+        - Added command line arguments to set the expected Poseidon version for individual input files when no `POSEIDON.yml` file is available in `validate` and `jannocoalesce`: `--pvJanno`, `--pvSSF`, `--pvSource`, and `--pvTarget`.
+        - Made `-o,--outFile` mandatory in `jannocoalesce`, even when a `-t,--targetFile` is overwritten, to avoid any confusion which version is written (always the latest trident supports!).
 - V 1.6.9.1:
     - Fixed [a bug](https://github.com/poseidon-framework/poseidon-hs/issues/365) related to forge-names of packages with hyphens and numbers.
 - V 1.6.9.0:

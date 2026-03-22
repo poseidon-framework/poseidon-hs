@@ -15,6 +15,7 @@ import qualified Control.Monad               as OP
 import           Data.Aeson                  (defaultOptions, encode,
                                               genericToEncoding)
 import           Data.Aeson.Types            (ToJSON (..))
+import qualified Data.ByteString.Char8       as BS
 import qualified Data.ByteString.Lazy.Char8  as C
 import           Data.Csv                    (ToNamedRecord (..))
 import qualified Data.HashMap.Strict         as HM
@@ -356,11 +357,11 @@ packageVersionPage
           H.th $ H.b "Genetic_Sex"
           H.th $ H.b "Group_Name"
       forM_ samples $ \jannoRow -> do
-        let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (jPoseidonID jannoRow)
+        let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (BS.unpack . unPoseidonID . jPoseidonID $ jannoRow)
         H.tr $ do
-          H.td $ H.a ! A.href link $ H.toMarkup $ jPoseidonID jannoRow
+          H.td $ H.a ! A.href link $ H.toMarkup . T.pack . BS.unpack . unPoseidonID . jPoseidonID $ jannoRow
           H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
-          H.td $ H.toMarkup $ T.intercalate ", " $ map (\(GroupName t) -> t) $ getListColumn $ jGroupName jannoRow
+          H.td . H.toMarkup . T.intercalate ", " . map (T.pack . BS.unpack . unGroupName) . getListColumn . jGroupName $ jannoRow
 
 samplePage ::
      Maybe MapMarker
@@ -374,7 +375,7 @@ samplePage maybeMapMarker row = do
       case maybeMapMarker of
         Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
         Nothing -> pure ()
-    H.h1 (H.toMarkup $ "Sample: " <> jPoseidonID row)
+    H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
     case maybeMapMarker of
       Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
       Nothing -> pure ()

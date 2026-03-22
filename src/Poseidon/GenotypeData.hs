@@ -3,7 +3,8 @@ module Poseidon.GenotypeData where
 
 import           Paths_poseidon_hs                (version)
 import           Poseidon.ColumnTypesJanno        (GroupName (..),
-                                                   JannoGenotypePloidy (..))
+                                                   JannoGenotypePloidy (..),
+                                                   PoseidonID (..))
 import           Poseidon.ColumnTypesUtils        (ListColumn (..))
 import           Poseidon.Janno                   (JannoRow (..))
 import           Poseidon.Utils                   (LogA, PoseidonException (..),
@@ -62,8 +63,10 @@ data GenoDataSource = PacBaseDir
     deriving Show
 
 data GenotypeDataSpec = GenotypeDataSpec {
-    genotypeFileSpec :: GenotypeFileSpec,
-    genotypeSnpSet   :: Maybe SNPSetSpec
+    genotypeFileSpec        :: GenotypeFileSpec,
+    genotypeSnpSet          :: Maybe SNPSetSpec,
+    genotypeRefAssemblyName :: Maybe String,
+    genotypeRefAssemblyURL  :: Maybe String
 } deriving (Show, Eq)
 
 data GenotypeFileSpec = GenotypeEigenstrat {
@@ -122,11 +125,13 @@ instance FromJSON GenotypeDataSpec where
                 <*> v .:? "genoFileChkSum"
             _ -> fail ("unknown format " ++ T.unpack gformat)
         snpSet <- v .:? "snpSet"
-        return $ GenotypeDataSpec gfileSpec snpSet
+        refName <- v .:? "referenceGenomeAssembly"
+        refURL  <- v .:? "referenceGenomeAssemblyURL"
+        return $ GenotypeDataSpec gfileSpec snpSet refName refURL
 
 instance ToJSON GenotypeDataSpec where
     -- this encodes directly to a bytestring Builder
-    toJSON (GenotypeDataSpec gfileSpec snpSet) = case gfileSpec of
+    toJSON (GenotypeDataSpec gfileSpec snpSet refName refURL) = case gfileSpec of
         GenotypeEigenstrat genoF genoFchk snpF snpFchk indF indFchk ->
             object [
                 "format"        .= ("EIGENSTRAT" :: String),
@@ -136,7 +141,9 @@ instance ToJSON GenotypeDataSpec where
                 "snpFileChkSum" .= snpFchk,
                 "indFile"       .= indF,
                 "indFileChkSum" .= indFchk,
-                "snpSet"        .= snpSet
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
         GenotypePlink genoF genoFchk snpF snpFchk indF indFchk ->
             object [
@@ -147,13 +154,18 @@ instance ToJSON GenotypeDataSpec where
                 "snpFileChkSum" .= snpFchk,
                 "indFile"       .= indF,
                 "indFileChkSum" .= indFchk,
-                "snpSet"        .= snpSet
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
         GenotypeVCF genoF genoFchk ->
             object [
                 "format"        .= ("VCF" :: String),
                 "genoFile"      .= genoF,
-                "genoFileChkSum".= genoFchk
+                "genoFileChkSum".= genoFchk,
+                "snpSet"        .= snpSet,
+                "referenceGenomeAssembly"    .= refName,
+                "referenceGenomeAssemblyURL" .= refURL
             ]
 
 data SNPSetSpec = SNPSet1240K
@@ -196,7 +208,7 @@ snpSetMerge SNPSetHumanOrigins  SNPSet1240K         False = SNPSet1240K
 -- | removes directories of all filenames and returns a tuple of the basename and a modified GenotypeDataSpec with pure filenames
 -- In case basedirectories do not match, this function will throw an exception
 reduceGenotypeFilepaths :: (MonadThrow m) => GenotypeDataSpec -> m (FilePath, GenotypeDataSpec)
-reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
+reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _ _ _) = do
     (baseDir, newGfileSpec) <- case gFileSpec of
         GenotypeEigenstrat genoF _ snpF _ indF _ -> do
             let baseDirs  = map takeDirectory   [genoF, snpF, indF]
@@ -218,7 +230,7 @@ reduceGenotypeFilepaths gd@(GenotypeDataSpec gFileSpec _) = do
 loadIndividuals :: FilePath -- ^ the base directory
                -> GenotypeDataSpec -- ^ the Genotype spec
                -> PoseidonIO [EigenstratIndEntry] -- ^ the returned list of EigenstratIndEntries.
-loadIndividuals d (GenotypeDataSpec gFileSpec _) = do
+loadIndividuals d (GenotypeDataSpec gFileSpec _ _ _) = do
     popMode <- envInputPlinkMode
     case gFileSpec of
         GenotypeEigenstrat _ _ _ _ fn _ -> readEigenstratInd (d </> fn)
@@ -260,7 +272,7 @@ loadGenotypeData :: (MonadSafe m) =>
                 -> GenotypeDataSpec -- ^ the genotype spec
                 -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                 -- ^ a Producer over the Snp position values and the genotype line.
-loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _) =
+loadGenotypeData baseDir (GenotypeDataSpec gFileSpec _ _ _) =
     case gFileSpec of
         GenotypeEigenstrat genoF _ snpF _ indF _ -> snd <$> readEigenstrat (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
         GenotypePlink      genoF _ snpF _ indF _ -> snd <$> readPlink (baseDir </> genoF) (baseDir </> snpF) (baseDir </> indF)
@@ -413,12 +425,12 @@ selectIndices indices (snpEntry, genoLine) = (snpEntry, V.fromList [genoLine V.!
 
 writeVCF :: (MonadSafe m) => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
 writeVCF logA jannoRows vcfFile = do
-    let sampleNames = map (B.pack . jPoseidonID) jannoRows
-        groupNames  = map ((\(GroupName n) -> T.unpack n) . head . getListColumn . jGroupName) jannoRows
+    let sampleNames = map (unPoseidonID . jPoseidonID) jannoRows
+        groupNames  = map (B.unpack . unGroupName . head . getListColumn . jGroupName) jannoRows
         sex         = map jGeneticSex jannoRows
     forM_ jannoRows $ \jannoRow -> do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
-            "Missing GenotypePloidy for individual ++ " ++ jPoseidonID jannoRow ++
+            "Missing GenotypePloidy for individual ++ " ++ show (jPoseidonID jannoRow) ++
             ". For VCF output I will assume diploid genotypes. " ++
             "Please set the GenotypePloidy column explitly in the Janno File to haploid or diploid."
     let metaInfoLines = map B.pack [
@@ -452,7 +464,7 @@ createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoL
         (Missing, Just Haploid) -> return ["."]
         (HomRef , Just Haploid) -> return ["0"]
         (Het    , Just Haploid) -> do
-            logWithEnv logA . logWarning $ "Encountered a heterozygous genotype for " ++ s ++
+            logWithEnv logA . logWarning $ "Encountered a heterozygous genotype for " ++ show (unPoseidonID s) ++
                 " at position " ++ show chrom ++ ":" ++ show pos ++ ", but the individual's GenotypePloidy is given as " ++
                 " Haploid in the Janno-File. I have to encode this in the VCF as a diploid genotype. Consider changing this " ++
                 "individual's GenotypePloidy to diploid!"

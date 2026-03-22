@@ -61,16 +61,16 @@ testJoinGenoEntries =
 testLoadVCF :: Spec
 testLoadVCF = describe "loadIndividuals(VCF)" $ do
     it "should correctly read group names and genetic sex from VCF header" $ do
-        let gSpec = GenotypeDataSpec (GenotypeVCF "geno.vcf" Nothing) Nothing
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno.vcf" Nothing) Nothing Nothing Nothing
         let baseDir = "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/"
         fmap (take 3) (testLog $ loadIndividuals baseDir gSpec) `shouldReturn`
             [EigenstratIndEntry "XXX001" Male "POP1", EigenstratIndEntry "XXX002" Female "POP2", EigenstratIndEntry "XXX003" Male "POP1"]
     it "should throw if encountering wrong number of group names" $ do
-        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_groupnames.vcf" Nothing) Nothing
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_groupnames.vcf" Nothing) Nothing Nothing Nothing
         let baseDir = "test/testDat/testGenoFiles"
         testLog (loadIndividuals baseDir gSpec) `shouldThrow` groupNameExc
     it "should throw if encountering wrong number of genetic sex entries" $ do
-        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_sexEntries.vcf" Nothing) Nothing
+        let gSpec = GenotypeDataSpec (GenotypeVCF "geno_wrong_sexEntries.vcf" Nothing) Nothing Nothing Nothing
         let baseDir = "test/testDat/testGenoFiles"
         testLog (loadIndividuals baseDir gSpec) `shouldThrow` sexEntryExc
   where

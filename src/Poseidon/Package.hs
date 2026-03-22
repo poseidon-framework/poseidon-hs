@@ -7,6 +7,7 @@ module Poseidon.Package (
     PoseidonPackage(..),
     PoseidonException(..),
     PackageReadOptions (..),
+    LicenseSpec (..),
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
     readPoseidonPackageCollection,
@@ -33,10 +34,10 @@ module Poseidon.Package (
 
 import           Poseidon.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (GeneticSex (..),
+import           Poseidon.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
-                                             JannoUDG (..))
+                                             JannoUDG (..), PoseidonID (..))
 import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
 import           Poseidon.ColumnTypesUtils  (ListColumn (..),
                                              getMaybeListColumn)
@@ -58,7 +59,8 @@ import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
-import           Poseidon.PoseidonVersion   (asVersion, latestPoseidonVersion,
+import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
+                                             latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
 import           Poseidon.SequencingSource  (SeqSourceRow (..),
@@ -79,6 +81,7 @@ import           Control.DeepSeq            (($!!))
 import           Control.Exception          (catch, throwIO)
 import           Control.Monad              (filterM, forM, forM_, unless, void,
                                              when)
+import qualified Control.Monad              as OP
 import           Control.Monad.Catch        (MonadThrow, throwM, try)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Data.Aeson                 (FromJSON, ToJSON, object,
@@ -124,12 +127,13 @@ import           System.IO                  (IOMode (ReadMode), hGetContents,
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
-    { _posYamlPoseidonVersion     :: Version
+    { _posYamlPoseidonVersion     :: PoseidonVersion
     , _posYamlTitle               :: String
     , _posYamlDescription         :: Maybe String
     , _posYamlContributor         :: [ContributorSpec]
     , _posYamlPackageVersion      :: Maybe Version
     , _posYamlLastModified        :: Maybe Day
+    , _posYamlLicense             :: Maybe LicenseSpec
     , _posYamlGenotypeData        :: GenotypeDataSpec
     , _posYamlJannoFile           :: Maybe FilePath
     , _posYamlJannoFileChkSum     :: Maybe String
@@ -139,6 +143,13 @@ data PoseidonYamlStruct = PoseidonYamlStruct
     , _posYamlBibFileChkSum       :: Maybe String
     , _posYamlReadmeFile          :: Maybe FilePath
     , _posYamlChangelogFile       :: Maybe FilePath
+    }
+    deriving (Show, Eq, Generic)
+
+data LicenseSpec = LicenseSpec
+    { licenseName :: String
+    , licenseURL  :: Maybe String
+    , licenseFile :: Maybe FilePath
     }
     deriving (Show, Eq, Generic)
 
@@ -161,6 +172,7 @@ instance FromJSON PoseidonYamlStruct where
         <*> v .:?  "contributor" .!= []
         <*> v .:?  "packageVersion"
         <*> v .:?  "lastModified"
+        <*> v .:?  "license"
         <*> v .:   "genotypeData"
         <*> v .:?  "jannoFile"
         <*> v .:?  "jannoFileChkSum"
@@ -179,6 +191,7 @@ instance ToJSON PoseidonYamlStruct where
         (if not $ null (_posYamlContributor x) then ["contributor" .= _posYamlContributor x] else []) ++
         ["packageVersion"  .= _posYamlPackageVersion x,
         "lastModified"    .= _posYamlLastModified x,
+        "license"         .= _posYamlLicense x,
         "genotypeData"    .= _posYamlGenotypeData x,
         "jannoFile"       .= _posYamlJannoFile x,
         "jannoFileChkSum" .= _posYamlJannoFileChkSum x,
@@ -190,6 +203,19 @@ instance ToJSON PoseidonYamlStruct where
         "changelogFile"   .= _posYamlChangelogFile x
         ]
 
+instance FromJSON LicenseSpec where
+    parseJSON = withObject "LicenseSpec" $ \v -> LicenseSpec
+        <$> v .:  "name"
+        <*> v .:? "url"
+        <*> v .:? "file"
+
+instance ToJSON LicenseSpec where
+    toJSON x = object [
+        "name" .= licenseName x,
+        "url"  .= licenseURL x,
+        "file" .= licenseFile x
+        ]
+
 instance HasNameAndVersion PoseidonYamlStruct where
     getPacName     = _posYamlTitle
     getPacVersion  = _posYamlPackageVersion
@@ -198,7 +224,7 @@ instance HasNameAndVersion PoseidonYamlStruct where
 data PoseidonPackage = PoseidonPackage
     { posPacBaseDir             :: FilePath
     -- ^ the base directory of the YAML file
-    , posPacPoseidonVersion     :: Version
+    , posPacPoseidonVersion     :: PoseidonVersion
     -- ^ the version of the package
     , posPacNameAndVersion      :: PacNameAndVersion
     -- ^ the title and version of the package
@@ -208,6 +234,7 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the contributor(s) of the package
     , posPacLastModified        :: Maybe Day
     -- ^ the optional date of last update
+    , posPacLicense             :: Maybe LicenseSpec
     , posPacGenotypeData        :: GenotypeDataSpec
     -- ^ the paths to the genotype files
     , posPacJannoFile           :: Maybe FilePath
@@ -330,6 +357,11 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
     -- report number of valid packages
     let finalPackageList = sort filteredPackageList
     logInfo $ "Packages loaded: " ++ (show . length $ finalPackageList)
+    -- warn about adjustments to old package versions
+    OP.when (any (\x -> asVersion (posPacPoseidonVersion x) < makeVersion [3,0,0]) finalPackageList) $ do
+        logWarning "For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno \
+                   \columns Endogenous and Damage were rescaled from percent (0-100) to \
+                   \fractions (0-1)."
     -- return package list
     return (finalPackageList, skipIndicator)
   where
@@ -382,7 +414,7 @@ readPoseidonPackage opts ymlPath = do
     bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException ymlPath err
         Right pac -> return pac
     checkYML yml
@@ -405,7 +437,7 @@ readPoseidonPackage opts ymlPath = do
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile (_readOptMandatoryJannoCols opts) p
+            loadedJanno <- readJannoFile ver (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
             return loadedJanno
 
@@ -418,7 +450,7 @@ readPoseidonPackage opts ymlPath = do
             then return mempty
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .ssf columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
-        Just p  -> readSeqSourceFile (_readOptMandatorySSFCols opts) p
+        Just p  -> readSeqSourceFile ver (_readOptMandatorySSFCols opts) p
     checkSeqSourceJannoConsistency tit seqSource janno
 
     -- read bib (or fill with empty list)
@@ -431,7 +463,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ lic geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -542,12 +574,12 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
 -- the last flag is important for reading VCFs, which can lack group and sex information.
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
 checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
-    let genoIDs         = [ BSC.unpack x | EigenstratIndEntry  x _ _ <- indEntries]
+    let genoIDs         = [ x | EigenstratIndEntry  x _ _ <- indEntries]
         genoSexs        = [ x | EigenstratIndEntry  _ x _ <- indEntries]
-        genoGroups      = [ BSC.unpack x | EigenstratIndEntry  _ _ x <- indEntries]
-    let jannoIDs        = map jPoseidonID rows
+        genoGroups      = [ x | EigenstratIndEntry  _ _ x <- indEntries]
+    let jannoIDs        = map (unPoseidonID . jPoseidonID) rows
         jannoSexs       = map (sfSex . jGeneticSex) rows
-        jannoGroups     = map (show . head . getListColumn . jGroupName) rows
+        jannoGroups     = map (unGroupName . head . getListColumn . jGroupName) rows
     let idMis           = genoIDs /= jannoIDs
         sexMis          = genoSexs /= jannoSexs
         groupMis        = genoGroups /= jannoGroups
@@ -555,7 +587,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
         groupsAllUnknown = all (=="unknown") genoGroups
     when idMis $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual ID mismatch between genotype data (left) and .janno files (right): " ++
-        renderMismatch genoIDs jannoIDs
+        renderMismatch (map show genoIDs) (map show jannoIDs)
     when (sexMis && not (isVCF && sexAllUnknown)) $ throwM $ PoseidonCrossFileConsistencyException pacName $
         "Individual Sex mismatch between genotype data (left) and .janno files (right): " ++
         renderMismatch (map show genoSexs) (map show jannoSexs)
@@ -563,7 +595,7 @@ checkJannoIndConsistency pacName (JannoRows rows) indEntries isVCF = do
         "Individual GroupID mismatch between genotype data (left) and .janno files (right). Note \
         \that this could be due to a wrong Plink file population-name encoding \
         \(see the --inPlinkPopName option). " ++
-        renderMismatch genoGroups jannoGroups
+        renderMismatch (map show genoGroups) (map show jannoGroups)
 
 renderMismatch :: [String] -> [String] -> String
 renderMismatch a b =
@@ -583,20 +615,20 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
     checkPoseidonIDOverlap
     checkUDGandLibraryBuiltOverlap
     where
-        js = map (\r -> (jPoseidonID r, jUDG r, jLibraryBuilt r)) jRows
-        ss = map (\r -> (getMaybeListColumn $ sPoseidonID r, sUDG r, sLibraryBuilt r)) sRows
+        js = [(jPoseidonID r, jUDG r, jLibraryBuilt r) | r <- jRows]
+        ss = [(getMaybeListColumn $ sPoseidonID r, sUDG r, sLibraryBuilt r) | r <- sRows]
         checkPoseidonIDOverlap :: PoseidonIO ()
         checkPoseidonIDOverlap = do
             let flatSeqSourceIDs = nub $ concat $ [a | (a,_,_) <- ss]
                 misMatch = flatSeqSourceIDs \\ [a | (a,_,_) <- js]
             unless (null misMatch) $ do
                 logWarning $ "The .ssf file in the package " ++ pacName ++
-                    " features Poseidon_IDs that are not in the package: " ++ intercalate ", " misMatch
+                    " features Poseidon_IDs that are not in the package: " ++ (intercalate ", " . map show $ misMatch)
         checkUDGandLibraryBuiltOverlap :: PoseidonIO ()
         checkUDGandLibraryBuiltOverlap = do
             mapM_ checkOneIndividual js
             where
-                checkOneIndividual :: (String, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
+                checkOneIndividual :: (PoseidonID, Maybe JannoUDG, Maybe JannoLibraryBuilt) -> PoseidonIO ()
                 checkOneIndividual (jannoPoseidonID, jannoUDG, jannoLibraryBuilt) = do
                     let relevantSeqSourceRows = filter (\(seqSourcePoseidonID,_,_) -> jannoPoseidonID `elem` seqSourcePoseidonID) ss
                         allSeqSourceUDGs = catMaybes $ [b | (_,b,_) <- relevantSeqSourceRows]
@@ -606,13 +638,13 @@ checkSeqSourceJannoConsistency pacName (SeqSourceRows sRows) (JannoRows jRows) =
                         Just j -> unless (all (compareU j) allSeqSourceUDGs) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on UDG treatment in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
+                            " for the individual: " ++ show jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceUDGs ++ ")"
                     case jannoLibraryBuilt of
                         Nothing -> return ()
                         Just j -> unless (all (compareL j) allSeqSourceLibraryBuilts) $
                             throwM $ PoseidonCrossFileConsistencyException pacName $
                             "The information on library strandedness in .janno and .ssf do not match" ++
-                            " for the individual: " ++ jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
+                            " for the individual: " ++ show jannoPoseidonID ++ " (" ++ show j ++ " <> " ++ show allSeqSourceLibraryBuilts ++ ")"
                 compareU :: JannoUDG -> SSFUDG -> Bool
                 compareU Mixed _        = True
                 compareU Minus SSFMinus = True
@@ -708,11 +740,12 @@ newMinimalPackageTemplate baseDir name gd = do
     reducedGD <- snd <$> reduceGenotypeFilepaths gd
     return $ PoseidonPackage {
         posPacBaseDir = baseDir
-    ,   posPacPoseidonVersion = asVersion latestPoseidonVersion
+    ,   posPacPoseidonVersion = latestPoseidonVersion
     ,   posPacNameAndVersion = PacNameAndVersion name Nothing
     ,   posPacDescription = Nothing
     ,   posPacContributor = []
     ,   posPacLastModified = Nothing
+    ,   posPacLicense = Nothing
     ,   posPacGenotypeData = reducedGD
     ,   posPacJannoFile = Nothing
     ,   posPacJanno = mempty
@@ -790,8 +823,8 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
-    let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
+writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ lic geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
+    let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF $!! encodePretty opts yamlPac
     where
@@ -807,6 +840,7 @@ writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ geno j
           "orcid",
           "packageVersion",
           "lastModified",
+          "license",
           "genotypeData",
           "format",
           "genoFile",
@@ -837,7 +871,7 @@ packagesToPackageInfos withBaseDir pacs = do
         return $ PackageInfo {
             pPac           = posPacNameAndVersion pac,
             pIsLatest      = isLatest,
-            pPosVersion    = posPacPoseidonVersion pac,
+            pPosVersion    = asVersion $ posPacPoseidonVersion pac,
             pDescription   = posPacDescription pac,
             pLastModified  = posPacLastModified pac,
             pNrIndividuals = (length . getJannoRowsFromPac) pac,
@@ -872,7 +906,7 @@ getJointIndividualInfo packages = do
         isLatest <- isLatestInCollection packages pac
         forM (getJannoRowsFromPac pac) $ \jannoRow -> do
             let indInfo = IndividualInfo
-                    (jPoseidonID jannoRow)
+                    (show . jPoseidonID $ jannoRow)
                     ((map show . getListColumn . jGroupName) jannoRow)
                     (makePacNameAndVersion pac)
             return (indInfo, isLatest)
@@ -883,7 +917,7 @@ getExtendedIndividualInfo :: (MonadThrow m) => [PoseidonPackage] -> AddColSpec -
 getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list monad
     pac <- allPackages -- outer loop (automatically concatenating over inner loops)
     jannoRow <- getJannoRowsFromPac pac -- inner loop
-    let name = jPoseidonID jannoRow
+    let name = show $ jPoseidonID jannoRow
         groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
             AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns

@@ -24,6 +24,7 @@ import           Poseidon.GenotypeData      (GenoDataSource (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
+import           Poseidon.PoseidonVersion
 import           Poseidon.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
 import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
@@ -37,7 +38,7 @@ import           Control.Applicative        ((<|>))
 import qualified Data.ByteString.Char8      as Bchs
 import           Data.List                  (intercalate)
 import           Data.List.Split            (splitOn)
-import           Data.Version               (Version)
+import           Data.Version               (Version, makeVersion)
 import qualified Options.Applicative        as OP
 import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
 import           System.FilePath            (splitExtension, splitExtensions,
@@ -435,17 +436,32 @@ parseInPoseidonYamlFile = OP.strOption (
     OP.metavar "FILE" <>
     OP.help "Path to a POSEIDON.yml file.")
 
-parseInJannoFile :: OP.Parser FilePath
-parseInJannoFile = OP.strOption (
+parseInJannoFile :: OP.Parser VersionedFile
+parseInJannoFile = VersionedFile <$> parsePoseidonVersion "pvJanno" <*> OP.strOption (
     OP.long "janno" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .janno file.")
 
-parseInSSFile :: OP.Parser FilePath
-parseInSSFile = OP.strOption (
+parseInSSFile :: OP.Parser VersionedFile
+parseInSSFile = VersionedFile <$> parsePoseidonVersion "pvSSF" <*> OP.strOption (
     OP.long "ssf" <>
     OP.metavar "FILE" <>
     OP.help "Path to a .ssf file.")
+
+parsePoseidonVersion :: String -> OP.Parser PoseidonVersion
+parsePoseidonVersion longName = OP.option (OP.eitherReader parsePV) (
+    OP.long longName <>
+    OP.metavar "VERSION" <>
+    OP.help "Poseidon version (e.g. 2.7.1)." <>
+    OP.value latestPoseidonVersion <>
+    OP.showDefaultWith showPoseidonVersion)
+  where
+    parsePV s = case readVersion s of
+        Just v -> if PoseidonVersion v `elem` validPoseidonVersions
+                  then Right (PoseidonVersion v)
+                  else Left $ "must be one of " ++ intercalate ", " (map showPoseidonVersion validPoseidonVersions)
+        Nothing -> Left "invalid version string"
+    readVersion = fmap makeVersion . traverse readMaybe . splitOn "."
 
 parseInBibFile :: OP.Parser FilePath
 parseInBibFile = OP.strOption (
@@ -464,10 +480,10 @@ parseBasePath = OP.strOption (
     OP.help "A base directory to search for Poseidon packages.")
 
 parseInGenoWithoutSNPSet :: OP.Parser GenotypeDataSpec
-parseInGenoWithoutSNPSet = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> pure Nothing
+parseInGenoWithoutSNPSet = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> pure Nothing <*> pure Nothing <*> pure Nothing
 
 parseInGenotypeDataset :: OP.Parser GenotypeDataSpec
-parseInGenotypeDataset = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> (Just <$> parseGenotypeSNPSet)
+parseInGenotypeDataset = GenotypeDataSpec <$> (parseInGenoOne <|> parseInGenoSep) <*> (Just <$> parseGenotypeSNPSet) <*> pure Nothing <*> pure Nothing
 
 parseInGenoOne :: OP.Parser GenotypeFileSpec
 parseInGenoOne = OP.option (OP.eitherReader readGenoInput) (
@@ -880,31 +896,34 @@ parseMaybeArchiveName = OP.option (Just <$> OP.str) (
 
 parseJannocoalSourceSpec :: OP.Parser JannoSourceSpec
 parseJannocoalSourceSpec = parseJannocoalSingleSource <|> (JannoSourceBaseDirs <$> parseBasePaths)
-  where
-    parseJannocoalSingleSource = OP.option (JannoSourceSingle <$> OP.str) (
-        OP.long "sourceFile" <>
-        OP.short 's' <>
-        OP.metavar "FILE" <>
-        OP.help "The source .janno file."
-        )
+    where
+        parseJannocoalSingleSource :: OP.Parser JannoSourceSpec
+        parseJannocoalSingleSource =
+            JannoSourceSingle <$> (VersionedFile <$> parsePoseidonVersion "pvSource" <*> OP.strOption (
+                OP.long "sourceFile" <>
+                OP.short 's' <>
+                OP.metavar "FILE" <>
+                OP.help "The source .janno file."
+                ))
 
-parseJannocoalTargetFile :: OP.Parser FilePath
-parseJannocoalTargetFile = OP.strOption (
+parseJannocoalTargetFile :: OP.Parser VersionedFile
+parseJannocoalTargetFile = VersionedFile <$> parsePoseidonVersion "pvTarget" <*> OP.strOption (
     OP.long "targetFile" <>
     OP.short 't' <>
     OP.metavar "FILE" <>
     OP.help "The target .janno file to fill."
     )
 
-parseJannocoalOutSpec :: OP.Parser (Maybe FilePath)
-parseJannocoalOutSpec = OP.option (Just <$> OP.str) (
+parseJannocoalOutFile :: OP.Parser FilePath
+parseJannocoalOutFile = OP.strOption (
     OP.long "outFile" <>
     OP.short 'o' <>
     OP.metavar "FILE" <>
-    OP.value Nothing <>
     OP.showDefault <>
-    OP.help "An optional file to write the results to. \
-            \If not specified, change the target file in place."
+    OP.help ("File path to write the result to. Can be identical to --targetFile to overwrite the \
+             \target file in place. Note that trident only writes .janno files in the \
+             \latest Poseidon version it supports, so in this case v" ++
+             showPoseidonVersion latestPoseidonVersion ++ ".")
     )
 
 parseJannocoalJannoColumns :: OP.Parser CoalesceJannoColumnSpec
