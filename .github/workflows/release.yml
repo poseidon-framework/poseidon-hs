@@ -68,7 +68,7 @@ jobs:
 
       - name: Compress binary
         if: ${{ runner.os != 'macOS' }} # upx is crashing for macOS Ventura or above!
-        uses: svenstaro/upx-action@v2
+        uses: svenstaro/upx-action@v3
         with:
           files: ${{ steps.binarypath.outputs.BINARY_PATH }}
 
