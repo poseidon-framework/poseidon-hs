@@ -679,11 +679,12 @@ findAllPoseidonYmlFiles baseDir = do
 getJointGenotypeData :: MonadSafe m =>
                         LogA -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
+                     -> Bool -- ^ whether to check strand consistency
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logA intersect pacs maybeSnpFile = do
+getJointGenotypeData logA intersect strandcheck pacs maybeSnpFile = do
     genotypeProducers <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let nrInds          = map (length . getJannoRows . posPacJanno) pacs
         pacNames        = map getPacName pacs

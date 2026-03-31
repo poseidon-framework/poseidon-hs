@@ -313,8 +313,8 @@ joinEntries logA nrInds pacNames maybeTupleList = do
                 Right x -> return x
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
-getConsensusSnpEntry :: (MonadIO m) => LogA -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
-getConsensusSnpEntry logA snpEntries = do
+getConsensusSnpEntry :: (MonadIO m) => LogA -> Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
+getConsensusSnpEntry logA strandcheck snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
         uniqueIds = nub . map snpId $ snpEntries
@@ -350,7 +350,10 @@ getConsensusSnpEntry logA snpEntries = do
             --     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
             return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
         [ref, alt] ->
-            return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
+            if strandcheck && [ref, alt] `elem` [['A', 'T'], ['T', 'A'], ['C', 'G'], ['G', 'C']] then
+                    liftIO . throwIO $ PoseidonGenotypeException ("Possible strand flip: " ++ show snpEntries)
+            else
+                return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
         _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
 
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
