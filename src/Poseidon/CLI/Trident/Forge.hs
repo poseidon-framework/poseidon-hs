@@ -357,7 +357,7 @@ fillMissingSnpSets packages = forM packages $ \pac -> do
 fillMissingReferenceAssemblyInfo :: [PoseidonPackage] -> PoseidonIO (Maybe String, Maybe String)
 fillMissingReferenceAssemblyInfo packages = do
     let refNames = map (genotypeRefAssemblyName . posPacGenotypeData) packages
-        refUrls  = map (genotypeRefAssemblyName  . posPacGenotypeData) packages
+        refUrls  = map (genotypeRefAssemblyURL . posPacGenotypeData) packages
         uniqueRefNames = nub $ catMaybes refNames
         uniqueRefUrls  = nub $ catMaybes refUrls
     when (length uniqueRefNames > 1) $
