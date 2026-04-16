@@ -1,3 +1,23 @@
+### V 2.0.0.0
+
+This release ushers in a new era in the development of poseidon-hs: We merged the poseidon-analysis-hs library into poseidon-hs, which was previously developed in a separate repository [here](https://github.com/poseidon-framework/poseidon-analysis-hs).
+
+We did this to keep xerxes, a software tool for Poseidon data analysis, fully in sync with trident. In the past xerxes often lagged behind and didn't use the most recent innovations and fixes available in poseidon-hs. We hope merging the repositories will make maintenance easier. So both software tools trident and xerxes will be versioned together from now on, starting with this release v2.0.0.0.
+
+The large jump in the version number reflects the conceptual change in development strategy, and the pretty significant restructering that was necessary in the Haskell library code to house poseidon-analysis-hs in poseidon-hs. From a user perspective there were only minor changes in functionality:
+
+#### trident
+
+Since v1.7.0.0 we only fixed two minor bugs in `genoconvert` and `forge` regarding the handling of the new `POSEIDON.yml` fields `referenceGenomeAssembly`  and `referenceGenomeAssemblyURL`. These were not properly forwarded/preserved in the respective operations. The `genoconvert` bug was reported in this [issue](https://github.com/poseidon-framework/poseidon-hs/issues/371).
+
+#### xerxes
+
+The last official xerxes release was v1.0.1.2. See `xerxes_legacy_changelog/` for a documentation of previous development. Internal development had reached v1.0.2.0, which added VCF writing support for `admixpops`.
+
+#### Building process
+
+Note that we had to remove the UPX compression we had applied in the past to some of the static executables build for trident and xerxes upon release. That means the v2.0.0.0 executables will most likely be larger.
+
 ### V 1.7.0.0
 
 This is a major release to add compatibility with Poseidon v3.0.0. It includes features to accomodate the new schema, and various other changes added since the last release V 1.6.7.3.
