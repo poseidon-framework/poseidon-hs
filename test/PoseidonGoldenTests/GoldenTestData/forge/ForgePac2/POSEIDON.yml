@@ -6,3 +6,5 @@ genotypeData:
   snpFile: ForgePac2.bim
   indFile: ForgePac2.fam
   snpSet: Other
+  referenceGenomeAssembly: GRCh37
+  referenceGenomeAssemblyURL: https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_000001405.14

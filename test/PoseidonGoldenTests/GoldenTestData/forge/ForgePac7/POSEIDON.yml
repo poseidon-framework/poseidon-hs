@@ -9,6 +9,8 @@ genotypeData:
   snpFile: ForgePac7.snp
   indFile: ForgePac7.ind
   snpSet: Other
+  referenceGenomeAssembly: GRCh37
+  referenceGenomeAssemblyURL: https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_000001405.14
 jannoFile: ForgePac7.janno
 sequencingSourceFile: ForgePac7.ssf
 bibFile: ForgePac7.bib
