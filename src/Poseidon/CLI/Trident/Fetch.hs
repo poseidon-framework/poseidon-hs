@@ -2,51 +2,54 @@
 
 module Poseidon.CLI.Trident.Fetch where
 
-import           Poseidon.Core.EntityTypes   (EntityInput, HasNameAndVersion (..),
-                                         PacNameAndVersion (..), PoseidonEntity,
-                                         checkIfAllEntitiesExist,
-                                         determineRelevantPackages,
-                                         isLatestInCollection,
-                                         makePacNameAndVersion,
-                                         readEntityInputs,
-                                         renderNameWithVersion)
-import           Poseidon.Core.MathHelpers   (roundTo, roundToStr)
-import           Poseidon.Core.Package       (PackageReadOptions (..),
-                                         defaultPackageReadOptions,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Core.ServerClient  (ApiReturnData (..),
-                                         ArchiveEndpoint (..),
-                                         ExtendedIndividualInfo (..),
-                                         PackageInfo (..),
-                                         extIndInfo2IndInfoCollection,
-                                         processApiResponse, qDefault,
-                                         qPacVersion, (+&+))
-import           Poseidon.Core.Utils         (LogA, PoseidonException (..),
-                                         PoseidonIO, envLogAction, logDebug,
-                                         logInfo, logWithEnv, padLeft)
+import           Poseidon.Core.EntityTypes  (EntityInput,
+                                             HasNameAndVersion (..),
+                                             PacNameAndVersion (..),
+                                             PoseidonEntity,
+                                             checkIfAllEntitiesExist,
+                                             determineRelevantPackages,
+                                             isLatestInCollection,
+                                             makePacNameAndVersion,
+                                             readEntityInputs,
+                                             renderNameWithVersion)
+import           Poseidon.Core.MathHelpers  (roundTo, roundToStr)
+import           Poseidon.Core.Package      (PackageReadOptions (..),
+                                             defaultPackageReadOptions,
+                                             readPoseidonPackageCollection)
+import           Poseidon.Core.ServerClient (ApiReturnData (..),
+                                             ArchiveEndpoint (..),
+                                             ExtendedIndividualInfo (..),
+                                             PackageInfo (..),
+                                             extIndInfo2IndInfoCollection,
+                                             processApiResponse, qDefault,
+                                             qPacVersion, (+&+))
+import           Poseidon.Core.Utils        (LogA, PoseidonException (..),
+                                             PoseidonIO, envLogAction, logDebug,
+                                             logInfo, logWithEnv, padLeft)
 
-import           Codec.Archive.Zip      (ZipOption (..),
-                                         extractFilesFromArchive, toArchive)
-import           Conduit                (ResourceT, await, runResourceT,
-                                         sinkFile, yield)
-import           Control.Exception      (catch, throwIO)
-import           Control.Monad          (filterM, forM_, unless, when)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Aeson             (eitherDecode')
-import qualified Data.ByteString        as B
-import           Data.ByteString.Char8  as B8 (unpack)
-import qualified Data.ByteString.Lazy   as LB
-import           Data.Conduit           (ConduitT, sealConduitT, ($$+-), (.|))
-import           Data.List              (intercalate)
-import           Data.Maybe             (fromMaybe)
-import           Data.Version           (Version, showVersion)
-import           Network.HTTP.Conduit   (http, newManager, parseRequest,
-                                         responseBody, responseHeaders,
-                                         tlsManagerSettings)
-import           Network.HTTP.Types     (hContentLength)
-import           System.Directory       (createDirectoryIfMissing,
-                                         removeDirectory, removeFile)
-import           System.FilePath        ((</>))
+import           Codec.Archive.Zip          (ZipOption (..),
+                                             extractFilesFromArchive, toArchive)
+import           Conduit                    (ResourceT, await, runResourceT,
+                                             sinkFile, yield)
+import           Control.Exception          (catch, throwIO)
+import           Control.Monad              (filterM, forM_, unless, when)
+import           Control.Monad.IO.Class     (liftIO)
+import           Data.Aeson                 (eitherDecode')
+import qualified Data.ByteString            as B
+import           Data.ByteString.Char8      as B8 (unpack)
+import qualified Data.ByteString.Lazy       as LB
+import           Data.Conduit               (ConduitT, sealConduitT, ($$+-),
+                                             (.|))
+import           Data.List                  (intercalate)
+import           Data.Maybe                 (fromMaybe)
+import           Data.Version               (Version, showVersion)
+import           Network.HTTP.Conduit       (http, newManager, parseRequest,
+                                             responseBody, responseHeaders,
+                                             tlsManagerSettings)
+import           Network.HTTP.Types         (hContentLength)
+import           System.Directory           (createDirectoryIfMissing,
+                                             removeDirectory, removeFile)
+import           System.FilePath            ((</>))
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]

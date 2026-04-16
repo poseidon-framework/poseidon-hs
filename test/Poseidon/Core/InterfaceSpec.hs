@@ -1,9 +1,9 @@
 module Poseidon.Core.InterfaceSpec (spec) where
 
 import           Poseidon.CLI.Trident.OptparseApplicativeParsers
-import           Poseidon.Core.GenotypeData                   (GenotypeFileSpec (..))
+import           Poseidon.Core.GenotypeData                      (GenotypeFileSpec (..))
 
-import qualified Options.Applicative                     as OP
+import qualified Options.Applicative                             as OP
 import           Test.Hspec
 
 spec :: Spec

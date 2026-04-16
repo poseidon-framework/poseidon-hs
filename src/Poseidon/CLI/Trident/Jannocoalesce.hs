@@ -4,29 +4,30 @@
 module Poseidon.CLI.Trident.Jannocoalesce where
 
 import           Poseidon.Core.Janno           (JannoRow (..), JannoRows (..),
-                                           parseJannoRowFromNamedRecord,
-                                           readJannoFile, writeJannoFile)
+                                                parseJannoRowFromNamedRecord,
+                                                readJannoFile, writeJannoFile)
 import           Poseidon.Core.Package         (PackageReadOptions (..),
-                                           defaultPackageReadOptions,
-                                           getJointJanno,
-                                           readPoseidonPackageCollection)
+                                                defaultPackageReadOptions,
+                                                getJointJanno,
+                                                readPoseidonPackageCollection)
 import           Poseidon.Core.PoseidonVersion (VersionedFile (..),
-                                           latestPoseidonVersion)
-import           Poseidon.Core.Utils           (PoseidonException (..), PoseidonIO,
-                                           logDebug, logInfo, logWarning)
+                                                latestPoseidonVersion)
+import           Poseidon.Core.Utils           (PoseidonException (..),
+                                                PoseidonIO, logDebug, logInfo,
+                                                logWarning)
 
-import           Control.Monad            (filterM, forM_, when)
-import           Control.Monad.Catch      (MonadThrow, throwM)
-import           Control.Monad.IO.Class   (liftIO)
-import qualified Data.ByteString.Char8    as BSC
-import qualified Data.Csv                 as Csv
-import qualified Data.HashMap.Strict      as HM
-import qualified Data.IORef               as R
-import           Data.List                ((\\))
-import           Data.Text                (pack, replace, unpack)
-import           System.Directory         (createDirectoryIfMissing)
-import           System.FilePath          (takeDirectory)
-import           Text.Regex.TDFA          ((=~))
+import           Control.Monad                 (filterM, forM_, when)
+import           Control.Monad.Catch           (MonadThrow, throwM)
+import           Control.Monad.IO.Class        (liftIO)
+import qualified Data.ByteString.Char8         as BSC
+import qualified Data.Csv                      as Csv
+import qualified Data.HashMap.Strict           as HM
+import qualified Data.IORef                    as R
+import           Data.List                     ((\\))
+import           Data.Text                     (pack, replace, unpack)
+import           System.Directory              (createDirectoryIfMissing)
+import           System.FilePath               (takeDirectory)
+import           Text.Regex.TDFA               ((=~))
 
 -- the source can be a single janno file, or a set of base directories as usual.
 data JannoSourceSpec = JannoSourceSingle VersionedFile | JannoSourceBaseDirs [FilePath]

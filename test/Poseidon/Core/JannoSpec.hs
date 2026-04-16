@@ -7,17 +7,18 @@ import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.ColumnTypesUtils
 import           Poseidon.Core.Janno
 import           Poseidon.Core.PoseidonVersion
-import           Poseidon.Core.Utils             (testLog)
+import           Poseidon.Core.Utils            (testLog)
 
-import           Country                    (decodeAlphaTwo)
-import qualified Data.Csv                   as C
-import qualified Data.HashMap.Strict        as HM
-import qualified Data.Vector                as V
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
-import           System.FilePath            ((</>))
-import           Test.Hspec                 (Spec, anyException, describe, it,
-                                             shouldBe, shouldContain,
-                                             shouldThrow)
+import           Country                        (decodeAlphaTwo)
+import qualified Data.Csv                       as C
+import qualified Data.HashMap.Strict            as HM
+import qualified Data.Vector                    as V
+import           SequenceFormats.Eigenstrat     (EigenstratIndEntry (..),
+                                                 Sex (..))
+import           System.FilePath                ((</>))
+import           Test.Hspec                     (Spec, anyException, describe,
+                                                 it, shouldBe, shouldContain,
+                                                 shouldThrow)
 
 spec :: Spec
 spec = do

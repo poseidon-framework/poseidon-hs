@@ -7,19 +7,19 @@ module Poseidon.Core.ColumnTypesJanno where
 import           Poseidon.Core.AccessionIDs
 import           Poseidon.Core.ColumnTypesUtils
 
-import           Country                    (Country, alphaTwoUpper,
-                                             decodeAlphaTwo)
-import qualified Data.ByteString.Char8      as B
-import qualified Data.Char                  as C
-import qualified Data.Csv                   as Csv
-import           Data.String                (IsString (..))
-import qualified Data.Text                  as T
-import qualified Data.Text.Read             as T
-import           Data.Version               (makeVersion)
-import           GHC.Generics               (Generic)
-import           Network.URI                (isURIReference)
+import           Country                        (Country, alphaTwoUpper,
+                                                 decodeAlphaTwo)
+import qualified Data.ByteString.Char8          as B
+import qualified Data.Char                      as C
+import qualified Data.Csv                       as Csv
+import           Data.String                    (IsString (..))
+import qualified Data.Text                      as T
+import qualified Data.Text.Read                 as T
+import           Data.Version                   (makeVersion)
+import           GHC.Generics                   (Generic)
+import           Network.URI                    (isURIReference)
 import           Poseidon.Core.PoseidonVersion
-import           SequenceFormats.Eigenstrat (Sex (..))
+import           SequenceFormats.Eigenstrat     (Sex (..))
 
 -- | A datatype for the Genetic_Sex .janno column
 newtype GeneticSex = GeneticSex { sfSex :: Sex } deriving (Eq)

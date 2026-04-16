@@ -1,10 +1,10 @@
 module Poseidon.CLI.Trident.Chronicle where
 
 import           Poseidon.Core.Chronicle (makeChronicle, readChronicle,
-                                     updateChronicle, writeChronicle)
+                                          updateChronicle, writeChronicle)
 import           Poseidon.Core.Package   (PackageReadOptions (..),
-                                     defaultPackageReadOptions,
-                                     readPoseidonPackageCollection)
+                                          defaultPackageReadOptions,
+                                          readPoseidonPackageCollection)
 import           Poseidon.Core.Utils     (PoseidonIO)
 
 

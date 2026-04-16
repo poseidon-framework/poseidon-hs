@@ -3,22 +3,24 @@ module Poseidon.CLI.Trident.Summarise where
 import           Poseidon.Core.ColumnTypesJanno (JannoDateBCADMedian (..))
 import           Poseidon.Core.ColumnTypesUtils (ListColumn (..))
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..))
-import           Poseidon.Core.MathHelpers      (meanAndSdInteger, meanAndSdRoundTo)
+import           Poseidon.Core.MathHelpers      (meanAndSdInteger,
+                                                 meanAndSdRoundTo)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
-                                            PoseidonPackage (..),
-                                            defaultPackageReadOptions,
-                                            readPoseidonPackageCollection)
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 readPoseidonPackageCollection)
 import           Poseidon.Core.Utils            (PoseidonIO, logInfo, uniquePO)
 
-import           Control.Monad.IO.Class    (liftIO)
-import           Data.List                 (group, intercalate, sort, sortBy)
-import           Data.Maybe                (mapMaybe)
+import           Control.Monad.IO.Class         (liftIO)
+import           Data.List                      (group, intercalate, sort,
+                                                 sortBy)
+import           Data.Maybe                     (mapMaybe)
 import           Poseidon.Core.ColumnTypesJanno (JannoCoverageOnTargets (..),
-                                            JannoEndogenous (JannoEndogenous),
-                                            JannoNrSNPs (..))
-import           Text.Layout.Table         (asciiRoundS, column, def,
-                                            expandUntil, rowsG, tableString,
-                                            titlesH)
+                                                 JannoEndogenous (JannoEndogenous),
+                                                 JannoNrSNPs (..))
+import           Text.Layout.Table              (asciiRoundS, column, def,
+                                                 expandUntil, rowsG,
+                                                 tableString, titlesH)
 
 -- | A datatype representing command line options for the summarise command
 data SummariseOptions = SummariseOptions

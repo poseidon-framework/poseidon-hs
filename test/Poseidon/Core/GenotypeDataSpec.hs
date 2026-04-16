@@ -2,7 +2,7 @@
 module Poseidon.Core.GenotypeDataSpec (spec) where
 
 import           Poseidon.Core.GenotypeData
-import           Poseidon.Core.Utils             (PoseidonException (..), noLog,
+import           Poseidon.Core.Utils        (PoseidonException (..), noLog,
                                              testLog)
 
 import           Data.List                  (isPrefixOf)

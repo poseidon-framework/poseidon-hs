@@ -2,11 +2,11 @@
 
 module Poseidon.Analysis.RASconfig where
 
-import           Poseidon.Analysis.Utils (GroupDef, parseGroupDefsFromJSON)
+import           Poseidon.Analysis.Utils   (GroupDef, parseGroupDefsFromJSON)
 
-import           Data.Aeson              (FromJSON, parseJSON, withObject, (.:),
-                                          (.:?))
-import           Poseidon.Core.EntityTypes    (EntitiesList, PoseidonEntity (..))
+import           Data.Aeson                (FromJSON, parseJSON, withObject,
+                                            (.:), (.:?))
+import           Poseidon.Core.EntityTypes (EntitiesList, PoseidonEntity (..))
 
 data PopConfig = PopConfigYamlStruct
     { popConfigGroupDef :: [GroupDef]

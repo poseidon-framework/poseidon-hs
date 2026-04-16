@@ -2,44 +2,46 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Poseidon.Core.PackageSpec (spec) where
 
-import           Poseidon.Core.Contributor       (ContributorSpec (..), ORCID (..))
-import           Poseidon.Core.EntityTypes       (HasNameAndVersion (..))
-import           Poseidon.Core.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..),
-                                             SNPSetSpec (..))
-import           Poseidon.Core.Janno             (createMinimalJanno)
-import           Poseidon.Core.Package           (LicenseSpec (..),
-                                             PackageReadOptions (..),
-                                             PoseidonPackage (..),
-                                             PoseidonYamlStruct (..),
-                                             checkJannoIndConsistency,
-                                             defaultPackageReadOptions,
-                                             getJointGenotypeData,
-                                             readPoseidonPackage,
-                                             readPoseidonPackageCollection,
-                                             renderMismatch, zipWithPadding)
-import           Poseidon.Core.PoseidonVersion   (PoseidonVersion (..))
-import           Poseidon.Core.Utils             (ErrorLength (..), LogMode (..),
-                                             PoseidonException (..),
-                                             TestMode (..), getChecksum, noLog,
-                                             testLog, usePoseidonLogger)
+import           Poseidon.Core.Contributor     (ContributorSpec (..),
+                                                ORCID (..))
+import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..))
+import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
+                                                GenotypeFileSpec (..),
+                                                SNPSetSpec (..))
+import           Poseidon.Core.Janno           (createMinimalJanno)
+import           Poseidon.Core.Package         (LicenseSpec (..),
+                                                PackageReadOptions (..),
+                                                PoseidonPackage (..),
+                                                PoseidonYamlStruct (..),
+                                                checkJannoIndConsistency,
+                                                defaultPackageReadOptions,
+                                                getJointGenotypeData,
+                                                readPoseidonPackage,
+                                                readPoseidonPackageCollection,
+                                                renderMismatch, zipWithPadding)
+import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
+import           Poseidon.Core.Utils           (ErrorLength (..), LogMode (..),
+                                                PoseidonException (..),
+                                                TestMode (..), getChecksum,
+                                                noLog, testLog,
+                                                usePoseidonLogger)
 
-import qualified Data.ByteString.Char8      as B
-import           Data.Either                (fromLeft, fromRight)
-import           Data.List                  (sort)
-import           Data.Time                  (fromGregorian)
-import qualified Data.Vector                as V
-import           Data.Version               (makeVersion)
-import           Data.Yaml                  (ParseException (AesonException),
-                                             decodeEither')
-import           Pipes.OrderedZip           (WrongInputOrderException (..))
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..),
-                                             GenoEntry (..), Sex (..))
-import           SequenceFormats.Plink      (PlinkPopNameMode (..))
-import           SequenceFormats.Utils      (Chrom (..))
+import qualified Data.ByteString.Char8         as B
+import           Data.Either                   (fromLeft, fromRight)
+import           Data.List                     (sort)
+import           Data.Time                     (fromGregorian)
+import qualified Data.Vector                   as V
+import           Data.Version                  (makeVersion)
+import           Data.Yaml                     (ParseException (AesonException),
+                                                decodeEither')
+import           Pipes.OrderedZip              (WrongInputOrderException (..))
+import qualified Pipes.Prelude                 as P
+import           Pipes.Safe                    (runSafeT)
+import           SequenceFormats.Eigenstrat    (EigenstratIndEntry (..),
+                                                EigenstratSnpEntry (..),
+                                                GenoEntry (..), Sex (..))
+import           SequenceFormats.Plink         (PlinkPopNameMode (..))
+import           SequenceFormats.Utils         (Chrom (..))
 import           Test.Hspec
 import           Text.RawString.QQ
 

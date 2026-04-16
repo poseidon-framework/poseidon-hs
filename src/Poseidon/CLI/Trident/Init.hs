@@ -2,23 +2,24 @@
 
 module Poseidon.CLI.Trident.Init where
 
-import           Poseidon.Core.BibFile       (dummyBibEntry, writeBibTeXFile)
-import           Poseidon.Core.GenotypeData  (GenotypeDataSpec (..),
-                                         GenotypeFileSpec (..), loadIndividuals,
-                                         reduceGenotypeFilepaths)
-import           Poseidon.Core.Janno         (writeJannoFile)
-import           Poseidon.Core.Package       (PoseidonPackage (..),
-                                         newMinimalPackageTemplate,
-                                         newPackageTemplate,
-                                         writePoseidonPackage)
-import           Poseidon.Core.Utils         (PoseidonIO, checkFile,
-                                         determinePackageOutName, logInfo)
+import           Poseidon.Core.BibFile      (dummyBibEntry, writeBibTeXFile)
+import           Poseidon.Core.GenotypeData (GenotypeDataSpec (..),
+                                             GenotypeFileSpec (..),
+                                             loadIndividuals,
+                                             reduceGenotypeFilepaths)
+import           Poseidon.Core.Janno        (writeJannoFile)
+import           Poseidon.Core.Package      (PoseidonPackage (..),
+                                             newMinimalPackageTemplate,
+                                             newPackageTemplate,
+                                             writePoseidonPackage)
+import           Poseidon.Core.Utils        (PoseidonIO, checkFile,
+                                             determinePackageOutName, logInfo)
 
-import           Control.Monad          (forM_, unless)
-import           Control.Monad.IO.Class (liftIO)
-import           System.Directory       (copyFile, createDirectoryIfMissing)
-import           System.FilePath        (dropTrailingPathSeparator,
-                                         takeFileName, (<.>), (</>))
+import           Control.Monad              (forM_, unless)
+import           Control.Monad.IO.Class     (liftIO)
+import           System.Directory           (copyFile, createDirectoryIfMissing)
+import           System.FilePath            (dropTrailingPathSeparator,
+                                             takeFileName, (<.>), (</>))
 
 data InitOptions = InitOptions
     { _initGenoData :: GenotypeDataSpec

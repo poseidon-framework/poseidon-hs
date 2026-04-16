@@ -3,22 +3,22 @@
 
 module Poseidon.Core.ChronicleSpec (spec) where
 
-import           Poseidon.Core.Chronicle    (PackageIteration (..),
-                                        PoseidonPackageChronicle (..),
-                                        makeChronicle, readChronicle,
-                                        updateChronicle, writeChronicle)
-import           Poseidon.Core.Package      (PackageReadOptions (..),
-                                        defaultPackageReadOptions,
-                                        readPoseidonPackageCollection)
-import           Poseidon.Core.Utils        (testLog)
+import           Poseidon.Core.Chronicle (PackageIteration (..),
+                                          PoseidonPackageChronicle (..),
+                                          makeChronicle, readChronicle,
+                                          updateChronicle, writeChronicle)
+import           Poseidon.Core.Package   (PackageReadOptions (..),
+                                          defaultPackageReadOptions,
+                                          readPoseidonPackageCollection)
+import           Poseidon.Core.Utils     (testLog)
 
-import qualified Data.ByteString.Char8 as B
-import           Data.Either           (fromRight)
-import qualified Data.Set              as S
-import           Data.Time             (fromGregorian)
-import           Data.Version          (makeVersion)
-import           Data.Yaml             (ParseException, decodeEither')
-import           System.Directory      (removeFile)
+import qualified Data.ByteString.Char8   as B
+import           Data.Either             (fromRight)
+import qualified Data.Set                as S
+import           Data.Time               (fromGregorian)
+import           Data.Version            (makeVersion)
+import           Data.Yaml               (ParseException, decodeEither')
+import           System.Directory        (removeFile)
 import           Test.Hspec
 import           Text.RawString.QQ
 

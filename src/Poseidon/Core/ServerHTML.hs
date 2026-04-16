@@ -5,34 +5,34 @@
 module Poseidon.Core.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
 import           Poseidon.Core.ColumnTypesJanno
-import           Poseidon.Core.ColumnTypesUtils   (getListColumn)
+import           Poseidon.Core.ColumnTypesUtils (getListColumn)
 import           Poseidon.Core.EntityTypes
 import           Poseidon.Core.Janno
 import           Poseidon.Core.Package
 
-import           Control.Monad               (forM_)
-import qualified Control.Monad               as OP
-import           Data.Aeson                  (defaultOptions, encode,
-                                              genericToEncoding)
-import           Data.Aeson.Types            (ToJSON (..))
-import qualified Data.ByteString.Char8       as BS
-import qualified Data.ByteString.Lazy.Char8  as C
-import           Data.Csv                    (ToNamedRecord (..))
-import qualified Data.HashMap.Strict         as HM
-import           Data.List                   (intercalate, sortBy)
-import           Data.Maybe                  (fromMaybe)
-import qualified Data.Text                   as T
-import qualified Data.Text.Encoding          as T
-import           Data.Version                (Version, showVersion)
+import           Control.Monad                  (forM_)
+import qualified Control.Monad                  as OP
+import           Data.Aeson                     (defaultOptions, encode,
+                                                 genericToEncoding)
+import           Data.Aeson.Types               (ToJSON (..))
+import qualified Data.ByteString.Char8          as BS
+import qualified Data.ByteString.Lazy.Char8     as C
+import           Data.Csv                       (ToNamedRecord (..))
+import qualified Data.HashMap.Strict            as HM
+import           Data.List                      (intercalate, sortBy)
+import           Data.Maybe                     (fromMaybe)
+import qualified Data.Text                      as T
+import qualified Data.Text.Encoding             as T
+import           Data.Version                   (Version, showVersion)
 import           GHC.Generics
 import           NeatInterpolation
-import           Network.Wai                 (Request (..))
-import           Paths_poseidon_hs           (version)
-import qualified Text.Blaze.Html5            as H
-import           Text.Blaze.Html5            ((!))
-import qualified Text.Blaze.Html5.Attributes as A
+import           Network.Wai                    (Request (..))
+import           Paths_poseidon_hs              (version)
+import qualified Text.Blaze.Html5               as H
+import           Text.Blaze.Html5               ((!))
+import qualified Text.Blaze.Html5.Attributes    as A
 import           Text.Blaze.Renderer.Text
-import qualified Web.Scotty                  as S
+import qualified Web.Scotty                     as S
 
 -- helper functions and types
 

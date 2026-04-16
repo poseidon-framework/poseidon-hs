@@ -2,75 +2,75 @@
 
 module Poseidon.CLI.Trident.Forge where
 
-import           Poseidon.Core.BibFile            (BibEntry (..), BibTeX,
-                                              writeBibTeXFile)
-import           Poseidon.Core.ColumnTypesJanno   (PoseidonID (..))
-import           Poseidon.Core.ColumnTypesUtils   (ListColumn (..),
-                                              getMaybeListColumn)
-import           Poseidon.Core.EntityTypes        (EntityInput,
-                                              PacNameAndVersion (..),
-                                              PoseidonEntity (..),
-                                              SignedEntity (..),
-                                              checkIfAllEntitiesExist,
-                                              isLatestInCollection,
-                                              makePacNameAndVersion,
-                                              readEntityInputs,
-                                              resolveUniqueEntityIndices)
-import           Poseidon.Core.GenotypeData       (GenoDataSource (..),
-                                              GenotypeDataSpec (..),
-                                              GenotypeFileSpec (..),
-                                              GenotypeOutFormatSpec (..),
-                                              SNPSetSpec (..),
-                                              printSNPCopyProgress,
-                                              selectIndices, snpSetMergeList,
-                                              writeVCF)
-import           Poseidon.Core.Janno              (JannoRow (..), JannoRows (..),
-                                              jannoRows2EigenstratIndEntries,
-                                              writeJannoFile)
-import           Poseidon.Core.Package            (PackageReadOptions (..),
-                                              PoseidonPackage (..),
-                                              defaultPackageReadOptions,
-                                              filterToRelevantPackages,
-                                              getJointGenotypeData,
-                                              getJointIndividualInfo,
-                                              getJointJanno,
-                                              makePseudoPackageFromGenotypeData,
-                                              newMinimalPackageTemplate,
-                                              newPackageTemplate,
-                                              readPoseidonPackageCollection,
-                                              writePoseidonPackage)
-import           Poseidon.Core.SequencingSource   (SeqSourceRow (..),
-                                              SeqSourceRows (..),
-                                              writeSeqSourceFile)
-import           Poseidon.Core.Utils              (PoseidonException (..),
-                                              PoseidonIO, checkFile,
-                                              determinePackageOutName,
-                                              envErrorLength, envLogAction,
-                                              logInfo, logWarning, uniqueRO)
+import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
+                                                 writeBibTeXFile)
+import           Poseidon.Core.ColumnTypesJanno (PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (ListColumn (..),
+                                                 getMaybeListColumn)
+import           Poseidon.Core.EntityTypes      (EntityInput,
+                                                 PacNameAndVersion (..),
+                                                 PoseidonEntity (..),
+                                                 SignedEntity (..),
+                                                 checkIfAllEntitiesExist,
+                                                 isLatestInCollection,
+                                                 makePacNameAndVersion,
+                                                 readEntityInputs,
+                                                 resolveUniqueEntityIndices)
+import           Poseidon.Core.GenotypeData     (GenoDataSource (..),
+                                                 GenotypeDataSpec (..),
+                                                 GenotypeFileSpec (..),
+                                                 GenotypeOutFormatSpec (..),
+                                                 SNPSetSpec (..),
+                                                 printSNPCopyProgress,
+                                                 selectIndices, snpSetMergeList,
+                                                 writeVCF)
+import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
+                                                 jannoRows2EigenstratIndEntries,
+                                                 writeJannoFile)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 filterToRelevantPackages,
+                                                 getJointGenotypeData,
+                                                 getJointIndividualInfo,
+                                                 getJointJanno,
+                                                 makePseudoPackageFromGenotypeData,
+                                                 newMinimalPackageTemplate,
+                                                 newPackageTemplate,
+                                                 readPoseidonPackageCollection,
+                                                 writePoseidonPackage)
+import           Poseidon.Core.SequencingSource (SeqSourceRow (..),
+                                                 SeqSourceRows (..),
+                                                 writeSeqSourceFile)
+import           Poseidon.Core.Utils            (PoseidonException (..),
+                                                 PoseidonIO, checkFile,
+                                                 determinePackageOutName,
+                                                 envErrorLength, envLogAction,
+                                                 logInfo, logWarning, uniqueRO)
 
-import           Control.Exception           (catch, throwIO)
-import           Control.Monad               (filterM, forM, forM_, unless,
-                                              when)
-import           Data.List                   (intercalate, nub)
-import           Data.Maybe                  (catMaybes, mapMaybe)
-import           Data.Time                   (getCurrentTime)
-import qualified Data.Vector                 as V
-import qualified Data.Vector.Unboxed         as VU
-import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Pipes                       (MonadIO (liftIO), cat, (>->))
-import qualified Pipes.Prelude               as P
-import           Pipes.Safe                  (SafeT, runSafeT)
-import           Poseidon.Core.ColumnTypesJanno   (JannoNrSNPs (..))
-import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
-                                              GenoEntry (..), GenoLine,
-                                              writeEigenstrat)
-import           SequenceFormats.Plink       (PlinkPopNameMode,
-                                              eigenstratInd2PlinkFam,
-                                              writePlink)
-import           System.Directory            (copyFile,
-                                              createDirectoryIfMissing)
-import           System.FilePath             (dropTrailingPathSeparator, (<.>),
-                                              (</>))
+import           Control.Exception              (catch, throwIO)
+import           Control.Monad                  (filterM, forM, forM_, unless,
+                                                 when)
+import           Data.List                      (intercalate, nub)
+import           Data.Maybe                     (catMaybes, mapMaybe)
+import           Data.Time                      (getCurrentTime)
+import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
+import qualified Data.Vector.Unboxed.Mutable    as VUM
+import           Pipes                          (MonadIO (liftIO), cat, (>->))
+import qualified Pipes.Prelude                  as P
+import           Pipes.Safe                     (SafeT, runSafeT)
+import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
+import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
+                                                 GenoEntry (..), GenoLine,
+                                                 writeEigenstrat)
+import           SequenceFormats.Plink          (PlinkPopNameMode,
+                                                 eigenstratInd2PlinkFam,
+                                                 writePlink)
+import           System.Directory               (copyFile,
+                                                 createDirectoryIfMissing)
+import           System.FilePath                (dropTrailingPathSeparator,
+                                                 (<.>), (</>))
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions

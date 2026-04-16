@@ -8,30 +8,30 @@
 
 module Poseidon.Core.SequencingSource where
 
-import           Poseidon.Core.ColumnTypesJanno  (PoseidonID)
+import           Poseidon.Core.ColumnTypesJanno (PoseidonID)
 import           Poseidon.Core.ColumnTypesSSF
 import           Poseidon.Core.ColumnTypesUtils
 import           Poseidon.Core.Utils
 
-import           Control.Exception          (throwIO)
-import           Control.Monad              (unless, when)
-import qualified Control.Monad              as OP
-import qualified Control.Monad.Except       as E
-import           Control.Monad.IO.Class     (liftIO)
-import qualified Control.Monad.Writer       as W
-import           Data.Bifunctor             (second)
-import qualified Data.ByteString.Char8      as Bchs
-import qualified Data.ByteString.Lazy.Char8 as Bch
-import qualified Data.Csv                   as Csv
-import           Data.Either                (lefts, rights)
-import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (foldl', nub, sort)
-import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
-import qualified Data.Vector                as V
-import           Generics.SOP.TH            (deriveGeneric)
-import           GHC.Generics               (Generic)
+import           Control.Exception              (throwIO)
+import           Control.Monad                  (unless, when)
+import qualified Control.Monad                  as OP
+import qualified Control.Monad.Except           as E
+import           Control.Monad.IO.Class         (liftIO)
+import qualified Control.Monad.Writer           as W
+import           Data.Bifunctor                 (second)
+import qualified Data.ByteString.Char8          as Bchs
+import qualified Data.ByteString.Lazy.Char8     as Bch
+import qualified Data.Csv                       as Csv
+import           Data.Either                    (lefts, rights)
+import qualified Data.HashMap.Strict            as HM
+import           Data.List                      (foldl', nub, sort)
+import           Data.Maybe                     (catMaybes, isJust, mapMaybe)
+import qualified Data.Vector                    as V
+import           Generics.SOP.TH                (deriveGeneric)
+import           GHC.Generics                   (Generic)
 import           Poseidon.Core.PoseidonVersion
-import qualified Text.Parsec                as P
+import qualified Text.Parsec                    as P
 
 -- | A data type to represent a seqSourceFile
 newtype SeqSourceRows = SeqSourceRows {getSeqSourceRowList :: [SeqSourceRow]}

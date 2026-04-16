@@ -3,70 +3,70 @@
 
 module Poseidon.CLI.Trident.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
-import           Poseidon.Core.EntityTypes         (HasNameAndVersion (..),
-                                               PacNameAndVersion (PacNameAndVersion),
-                                               renderNameWithVersion)
-import           Poseidon.Core.GenotypeData        (GenotypeDataSpec (..),
-                                               GenotypeFileSpec (..))
-import           Poseidon.Core.Janno               (JannoRow (..), getJannoRows)
-import           Poseidon.Core.Package             (PackageReadOptions (..),
-                                               PoseidonPackage (..),
-                                               defaultPackageReadOptions,
-                                               getAllGroupInfo,
-                                               getBibliographyInfo,
-                                               getExtendedIndividualInfo,
-                                               getJannoRowsFromPac,
-                                               packagesToPackageInfos,
-                                               readPoseidonPackageCollection)
-import           Poseidon.Core.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.Core.ServerClient        (AddColSpec (..),
-                                               ApiReturnData (..),
-                                               ServerApiReturnType (..))
+import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
+                                                 PacNameAndVersion (PacNameAndVersion),
+                                                 renderNameWithVersion)
+import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
+                                                 GenotypeFileSpec (..))
+import           Poseidon.Core.Janno            (JannoRow (..), getJannoRows)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 getAllGroupInfo,
+                                                 getBibliographyInfo,
+                                                 getExtendedIndividualInfo,
+                                                 getJannoRowsFromPac,
+                                                 packagesToPackageInfos,
+                                                 readPoseidonPackageCollection)
+import           Poseidon.Core.PoseidonVersion  (minimalRequiredClientVersion)
+import           Poseidon.Core.ServerClient     (AddColSpec (..),
+                                                 ApiReturnData (..),
+                                                 ServerApiReturnType (..))
 import           Poseidon.Core.ServerHTML
-import           Poseidon.Core.ServerStylesheet    (stylesBS)
-import           Poseidon.Core.Utils               (LogA, PoseidonIO, envLogAction,
-                                               logDebug, logInfo, logWithEnv)
+import           Poseidon.Core.ServerStylesheet (stylesBS)
+import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
+                                                 logDebug, logInfo, logWithEnv)
 
-import           Codec.Archive.Zip            (Archive, addEntryToArchive,
-                                               emptyArchive, fromArchive,
-                                               toEntry)
-import           Control.Concurrent.MVar      (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                (foldM, forM, when)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import qualified Data.ByteString.Lazy         as B
-import           Data.List                    (foldl', groupBy, intercalate,
-                                               sortOn)
-import           Data.List.Split              (splitOn)
-import           Data.Maybe                   (isJust, mapMaybe)
-import           Data.Ord                     (Down (..))
-import           Data.Text.Lazy               (pack)
-import           Data.Time                    (Day)
-import           Data.Time.Clock.POSIX        (utcTimeToPOSIXSeconds)
-import           Data.Version                 (Version, parseVersion,
-                                               showVersion)
-import           Data.Yaml                    (FromJSON, decodeFileThrow,
-                                               parseJSON, (.:?))
-import           Data.Yaml.Aeson              (withObject, (.:))
-import           Network.Wai                  (pathInfo, queryString)
-import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
-                                               setBeforeMainLoop, setPort)
-import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
-                                               tlsSettingsChain)
-import           Network.Wai.Middleware.Cors  (simpleCors)
-import           Paths_poseidon_hs            (version)
-import           Poseidon.Core.BibFile             (renderBibEntry)
-import           Poseidon.Core.ColumnTypesJanno    (JannoLatitude (..),
-                                               JannoLongitude (..))
-import           System.Directory             (createDirectoryIfMissing,
-                                               doesFileExist,
-                                               getModificationTime)
-import           System.FilePath              ((<.>), (</>))
-import           Text.ParserCombinators.ReadP (readP_to_S)
-import           Web.Scotty                   (ActionM, ScottyM, captureParam,
-                                               file, get, json, middleware,
-                                               notFound, queryParamMaybe, raw,
-                                               redirect, request, scottyApp,
-                                               setHeader, text)
+import           Codec.Archive.Zip              (Archive, addEntryToArchive,
+                                                 emptyArchive, fromArchive,
+                                                 toEntry)
+import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
+import           Control.Monad                  (foldM, forM, when)
+import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import qualified Data.ByteString.Lazy           as B
+import           Data.List                      (foldl', groupBy, intercalate,
+                                                 sortOn)
+import           Data.List.Split                (splitOn)
+import           Data.Maybe                     (isJust, mapMaybe)
+import           Data.Ord                       (Down (..))
+import           Data.Text.Lazy                 (pack)
+import           Data.Time                      (Day)
+import           Data.Time.Clock.POSIX          (utcTimeToPOSIXSeconds)
+import           Data.Version                   (Version, parseVersion,
+                                                 showVersion)
+import           Data.Yaml                      (FromJSON, decodeFileThrow,
+                                                 parseJSON, (.:?))
+import           Data.Yaml.Aeson                (withObject, (.:))
+import           Network.Wai                    (pathInfo, queryString)
+import           Network.Wai.Handler.Warp       (defaultSettings, runSettings,
+                                                 setBeforeMainLoop, setPort)
+import           Network.Wai.Handler.WarpTLS    (runTLS, tlsSettings,
+                                                 tlsSettingsChain)
+import           Network.Wai.Middleware.Cors    (simpleCors)
+import           Paths_poseidon_hs              (version)
+import           Poseidon.Core.BibFile          (renderBibEntry)
+import           Poseidon.Core.ColumnTypesJanno (JannoLatitude (..),
+                                                 JannoLongitude (..))
+import           System.Directory               (createDirectoryIfMissing,
+                                                 doesFileExist,
+                                                 getModificationTime)
+import           System.FilePath                ((<.>), (</>))
+import           Text.ParserCombinators.ReadP   (readP_to_S)
+import           Web.Scotty                     (ActionM, ScottyM, captureParam,
+                                                 file, get, json, middleware,
+                                                 notFound, queryParamMaybe, raw,
+                                                 redirect, request, scottyApp,
+                                                 setHeader, text)
 
 -- CLI options and routines
 data ServeOptions = ServeOptions

@@ -2,22 +2,22 @@
 
 module Poseidon.CLI.Trident.Genoconvert where
 
-import           Poseidon.Core.EntityTypes       (HasNameAndVersion (..))
-import           Poseidon.Core.GenotypeData      (GenoDataSource (..),
+import           Poseidon.Core.EntityTypes  (HasNameAndVersion (..))
+import           Poseidon.Core.GenotypeData (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              loadGenotypeData,
                                              printSNPCopyProgress, writeVCF)
-import           Poseidon.Core.Janno             (JannoRows (..),
+import           Poseidon.Core.Janno        (JannoRows (..),
                                              jannoRows2EigenstratIndEntries)
-import           Poseidon.Core.Package           (PackageReadOptions (..),
+import           Poseidon.Core.Package      (PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              defaultPackageReadOptions,
                                              makePseudoPackageFromGenotypeData,
                                              readPoseidonPackageCollection,
                                              writePoseidonPackage)
-import           Poseidon.Core.Utils             (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils        (PoseidonException (..), PoseidonIO,
                                              envErrorLength, envLogAction,
                                              logError, logInfo, logWarning)
 

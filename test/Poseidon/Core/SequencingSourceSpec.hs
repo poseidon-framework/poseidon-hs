@@ -7,15 +7,15 @@ import           Poseidon.Core.ColumnTypesSSF
 import           Poseidon.Core.ColumnTypesUtils
 import           Poseidon.Core.JannoSpec        (checkEnDe)
 import           Poseidon.Core.SequencingSource (SeqSourceRow (..),
-                                            SeqSourceRows (..),
-                                            readSeqSourceFile)
+                                                 SeqSourceRows (..),
+                                                 readSeqSourceFile)
 import           Poseidon.Core.Utils            (testLog)
 
-import           Data.HashMap.Strict       (fromList)
-import           Data.Time                 (fromGregorian)
+import           Data.HashMap.Strict            (fromList)
+import           Data.Time                      (fromGregorian)
 import           Poseidon.Core.PoseidonVersion
-import           Test.Hspec                (Spec, anyException, describe, it,
-                                            shouldBe, shouldThrow)
+import           Test.Hspec                     (Spec, anyException, describe,
+                                                 it, shouldBe, shouldThrow)
 
 spec :: Spec
 spec = do

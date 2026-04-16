@@ -1,36 +1,37 @@
 module Poseidon.CLI.Xerxes.AdmixPops where
 
-import           Poseidon.Core.ColumnTypesJanno     (JannoGenotypePloidy (..))
-import           Poseidon.Core.EntityTypes          (HasNameAndVersion (..))
 import           Poseidon.Analysis.Generator.Parsers
 import           Poseidon.Analysis.Generator.SampleGeno
 import           Poseidon.Analysis.Generator.Types
 import           Poseidon.Analysis.Generator.Utils
+import           Poseidon.Core.ColumnTypesJanno         (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes              (HasNameAndVersion (..))
 import           Poseidon.Core.GenotypeData
-import           Poseidon.Core.Janno                (JannoRows (..),
-                                                createMinimalJanno,
-                                                jGenotypePloidy)
+import           Poseidon.Core.Janno                    (JannoRows (..),
+                                                         createMinimalJanno,
+                                                         jGenotypePloidy)
 import           Poseidon.Core.Package
 import           Poseidon.Core.Utils
 
-import           Control.Exception             (catch, throwIO)
-import           Control.Monad                 (forM, unless, when)
-import           Control.Monad.Catch           (throwM)
-import qualified Data.ByteString.Char8         as B
-import           Data.Function                 ((&))
+import           Control.Exception                      (catch, throwIO)
+import           Control.Monad                          (forM, unless, when)
+import           Control.Monad.Catch                    (throwM)
+import qualified Data.ByteString.Char8                  as B
+import           Data.Function                          ((&))
 import           Data.List
 import           Data.Maybe
-import           Data.Time                     (getCurrentTime)
-import           Lens.Family2                  (view)
+import           Data.Time                              (getCurrentTime)
+import           Lens.Family2                           (view)
 import           Pipes
-import qualified Pipes.Group                   as PG
-import qualified Pipes.Prelude                 as P
-import           Pipes.Safe                    (runSafeT)
+import qualified Pipes.Group                            as PG
+import qualified Pipes.Prelude                          as P
+import           Pipes.Safe                             (runSafeT)
 import           SequenceFormats.Eigenstrat
-import           SequenceFormats.Plink         (eigenstratInd2PlinkFam,
-                                                writePlink)
-import           System.Directory              (createDirectoryIfMissing)
-import           System.FilePath               (takeBaseName, (<.>), (</>))
+import           SequenceFormats.Plink                  (eigenstratInd2PlinkFam,
+                                                         writePlink)
+import           System.Directory                       (createDirectoryIfMissing)
+import           System.FilePath                        (takeBaseName, (<.>),
+                                                         (</>))
 
 data AdmixPopsMethodSettings =
     PerSNP {

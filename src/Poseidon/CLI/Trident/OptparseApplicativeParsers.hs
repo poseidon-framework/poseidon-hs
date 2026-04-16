@@ -5,46 +5,50 @@ module Poseidon.CLI.Trident.OptparseApplicativeParsers where
 import           Poseidon.CLI.Trident.Chronicle     (ChronOperation (..))
 import           Poseidon.CLI.Trident.Forge         (ForgeOutMode (..))
 import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..),
-                                             JannoSourceSpec (..))
+                                                     JannoSourceSpec (..))
 import           Poseidon.CLI.Trident.List          (ListEntity (..),
-                                             RepoLocationSpec (..))
+                                                     RepoLocationSpec (..))
 import           Poseidon.CLI.Trident.Rectify       (ChecksumsToRectify (..),
-                                             PackageVersionUpdate (..))
+                                                     PackageVersionUpdate (..))
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
-                                             ArchiveSpec (..))
+                                                     ArchiveSpec (..))
 import           Poseidon.CLI.Trident.Validate      (ValidatePlan (..))
-import           Poseidon.Core.Contributor       (ContributorSpec (..),
-                                             contributorSpecParser)
-import           Poseidon.Core.EntityTypes       (EntitiesList, EntityInput (..),
-                                             EntitySpec, PoseidonEntity,
-                                             SignedEntitiesList, SignedEntity,
-                                             readEntitiesFromString)
-import           Poseidon.Core.GenotypeData      (GenoDataSource (..),
-                                             GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..),
-                                             GenotypeOutFormatSpec (..),
-                                             SNPSetSpec (..))
+import           Poseidon.Core.Contributor          (ContributorSpec (..),
+                                                     contributorSpecParser)
+import           Poseidon.Core.EntityTypes          (EntitiesList,
+                                                     EntityInput (..),
+                                                     EntitySpec, PoseidonEntity,
+                                                     SignedEntitiesList,
+                                                     SignedEntity,
+                                                     readEntitiesFromString)
+import           Poseidon.Core.GenotypeData         (GenoDataSource (..),
+                                                     GenotypeDataSpec (..),
+                                                     GenotypeFileSpec (..),
+                                                     GenotypeOutFormatSpec (..),
+                                                     SNPSetSpec (..))
 import           Poseidon.Core.PoseidonVersion
-import           Poseidon.Core.ServerClient      (AddColSpec (..),
-                                             ArchiveEndpoint (..))
-import           Poseidon.Core.Utils             (ErrorLength (..), LogMode (..),
-                                             TestMode (..),
-                                             renderPoseidonException,
-                                             showParsecErr)
-import           Poseidon.Core.Version           (VersionComponent (..),
-                                             parseVersion)
+import           Poseidon.Core.ServerClient         (AddColSpec (..),
+                                                     ArchiveEndpoint (..))
+import           Poseidon.Core.Utils                (ErrorLength (..),
+                                                     LogMode (..),
+                                                     TestMode (..),
+                                                     renderPoseidonException,
+                                                     showParsecErr)
+import           Poseidon.Core.Version              (VersionComponent (..),
+                                                     parseVersion)
 
-import           Control.Applicative        ((<|>))
-import qualified Data.ByteString.Char8      as Bchs
-import           Data.List                  (intercalate)
-import           Data.List.Split            (splitOn)
-import           Data.Version               (Version, makeVersion)
-import qualified Options.Applicative        as OP
-import           SequenceFormats.Plink      (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
-import           System.FilePath            (splitExtension, splitExtensions,
-                                             takeExtension, (<.>))
-import qualified Text.Parsec                as P
-import           Text.Read                  (readMaybe)
+import           Control.Applicative                ((<|>))
+import qualified Data.ByteString.Char8              as Bchs
+import           Data.List                          (intercalate)
+import           Data.List.Split                    (splitOn)
+import           Data.Version                       (Version, makeVersion)
+import qualified Options.Applicative                as OP
+import           SequenceFormats.Plink              (PlinkPopNameMode (PlinkPopNameAsBoth, PlinkPopNameAsFamily, PlinkPopNameAsPhenotype))
+import           System.FilePath                    (splitExtension,
+                                                     splitExtensions,
+                                                     takeExtension, (<.>))
+import qualified Text.Parsec                        as P
+import           Text.Read                          (readMaybe)
 
 parseChronOperation :: OP.Parser ChronOperation
 parseChronOperation = (CreateChron <$> parseChronOutPath) <|> (UpdateChron <$> parseChronUpdatePath)

@@ -2,14 +2,15 @@ module Poseidon.Analysis.Generator.SampleGeno where
 
 import           Poseidon.Analysis.Generator.Types
 
-import           Control.Monad.Random       (RandomGen, evalRand, fromList,
-                                             getStdGen, newStdGen)
+import           Control.Monad.Random              (RandomGen, evalRand,
+                                                    fromList, getStdGen,
+                                                    newStdGen)
 import           Data.List
-import           Data.Ratio                 ((%))
-import qualified Data.Vector                as V
+import           Data.Ratio                        ((%))
+import qualified Data.Vector                       as V
 import           Pipes
 import           Pipes.Safe
-import           Poseidon.Core.Utils             (LogA, logDebug, logWithEnv)
+import           Poseidon.Core.Utils               (LogA, logDebug, logWithEnv)
 import           SequenceFormats.Eigenstrat
 
 -- admixpops

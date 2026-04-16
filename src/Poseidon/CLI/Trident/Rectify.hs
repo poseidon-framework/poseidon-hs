@@ -6,32 +6,32 @@ module Poseidon.CLI.Trident.Rectify (
 
 import           Poseidon.Core.Contributor     (ContributorSpec (..))
 import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
-                                           PacNameAndVersion (..),
-                                           renderNameWithVersion)
+                                                PacNameAndVersion (..),
+                                                renderNameWithVersion)
 import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
-                                           GenotypeFileSpec (..))
+                                                GenotypeFileSpec (..))
 import           Poseidon.Core.Janno           (writeJannoFileWithoutEmptyCols)
 import           Poseidon.Core.Package         (PackageReadOptions (..),
-                                           PoseidonPackage (..),
-                                           defaultPackageReadOptions,
-                                           readPoseidonPackageCollection,
-                                           writePoseidonPackage)
+                                                PoseidonPackage (..),
+                                                defaultPackageReadOptions,
+                                                readPoseidonPackageCollection,
+                                                writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChecksum, logDebug,
-                                           logInfo, logWarning)
+import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
+                                                logDebug, logInfo, logWarning)
 import           Poseidon.Core.Version         (VersionComponent (..),
-                                           updateThreeComponentVersion)
+                                                updateThreeComponentVersion)
 
-import           Control.DeepSeq          ((<$!!>))
-import           Control.Monad            (when)
-import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Data.List                (nub)
-import           Data.Maybe               (fromJust)
-import           Data.Time                (UTCTime (..), getCurrentTime)
-import           Data.Version             (Version (..), makeVersion,
-                                           showVersion)
-import           System.Directory         (doesFileExist, removeFile)
-import           System.FilePath          ((</>))
+import           Control.DeepSeq               ((<$!!>))
+import           Control.Monad                 (when)
+import           Control.Monad.IO.Class        (MonadIO, liftIO)
+import           Data.List                     (nub)
+import           Data.Maybe                    (fromJust)
+import           Data.Time                     (UTCTime (..), getCurrentTime)
+import           Data.Version                  (Version (..), makeVersion,
+                                                showVersion)
+import           System.Directory              (doesFileExist, removeFile)
+import           System.FilePath               ((</>))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]

@@ -2,31 +2,34 @@
 
 module Poseidon.CLI.Trident.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.Core.BibFile       (authorAbbrvString, parseAuthors)
-import           Poseidon.Core.Contributor   (ContributorSpec (..), renderORCID)
-import           Poseidon.Core.EntityTypes   (HasNameAndVersion (..))
-import           Poseidon.Core.Package       (PackageReadOptions (..),
-                                         defaultPackageReadOptions,
-                                         getAllGroupInfo, getBibliographyInfo,
-                                         getExtendedIndividualInfo,
-                                         packagesToPackageInfos,
-                                         readPoseidonPackageCollection)
-import           Poseidon.Core.ServerClient  (AddColSpec (..), ApiReturnData (..),
-                                         ArchiveEndpoint (..),
-                                         BibliographyInfo (..),
-                                         ExtendedIndividualInfo (..),
-                                         GroupInfo (..), PackageInfo (..),
-                                         processApiResponse, qDefault)
-import           Poseidon.Core.Utils         (PoseidonIO, logInfo, logWarning)
+import           Poseidon.Core.BibFile      (authorAbbrvString, parseAuthors)
+import           Poseidon.Core.Contributor  (ContributorSpec (..), renderORCID)
+import           Poseidon.Core.EntityTypes  (HasNameAndVersion (..))
+import           Poseidon.Core.Package      (PackageReadOptions (..),
+                                             defaultPackageReadOptions,
+                                             getAllGroupInfo,
+                                             getBibliographyInfo,
+                                             getExtendedIndividualInfo,
+                                             packagesToPackageInfos,
+                                             readPoseidonPackageCollection)
+import           Poseidon.Core.ServerClient (AddColSpec (..),
+                                             ApiReturnData (..),
+                                             ArchiveEndpoint (..),
+                                             BibliographyInfo (..),
+                                             ExtendedIndividualInfo (..),
+                                             GroupInfo (..), PackageInfo (..),
+                                             processApiResponse, qDefault)
+import           Poseidon.Core.Utils        (PoseidonIO, logInfo, logWarning)
 
-import           Control.Monad          (forM_, when)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.List              (intercalate, nub, sortOn)
-import           Data.Maybe             (catMaybes, fromMaybe)
-import qualified Data.Text              as T
-import           Data.Version           (Version, showVersion)
-import           Text.Layout.Table      (asciiRoundS, column, def, expandUntil,
-                                         rowsG, tableString, titlesH)
+import           Control.Monad              (forM_, when)
+import           Control.Monad.IO.Class     (liftIO)
+import           Data.List                  (intercalate, nub, sortOn)
+import           Data.Maybe                 (catMaybes, fromMaybe)
+import qualified Data.Text                  as T
+import           Data.Version               (Version, showVersion)
+import           Text.Layout.Table          (asciiRoundS, column, def,
+                                             expandUntil, rowsG, tableString,
+                                             titlesH)
 
 -- | A datatype representing command line options for the list command
 data ListOptions = ListOptions

@@ -1,54 +1,56 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Paths_poseidon_hs                       (version)
+import           Paths_poseidon_hs                               (version)
 import           Poseidon.CLI.Trident.Chronicle                  (ChronicleOptions (..),
-                                                          runChronicle)
+                                                                  runChronicle)
 import           Poseidon.CLI.Trident.Fetch                      (FetchOptions (..),
-                                                          runFetch)
+                                                                  runFetch)
 import           Poseidon.CLI.Trident.Forge                      (ForgeOptions (..),
-                                                          runForge)
+                                                                  runForge)
 import           Poseidon.CLI.Trident.Genoconvert                (GenoconvertOptions (..),
-                                                          runGenoconvert)
+                                                                  runGenoconvert)
 import           Poseidon.CLI.Trident.Init                       (InitOptions (..),
-                                                          runInit)
+                                                                  runInit)
 import           Poseidon.CLI.Trident.Jannocoalesce              (JannoCoalesceOptions (..),
-                                                          runJannocoalesce)
+                                                                  runJannocoalesce)
 import           Poseidon.CLI.Trident.List                       (ListOptions (..),
-                                                          runList)
+                                                                  runList)
 import           Poseidon.CLI.Trident.OptparseApplicativeParsers
 import           Poseidon.CLI.Trident.Rectify                    (RectifyOptions (..),
-                                                          runRectify)
+                                                                  runRectify)
 import           Poseidon.CLI.Trident.Serve                      (ServeOptions (..),
-                                                          runServerMainThread)
+                                                                  runServerMainThread)
 import           Poseidon.CLI.Trident.Summarise                  (SummariseOptions (..),
-                                                          runSummarise)
+                                                                  runSummarise)
 import           Poseidon.CLI.Trident.Survey                     (SurveyOptions (..),
-                                                          runSurvey)
+                                                                  runSurvey)
 import           Poseidon.CLI.Trident.Timetravel                 (TimetravelOptions (..),
-                                                          runTimetravel)
+                                                                  runTimetravel)
 import           Poseidon.CLI.Trident.Validate                   (ValidateOptions (..),
-                                                          runValidate)
-import           Poseidon.Core.Janno                          (jannoHeaderString)
-import           Poseidon.Core.PoseidonVersion                (showPoseidonVersion,
-                                                          validPoseidonVersions)
-import           Poseidon.Core.Utils                          (ErrorLength (..),
-                                                          LogMode (..),
-                                                          PlinkPopNameMode (..),
-                                                          PoseidonException (..),
-                                                          PoseidonIO, TestMode,
-                                                          logError,
-                                                          renderPoseidonException,
-                                                          usePoseidonLogger)
+                                                                  runValidate)
+import           Poseidon.Core.Janno                             (jannoHeaderString)
+import           Poseidon.Core.PoseidonVersion                   (showPoseidonVersion,
+                                                                  validPoseidonVersions)
+import           Poseidon.Core.Utils                             (ErrorLength (..),
+                                                                  LogMode (..),
+                                                                  PlinkPopNameMode (..),
+                                                                  PoseidonException (..),
+                                                                  PoseidonIO,
+                                                                  TestMode,
+                                                                  logError,
+                                                                  renderPoseidonException,
+                                                                  usePoseidonLogger)
 
 
-import           Control.Applicative                     ((<|>))
-import           Control.Exception                       (catch)
-import           Data.List                               (intercalate)
-import           Data.Version                            (showVersion)
-import qualified Options.Applicative                     as OP
-import           Options.Applicative.Help                (pretty)
-import           System.Exit                             (exitFailure)
-import           System.IO                               (hPutStrLn, stderr)
+import           Control.Applicative                             ((<|>))
+import           Control.Exception                               (catch)
+import           Data.List                                       (intercalate)
+import           Data.Version                                    (showVersion)
+import qualified Options.Applicative                             as OP
+import           Options.Applicative.Help                        (pretty)
+import           System.Exit                                     (exitFailure)
+import           System.IO                                       (hPutStrLn,
+                                                                  stderr)
 
 data Options = Options {
     _logMode    :: LogMode

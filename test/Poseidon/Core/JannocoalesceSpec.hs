@@ -3,17 +3,19 @@
 module Poseidon.Core.JannocoalesceSpec (spec) where
 
 import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..),
-                                             makeNewJannoRows, mergeRow)
+                                                     makeNewJannoRows, mergeRow)
 import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.ColumnTypesUtils
-import           Poseidon.Core.Janno             (JannoRow (..), createMinimalSample)
+import           Poseidon.Core.Janno                (JannoRow (..),
+                                                     createMinimalSample)
 import           Poseidon.Core.PoseidonVersion
-import           Poseidon.Core.Utils             (testLog)
+import           Poseidon.Core.Utils                (testLog)
 
-import           Control.Monad.IO.Class     (liftIO)
-import qualified Data.HashMap.Strict        as HM
-import qualified Data.IORef                 as R
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..), Sex (..))
+import           Control.Monad.IO.Class             (liftIO)
+import qualified Data.HashMap.Strict                as HM
+import qualified Data.IORef                         as R
+import           SequenceFormats.Eigenstrat         (EigenstratIndEntry (..),
+                                                     Sex (..))
 import           Test.Hspec
 
 spec :: Spec

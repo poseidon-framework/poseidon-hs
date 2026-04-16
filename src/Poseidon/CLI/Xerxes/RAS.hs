@@ -2,57 +2,62 @@
 
 module Poseidon.CLI.Xerxes.RAS where
 
-import           Poseidon.Analysis.RASconfig (PopConfig (..))
-import           Poseidon.Analysis.Utils     (GenomPos, JackknifeMode (..),
-                                              PloidyVec, XerxesException (..),
-                                              addGroupDefs, computeAlleleCount,
-                                              computeAlleleFreq,
-                                              computeJackknifeAdditive,
-                                              computeJackknifeOriginal,
-                                              filterTransitions, makePloidyVec)
+import           Poseidon.Analysis.RASconfig    (PopConfig (..))
+import           Poseidon.Analysis.Utils        (GenomPos, JackknifeMode (..),
+                                                 PloidyVec,
+                                                 XerxesException (..),
+                                                 addGroupDefs,
+                                                 computeAlleleCount,
+                                                 computeAlleleFreq,
+                                                 computeJackknifeAdditive,
+                                                 computeJackknifeOriginal,
+                                                 filterTransitions,
+                                                 makePloidyVec)
 
-import           Control.Exception           (catch, throwIO)
-import           Control.Foldl               (FoldM (..), impurely, list,
-                                              purely)
-import           Control.Monad               (forM_, unless, when)
-import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import qualified Data.ByteString             as B
-import           Data.List                   (intercalate, nub, (\\))
-import qualified Data.Vector                 as V
-import qualified Data.Vector.Unboxed         as VU
-import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Data.Yaml                   (decodeEither')
+import           Control.Exception              (catch, throwIO)
+import           Control.Foldl                  (FoldM (..), impurely, list,
+                                                 purely)
+import           Control.Monad                  (forM_, unless, when)
+import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import qualified Data.ByteString                as B
+import           Data.List                      (intercalate, nub, (\\))
+import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
+import qualified Data.Vector.Unboxed.Mutable    as VUM
+import           Data.Yaml                      (decodeEither')
 -- import           Debug.Trace                 (trace)
-import           Lens.Family2                (view)
+import           Lens.Family2                   (view)
 
-import           Pipes                       (cat, (>->))
-import           Pipes.Group                 (chunksOf, foldsM, groupsBy)
-import qualified Pipes.Prelude               as P
-import           Pipes.Safe                  (runSafeT)
-import           Poseidon.Core.ColumnTypesJanno   (JannoGenotypePloidy (..))
-import           Poseidon.Core.EntityTypes        (EntitiesList, IndividualInfo (..),
-                                              PoseidonEntity (..),
-                                              checkIfAllEntitiesExist,
-                                              determineRelevantPackages,
-                                              resolveUniqueEntityIndices,
-                                              underlyingEntity)
-import           Poseidon.Core.Package            (PackageReadOptions (..),
-                                              PoseidonPackage (..),
-                                              defaultPackageReadOptions,
-                                              getJointGenotypeData,
-                                              getJointIndividualInfo,
-                                              getJointJanno,
-                                              readPoseidonPackageCollection)
-import           Poseidon.Core.Utils              (PoseidonException (..),
-                                              PoseidonIO, envErrorLength,
-                                              envLogAction, logInfo, logWithEnv)
-import           SequenceFormats.Bed         (filterThroughBed, readBedFile)
-import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
-                                              GenoEntry (..), GenoLine)
-import           SequenceFormats.Genomic     (genomicPosition)
-import           SequenceFormats.Utils       (Chrom (..))
-import           System.IO                   (IOMode (..), hPutStrLn, stderr,
-                                              withFile)
+import           Pipes                          (cat, (>->))
+import           Pipes.Group                    (chunksOf, foldsM, groupsBy)
+import qualified Pipes.Prelude                  as P
+import           Pipes.Safe                     (runSafeT)
+import           Poseidon.Core.ColumnTypesJanno (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes      (EntitiesList,
+                                                 IndividualInfo (..),
+                                                 PoseidonEntity (..),
+                                                 checkIfAllEntitiesExist,
+                                                 determineRelevantPackages,
+                                                 resolveUniqueEntityIndices,
+                                                 underlyingEntity)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 getJointGenotypeData,
+                                                 getJointIndividualInfo,
+                                                 getJointJanno,
+                                                 readPoseidonPackageCollection)
+import           Poseidon.Core.Utils            (PoseidonException (..),
+                                                 PoseidonIO, envErrorLength,
+                                                 envLogAction, logInfo,
+                                                 logWithEnv)
+import           SequenceFormats.Bed            (filterThroughBed, readBedFile)
+import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
+                                                 GenoEntry (..), GenoLine)
+import           SequenceFormats.Genomic        (genomicPosition)
+import           SequenceFormats.Utils          (Chrom (..))
+import           System.IO                      (IOMode (..), hPutStrLn, stderr,
+                                                 withFile)
 
 data FreqSpec = FreqNone
     | FreqK Int

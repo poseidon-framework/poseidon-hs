@@ -32,98 +32,111 @@ module Poseidon.Core.Package (
     getBibliographyInfo
 ) where
 
-import           Poseidon.Core.BibFile           (BibEntry (..), BibTeX,
-                                             readBibTeXFile)
-import           Poseidon.Core.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
-                                             JannoLibraryBuilt (..),
-                                             JannoPublication (..),
-                                             JannoUDG (..), PoseidonID (..))
-import           Poseidon.Core.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
-import           Poseidon.Core.ColumnTypesUtils  (ListColumn (..),
-                                             getMaybeListColumn)
-import           Poseidon.Core.Contributor       (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes       (EntitySpec, HasNameAndVersion (..),
-                                             IndividualInfo (..),
-                                             IndividualInfoCollection,
-                                             PacNameAndVersion (..),
-                                             determineRelevantPackages,
-                                             isLatestInCollection,
-                                             makePacNameAndVersion,
-                                             renderNameWithVersion)
-import           Poseidon.Core.GenotypeData      (GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..), joinEntries,
-                                             loadGenotypeData, loadIndividuals,
-                                             printSNPCopyProgress,
-                                             reduceGenotypeFilepaths)
-import           Poseidon.Core.Janno             (JannoRow (..), JannoRows (..),
-                                             createMinimalJanno,
-                                             jannoHeaderString,
-                                             mainJannoColumns, readJannoFile)
-import           Poseidon.Core.PoseidonVersion   (PoseidonVersion (..), asVersion,
-                                             latestPoseidonVersion,
-                                             showPoseidonVersion,
-                                             validPoseidonVersions)
-import           Poseidon.Core.SequencingSource  (SeqSourceRow (..),
-                                             SeqSourceRows (..), mainSSFColumns,
-                                             readSeqSourceFile)
-import           Poseidon.Core.ServerClient      (AddColSpec (..),
-                                             BibliographyInfo (..),
-                                             ExtendedIndividualInfo (..),
-                                             GroupInfo (..), PackageInfo (..))
-import           Poseidon.Core.Utils             (LogA, PoseidonException (..),
-                                             PoseidonIO, checkFile,
-                                             envErrorLength, envLogAction,
-                                             logDebug, logError, logInfo,
-                                             logWarning, logWithEnv,
-                                             renderPoseidonException)
+import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
+                                                 readBibTeXFile)
+import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..),
+                                                 GroupName (..),
+                                                 JannoLibraryBuilt (..),
+                                                 JannoPublication (..),
+                                                 JannoUDG (..), PoseidonID (..))
+import           Poseidon.Core.ColumnTypesSSF   (SSFLibraryBuilt (..),
+                                                 SSFUDG (..))
+import           Poseidon.Core.ColumnTypesUtils (ListColumn (..),
+                                                 getMaybeListColumn)
+import           Poseidon.Core.Contributor      (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes      (EntitySpec,
+                                                 HasNameAndVersion (..),
+                                                 IndividualInfo (..),
+                                                 IndividualInfoCollection,
+                                                 PacNameAndVersion (..),
+                                                 determineRelevantPackages,
+                                                 isLatestInCollection,
+                                                 makePacNameAndVersion,
+                                                 renderNameWithVersion)
+import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
+                                                 GenotypeFileSpec (..),
+                                                 joinEntries, loadGenotypeData,
+                                                 loadIndividuals,
+                                                 printSNPCopyProgress,
+                                                 reduceGenotypeFilepaths)
+import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
+                                                 createMinimalJanno,
+                                                 jannoHeaderString,
+                                                 mainJannoColumns,
+                                                 readJannoFile)
+import           Poseidon.Core.PoseidonVersion  (PoseidonVersion (..),
+                                                 asVersion,
+                                                 latestPoseidonVersion,
+                                                 showPoseidonVersion,
+                                                 validPoseidonVersions)
+import           Poseidon.Core.SequencingSource (SeqSourceRow (..),
+                                                 SeqSourceRows (..),
+                                                 mainSSFColumns,
+                                                 readSeqSourceFile)
+import           Poseidon.Core.ServerClient     (AddColSpec (..),
+                                                 BibliographyInfo (..),
+                                                 ExtendedIndividualInfo (..),
+                                                 GroupInfo (..),
+                                                 PackageInfo (..))
+import           Poseidon.Core.Utils            (LogA, PoseidonException (..),
+                                                 PoseidonIO, checkFile,
+                                                 envErrorLength, envLogAction,
+                                                 logDebug, logError, logInfo,
+                                                 logWarning, logWithEnv,
+                                                 renderPoseidonException)
 
-import           Control.DeepSeq            (($!!))
-import           Control.Exception          (catch, throwIO)
-import           Control.Monad              (filterM, forM, forM_, unless, void,
-                                             when)
-import qualified Control.Monad              as OP
-import           Control.Monad.Catch        (MonadThrow, throwM, try)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Data.Aeson                 (FromJSON, ToJSON, object,
-                                             parseJSON, toJSON, withObject,
-                                             (.!=), (.:), (.:?), (.=))
-import qualified Data.ByteString            as B
-import qualified Data.ByteString.Char8      as Bchs
-import qualified Data.ByteString.Char8      as BSC
-import           Data.Char                  (isSpace)
-import           Data.Csv                   (toNamedRecord)
-import           Data.Either                (lefts, rights)
-import           Data.Function              (on)
-import qualified Data.HashMap.Strict        as HM
-import           Data.List                  (elemIndex, group, groupBy,
-                                             intercalate, nub, sort, sortOn,
-                                             (\\))
-import           Data.Maybe                 (catMaybes, fromMaybe, isNothing,
-                                             mapMaybe)
-import           Data.Text                  (unpack)
-import           Data.Time                  (Day, UTCTime (..), getCurrentTime)
-import qualified Data.Vector                as V
-import           Data.Version               (Version (..), makeVersion)
-import           Data.Yaml                  (decodeEither')
-import           Data.Yaml.Pretty           (defConfig, encodePretty,
-                                             setConfCompare, setConfDropNull)
-import           GHC.Generics               (Generic)
-import           Pipes                      (Pipe, Producer, cat, for,
-                                             runEffect, yield, (>->))
-import           Pipes.OrderedZip           (orderCheckPipe, orderedZip,
-                                             orderedZipAll)
-import qualified Pipes.Prelude              as P
-import           Pipes.Safe                 (MonadSafe, runSafeT)
-import           SequenceFormats.Eigenstrat (EigenstratIndEntry (..),
-                                             EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine, Sex (..),
-                                             readEigenstratSnpFile)
-import           SequenceFormats.Plink      (readBimFile)
-import           System.Directory           (doesDirectoryExist, listDirectory)
-import           System.FilePath            (takeBaseName, takeDirectory,
-                                             takeExtension, takeFileName, (</>))
-import           System.IO                  (IOMode (ReadMode), hGetContents,
-                                             withFile)
+import           Control.DeepSeq                (($!!))
+import           Control.Exception              (catch, throwIO)
+import           Control.Monad                  (filterM, forM, forM_, unless,
+                                                 void, when)
+import qualified Control.Monad                  as OP
+import           Control.Monad.Catch            (MonadThrow, throwM, try)
+import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import           Data.Aeson                     (FromJSON, ToJSON, object,
+                                                 parseJSON, toJSON, withObject,
+                                                 (.!=), (.:), (.:?), (.=))
+import qualified Data.ByteString                as B
+import qualified Data.ByteString.Char8          as Bchs
+import qualified Data.ByteString.Char8          as BSC
+import           Data.Char                      (isSpace)
+import           Data.Csv                       (toNamedRecord)
+import           Data.Either                    (lefts, rights)
+import           Data.Function                  (on)
+import qualified Data.HashMap.Strict            as HM
+import           Data.List                      (elemIndex, group, groupBy,
+                                                 intercalate, nub, sort, sortOn,
+                                                 (\\))
+import           Data.Maybe                     (catMaybes, fromMaybe,
+                                                 isNothing, mapMaybe)
+import           Data.Text                      (unpack)
+import           Data.Time                      (Day, UTCTime (..),
+                                                 getCurrentTime)
+import qualified Data.Vector                    as V
+import           Data.Version                   (Version (..), makeVersion)
+import           Data.Yaml                      (decodeEither')
+import           Data.Yaml.Pretty               (defConfig, encodePretty,
+                                                 setConfCompare,
+                                                 setConfDropNull)
+import           GHC.Generics                   (Generic)
+import           Pipes                          (Pipe, Producer, cat, for,
+                                                 runEffect, yield, (>->))
+import           Pipes.OrderedZip               (orderCheckPipe, orderedZip,
+                                                 orderedZipAll)
+import qualified Pipes.Prelude                  as P
+import           Pipes.Safe                     (MonadSafe, runSafeT)
+import           SequenceFormats.Eigenstrat     (EigenstratIndEntry (..),
+                                                 EigenstratSnpEntry (..),
+                                                 GenoEntry (..), GenoLine,
+                                                 Sex (..),
+                                                 readEigenstratSnpFile)
+import           SequenceFormats.Plink          (readBimFile)
+import           System.Directory               (doesDirectoryExist,
+                                                 listDirectory)
+import           System.FilePath                (takeBaseName, takeDirectory,
+                                                 takeExtension, takeFileName,
+                                                 (</>))
+import           System.IO                      (IOMode (ReadMode),
+                                                 hGetContents, withFile)
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct

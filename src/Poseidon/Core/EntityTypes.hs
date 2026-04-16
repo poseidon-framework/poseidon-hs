@@ -19,9 +19,9 @@ module Poseidon.Core.EntityTypes (
     checkIfAllEntitiesExist,
     resolveEntityIndices, reportDuplicateIndividuals) where
 
-import           Poseidon.Core.Utils         (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils    (PoseidonException (..), PoseidonIO,
                                          logError, showParsecErr)
-import           Poseidon.Core.Version       (parseVersion)
+import           Poseidon.Core.Version  (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)

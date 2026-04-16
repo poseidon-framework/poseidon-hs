@@ -7,17 +7,17 @@ module Poseidon.Core.Contributor (
     renderORCID
 ) where
 
-import           Poseidon.Core.Utils     (showParsecErr)
+import           Poseidon.Core.Utils (showParsecErr)
 
-import           Control.Monad      (guard, mzero)
-import           Data.Aeson         (FromJSON, ToJSON (..), Value (String),
-                                     object, parseJSON, toJSON, withObject,
-                                     (.:), (.:?), (.=))
-import           Data.Char          (digitToInt)
-import           Data.List          (intercalate)
-import           Data.Text          (pack, unpack)
-import qualified Text.Parsec        as P
-import qualified Text.Parsec.String as P
+import           Control.Monad       (guard, mzero)
+import           Data.Aeson          (FromJSON, ToJSON (..), Value (String),
+                                      object, parseJSON, toJSON, withObject,
+                                      (.:), (.:?), (.=))
+import           Data.Char           (digitToInt)
+import           Data.List           (intercalate)
+import           Data.Text           (pack, unpack)
+import qualified Text.Parsec         as P
+import qualified Text.Parsec.String  as P
 
 
 -- | A data type to represent a contributor

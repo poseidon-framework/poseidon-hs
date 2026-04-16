@@ -1,8 +1,8 @@
 module Poseidon.Core.BibFileSpec (spec) where
 
 import           Poseidon.Core.BibFile (BibEntry (..), authorAbbrvString,
-                                   parseAuthors, readBibTeXFile,
-                                   writeBibTeXFile)
+                                        parseAuthors, readBibTeXFile,
+                                        writeBibTeXFile)
 
 import           Test.Hspec
 

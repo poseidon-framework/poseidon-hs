@@ -4,15 +4,15 @@ module Poseidon.Core.EntitiesListSpec (spec) where
 
 import           Poseidon.Core.EntityTypes
 import           Poseidon.Core.Package     (PackageReadOptions (..),
-                                       defaultPackageReadOptions,
-                                       filterToRelevantPackages,
-                                       getJointIndividualInfo,
-                                       readPoseidonPackageCollection)
+                                            defaultPackageReadOptions,
+                                            filterToRelevantPackages,
+                                            getJointIndividualInfo,
+                                            readPoseidonPackageCollection)
 import           Poseidon.Core.Utils       (PoseidonException, testLog)
 
-import           Data.Aeson           (decode, encode)
-import           Data.Either          (fromRight, isLeft)
-import           Data.Version         (makeVersion)
+import           Data.Aeson                (decode, encode)
+import           Data.Either               (fromRight, isLeft)
+import           Data.Version              (makeVersion)
 import           Test.Hspec
 
 spec :: Spec

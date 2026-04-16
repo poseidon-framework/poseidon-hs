@@ -4,76 +4,87 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
     createStaticCheckSumFile, createDynamicCheckSumFile, staticCheckSumFile, dynamicCheckSumFile
     ) where
 
-import           Poseidon.CLI.Trident.Fetch         (FetchOptions (..), runFetch)
+import           Poseidon.CLI.Trident.Fetch         (FetchOptions (..),
+                                                     runFetch)
 import           Poseidon.CLI.Trident.Forge         (ForgeOptions (..),
-                                             ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
-                                             runForge)
+                                                     ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
+                                                     runForge)
 import           Poseidon.CLI.Trident.Genoconvert   (GenoconvertOptions (..),
-                                             runGenoconvert)
+                                                     runGenoconvert)
 import           Poseidon.CLI.Trident.Init          (InitOptions (..), runInit)
 import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..),
-                                             JannoCoalesceOptions (..),
-                                             JannoSourceSpec (..),
-                                             runJannocoalesce)
-import           Poseidon.CLI.Trident.List          (ListEntity (..), ListOptions (..),
-                                             RepoLocationSpec (..), runList)
+                                                     JannoCoalesceOptions (..),
+                                                     JannoSourceSpec (..),
+                                                     runJannocoalesce)
+import           Poseidon.CLI.Trident.List          (ListEntity (..),
+                                                     ListOptions (..),
+                                                     RepoLocationSpec (..),
+                                                     runList)
 import           Poseidon.CLI.Trident.Rectify       (ChecksumsToRectify (..),
-                                             PackageVersionUpdate (..),
-                                             RectifyOptions (..), runRectify)
+                                                     PackageVersionUpdate (..),
+                                                     RectifyOptions (..),
+                                                     runRectify)
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
-                                             ArchiveSpec (..),
-                                             ServeOptions (..), runServer)
+                                                     ArchiveSpec (..),
+                                                     ServeOptions (..),
+                                                     runServer)
 import           Poseidon.CLI.Trident.Summarise     (SummariseOptions (..),
-                                             runSummarise)
-import           Poseidon.CLI.Trident.Survey        (SurveyOptions (..), runSurvey)
+                                                     runSummarise)
+import           Poseidon.CLI.Trident.Survey        (SurveyOptions (..),
+                                                     runSurvey)
 import           Poseidon.CLI.Trident.Timetravel    (TimetravelOptions (..),
-                                             runTimetravel)
+                                                     runTimetravel)
 import           Poseidon.CLI.Trident.Validate      (ValidateOptions (..),
-                                             ValidatePlan (..), runValidate)
-import           Poseidon.Core.Contributor       (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes       (EntityInput (..),
-                                             PoseidonEntity (..),
-                                             readEntitiesFromString)
-import           Poseidon.Core.GenotypeData      (GenoDataSource (..),
-                                             GenotypeDataSpec (..),
-                                             GenotypeFileSpec (..),
-                                             GenotypeOutFormatSpec (..),
-                                             SNPSetSpec (..))
-import           Poseidon.Core.PoseidonVersion   (VersionedFile (..),
-                                             latestPoseidonVersion)
-import           Poseidon.Core.ServerClient      (AddColSpec (..),
-                                             ArchiveEndpoint (..))
-import           Poseidon.Core.Utils             (LogMode (..), TestMode (..),
-                                             getChecksum, testLog, testLogErr,
-                                             usePoseidonLogger)
-import           Poseidon.Core.Version           (VersionComponent (..))
+                                                     ValidatePlan (..),
+                                                     runValidate)
+import           Poseidon.Core.Contributor          (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes          (EntityInput (..),
+                                                     PoseidonEntity (..),
+                                                     readEntitiesFromString)
+import           Poseidon.Core.GenotypeData         (GenoDataSource (..),
+                                                     GenotypeDataSpec (..),
+                                                     GenotypeFileSpec (..),
+                                                     GenotypeOutFormatSpec (..),
+                                                     SNPSetSpec (..))
+import           Poseidon.Core.PoseidonVersion      (VersionedFile (..),
+                                                     latestPoseidonVersion)
+import           Poseidon.Core.ServerClient         (AddColSpec (..),
+                                                     ArchiveEndpoint (..))
+import           Poseidon.Core.Utils                (LogMode (..),
+                                                     TestMode (..), getChecksum,
+                                                     testLog, testLogErr,
+                                                     usePoseidonLogger)
+import           Poseidon.Core.Version              (VersionComponent (..))
 
-import           Control.Concurrent         (forkIO, killThread, newEmptyMVar)
-import           Control.Concurrent.MVar    (takeMVar)
-import           Control.Exception          (finally)
-import           Control.Monad              (forM_, unless, when)
-import           Data.Either                (fromRight)
-import           Data.Function              ((&))
-import qualified Data.Text                  as T
-import qualified Data.Text.IO               as T
-import           Data.Version               (makeVersion)
-import           GHC.IO.Handle              (hClose, hDuplicate, hDuplicateTo)
+import           Control.Concurrent                 (forkIO, killThread,
+                                                     newEmptyMVar)
+import           Control.Concurrent.MVar            (takeMVar)
+import           Control.Exception                  (finally)
+import           Control.Monad                      (forM_, unless, when)
+import           Data.Either                        (fromRight)
+import           Data.Function                      ((&))
+import qualified Data.Text                          as T
+import qualified Data.Text.IO                       as T
+import           Data.Version                       (makeVersion)
+import           GHC.IO.Handle                      (hClose, hDuplicate,
+                                                     hDuplicateTo)
 import           Poseidon.CLI.Trident.Chronicle     (ChronOperation (..),
-                                             ChronicleOptions (..),
-                                             runChronicle)
-import           Poseidon.Core.Contributor       (ORCID (..))
-import           Poseidon.Core.EntityTypes       (PacNameAndVersion (..))
-import           Poseidon.Core.Utils             (ErrorLength (..))
-import           SequenceFormats.Plink      (PlinkPopNameMode (..))
-import           System.Directory           (copyFile, createDirectory,
-                                             createDirectoryIfMissing,
-                                             doesDirectoryExist, listDirectory,
-                                             removeDirectoryRecursive)
-import           System.FilePath.Posix      ((</>))
-import           System.IO                  (Handle, IOMode (WriteMode),
-                                             hPutStrLn, openFile, stderr,
-                                             stdout, withFile)
-import           System.Process             (callCommand)
+                                                     ChronicleOptions (..),
+                                                     runChronicle)
+import           Poseidon.Core.Contributor          (ORCID (..))
+import           Poseidon.Core.EntityTypes          (PacNameAndVersion (..))
+import           Poseidon.Core.Utils                (ErrorLength (..))
+import           SequenceFormats.Plink              (PlinkPopNameMode (..))
+import           System.Directory                   (copyFile, createDirectory,
+                                                     createDirectoryIfMissing,
+                                                     doesDirectoryExist,
+                                                     listDirectory,
+                                                     removeDirectoryRecursive)
+import           System.FilePath.Posix              ((</>))
+import           System.IO                          (Handle, IOMode (WriteMode),
+                                                     hPutStrLn, openFile,
+                                                     stderr, stdout, withFile)
+import           System.Process                     (callCommand)
 
 -- file paths --
 

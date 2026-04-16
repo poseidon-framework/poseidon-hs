@@ -5,30 +5,30 @@ module Poseidon.CLI.Trident.Validate where
 
 import           Poseidon.Core.BibFile          (readBibTeXFile)
 import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
-                                            GenotypeFileSpec (..))
+                                                 GenotypeFileSpec (..))
 import           Poseidon.Core.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
-                                            PoseidonException (..),
-                                            PoseidonYamlStruct (..),
-                                            defaultPackageReadOptions,
-                                            getJointIndividualInfo,
-                                            makePseudoPackageFromGenotypeData,
-                                            readPoseidonPackageCollectionWithSkipIndicator,
-                                            validateGeno)
+                                                 PoseidonException (..),
+                                                 PoseidonYamlStruct (..),
+                                                 defaultPackageReadOptions,
+                                                 getJointIndividualInfo,
+                                                 makePseudoPackageFromGenotypeData,
+                                                 readPoseidonPackageCollectionWithSkipIndicator,
+                                                 validateGeno)
 import           Poseidon.Core.SequencingSource (SeqSourceRows (..),
-                                            readSeqSourceFile)
+                                                 readSeqSourceFile)
 import           Poseidon.Core.Utils            (PoseidonIO, logError, logInfo)
 
-import           Control.Monad             (forM_, unless)
-import           Control.Monad.Catch       (throwM)
-import           Control.Monad.IO.Class    (liftIO)
-import qualified Data.ByteString           as B
-import qualified Data.ByteString.Char8     as Bchs
-import           Data.List                 (groupBy, intercalate, sortOn)
-import           Data.Yaml                 (decodeEither')
+import           Control.Monad                  (forM_, unless)
+import           Control.Monad.Catch            (throwM)
+import           Control.Monad.IO.Class         (liftIO)
+import qualified Data.ByteString                as B
+import qualified Data.ByteString.Char8          as Bchs
+import           Data.List                      (groupBy, intercalate, sortOn)
+import           Data.Yaml                      (decodeEither')
 import           Poseidon.Core.EntityTypes      (IndividualInfo (..))
 import           Poseidon.Core.PoseidonVersion  (VersionedFile (..))
-import           System.Exit               (exitFailure, exitSuccess)
+import           System.Exit                    (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command
 data ValidateOptions = ValidateOptions

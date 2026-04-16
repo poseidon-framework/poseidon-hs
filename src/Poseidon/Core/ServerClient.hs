@@ -14,25 +14,26 @@ module Poseidon.Core.ServerClient (
     AddColSpec(..)
 ) where
 
-import           Paths_poseidon_hs      (version)
-import           Poseidon.Core.Contributor   (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes   (HasNameAndVersion (..),
-                                         IndividualInfo (..),
-                                         IndividualInfoCollection,
-                                         PacNameAndVersion (..))
-import           Poseidon.Core.Utils         (PoseidonException (..), PoseidonIO,
-                                         logError, logInfo)
+import           Paths_poseidon_hs         (version)
+import           Poseidon.Core.Contributor (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes (HasNameAndVersion (..),
+                                            IndividualInfo (..),
+                                            IndividualInfoCollection,
+                                            PacNameAndVersion (..))
+import           Poseidon.Core.Utils       (PoseidonException (..), PoseidonIO,
+                                            logError, logInfo)
 
-import           Control.Exception      (catch, throwIO)
-import           Control.Monad          (forM_, unless)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Aeson             (FromJSON, ToJSON (..), Value (..),
-                                         eitherDecode', object, parseJSON,
-                                         toJSON, withObject, (.:), (.:?), (.=))
-import qualified Data.Aeson.KeyMap      (filter)
-import           Data.Time              (Day)
-import           Data.Version           (Version, showVersion)
-import           Network.HTTP.Conduit   (simpleHttp)
+import           Control.Exception         (catch, throwIO)
+import           Control.Monad             (forM_, unless)
+import           Control.Monad.IO.Class    (liftIO)
+import           Data.Aeson                (FromJSON, ToJSON (..), Value (..),
+                                            eitherDecode', object, parseJSON,
+                                            toJSON, withObject, (.:), (.:?),
+                                            (.=))
+import qualified Data.Aeson.KeyMap         (filter)
+import           Data.Time                 (Day)
+import           Data.Version              (Version, showVersion)
+import           Network.HTTP.Conduit      (simpleHttp)
 
 --  Client Server Communication types and functions
 

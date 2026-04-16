@@ -8,32 +8,34 @@
 module Poseidon.CLI.Trident.Survey where
 
 import           Poseidon.Core.BibFile          (BibTeX)
-import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..), PoseidonID (..))
-import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord, ListColumn (..))
+import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..),
+                                                 PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord,
+                                                 ListColumn (..))
 import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
-                                            GenotypeFileSpec (..))
+                                                 GenotypeFileSpec (..))
 import           Poseidon.Core.Janno            (JannoRows (..))
 import           Poseidon.Core.Package          (PackageReadOptions (..),
-                                            PoseidonPackage (..),
-                                            defaultPackageReadOptions,
-                                            readPoseidonPackageCollection)
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 readPoseidonPackageCollection)
 import           Poseidon.Core.Utils            (PoseidonIO, logInfo)
 
-import           Control.Monad             (forM)
-import           Control.Monad.IO.Class    (liftIO)
-import           Data.List                 (intercalate, unfoldr, zip5)
-import           Data.Ratio                (Ratio, (%))
-import           Generics.SOP              (All, Generic (Code, from),
-                                            HCollapse (hcollapse),
-                                            HPure (hpure), I, K (K), NP,
-                                            Proxy (..), SListI, hcmap, hzipWith,
-                                            unI, unSOP, unZ)
+import           Control.Monad                  (forM)
+import           Control.Monad.IO.Class         (liftIO)
+import           Data.List                      (intercalate, unfoldr, zip5)
+import           Data.Ratio                     (Ratio, (%))
+import           Generics.SOP                   (All, Generic (Code, from),
+                                                 HCollapse (hcollapse),
+                                                 HPure (hpure), I, K (K), NP,
+                                                 Proxy (..), SListI, hcmap,
+                                                 hzipWith, unI, unSOP, unZ)
 import           Poseidon.Core.SequencingSource (SeqSourceRows (..))
-import           System.Directory          (doesFileExist)
-import           System.FilePath           ((</>))
-import           Text.Layout.Table         (asciiRoundS, column, def,
-                                            expandUntil, rowsG, tableString,
-                                            titlesH)
+import           System.Directory               (doesFileExist)
+import           System.FilePath                ((</>))
+import           Text.Layout.Table              (asciiRoundS, column, def,
+                                                 expandUntil, rowsG,
+                                                 tableString, titlesH)
 
 -- | A datatype representing command line options for the survey command
 data SurveyOptions = SurveyOptions
