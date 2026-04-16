@@ -1,3 +1,7 @@
+- V 2.0.0.1:
+    - Fixed two bugs in the handling of the new `referenceGenomeAssembly` POSEIDON.yml fields by `forge` and `genoconvert`.
+- V 2.0.0.0:
+    - Incorporated the poseidon-analysis-hs library with the xerxes CLI software tool executable into the poseidon-hs repository.
 - V 1.7.0.0:
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.
