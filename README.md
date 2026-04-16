@@ -4,9 +4,9 @@
 [![Install with Bioconda](https://anaconda.org/bioconda/poseidon-trident/badges/version.svg)](https://anaconda.org/bioconda/poseidon-trident) [![Anaconda-Server Badge](https://anaconda.org/bioconda/poseidon-trident/badges/downloads.svg)](https://anaconda.org/bioconda/poseidon-trident)
 
 # poseidon-hs
-A toolset to work with modular genotype databases formatted using Poseidon. The main executable within this package is called `trident`.
+A toolset to work with modular genotype databases formatted using Poseidon. The main executables within this package are called `trident` and `xerxes`.
 
-**Detailed user documentation can be found on our [website](https://poseidon-framework.github.io/#/trident).**
+**Detailed user documentation can be found on our website for [trident](https://poseidon-framework.github.io/#/trident) and [xerxes](https://poseidon-framework.github.io/#/xerxes).**
 
 ***
 
@@ -19,16 +19,7 @@ To install the development version of poseidon-hs/trident you can follow these s
 3. Execute `stack install` inside the repository to build the tool and copy the executables to `~/.local/bin` (which you may want to add to your path). This will install the compiler and all dependencies into folders that won't interfere with any installation you might already have.
 4. To run the tests, execute `stack test` inside the repository to build and run tests.
 
-### Development Quickstart
-
-The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html) (you can also render it locally using `stack haddock` and open it subsequently using `stack haddock --open`). The critical package is the `Poseidon.Core.Package` module which defines the core functions to read and work with module files.
-
-Important packages to look into to understand the architecture of this tool:
-
-* Start with `Poseidon.Core.Package`: It defines the main package format and provides some functions how to access the data inside packages.
-* The `Poseidon.Core.Utils` module only provides the definition of an Exception type.
-* The modules in `CLI/` define the functionality provided in the command line functions for `trident`.
-* The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Core.Package` interface.
+The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html) (you can also render it locally using `stack haddock` and open it subsequently using `stack haddock --open`).
 
 ### Preparing a new stable release
 
