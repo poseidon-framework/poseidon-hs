@@ -1,0 +1,384 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+ \geometry{
+   a4paper,
+   top=20mm,
+   left=20mm,
+   right=20mm,
+   heightrounded=true
+ }
+\usepackage{amsmath, amssymb, graphics, setspace, hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+% citations
+\usepackage[
+    backend=biber,
+    style=numeric,
+    sorting=none,
+    isbn=false,
+    url=false,
+    date=year
+]{biblatex}
+\addbibresource{references.bib}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour}
+}
+\lstset{style=mystyle}
+% for line numbers
+\usepackage{lineno}
+\linenumbers
+% for spacing
+\usepackage{setspace}
+\onehalfspacing
+% only one space after period
+\frenchspacing
+
+\renewcommand{\arraystretch}{1.5}
+
+\newcounter{mathematicapage}
+\begin{document}
+
+\title{Xerxes Theoretical Background - Derivations and Statistical Details of the fstats command}
+\author{Stephan Schiffels}
+\date{Last update: March 2024}
+\maketitle
+
+\tableofcontents
+\vspace{10mm}
+
+The program \texttt{xerxes fstats} within the poseidon-analysis-hs package serves as a one-stop shop for various SNP-based statistics that can be computed from genotype data, including F-Statistics, pairwise mismatch rate, $F_\text{ST}$ and likely more statistics in the future. F-Statistics were defined in a series of papers by Nick Patterson, David Reich and others, and comprehensively formally described in \cite{Patterson2012-yq}. Interested readers may also consult \cite{Peter2016-ml} as a useful reference.
+
+\section{F-Statistics}
+
+The most basic F-Statistics available in \texttt{fstats} are:
+
+\begin{align}
+F2_\text{vanilla}(A, B) &= \langle(a-b)^2\rangle\\
+F3_\text{vanilla}(A, B; C) &= \langle (c-a)(c-b) \rangle\\
+F4(A, B; C, D) &= \langle (a-b)(c-d) \rangle
+\end{align}
+
+Here, capital letters A, B, C, D stand for individuals or groups of individuals, defined via a Mini-Language used in trident forge, or as group definitions in FStats-Configuration files described here: \url{https://www.poseidon-adna.org/#/xerxes?id=input-via-a-configuraton-file}.
+
+Small letters a, b, c, d here stand for the observed allele frequencies (i.e. the fractions of observed non-missing alternative alleles over observed non-missing alleles within groups A, B, C, D). The average \(\langle \cdot\rangle\) is an average over all available SNPs. For example, we have
+
+\begin{equation}
+\langle(a-b)^2\rangle=\frac{\sum _{i=1}^L \left(a_i-b_i\right){}^2 I\left(a_i,b_i\right)}{\sum _{i=1}^L i\left(a_i,b_i\right)}
+\end{equation}
+
+where
+
+\begin{equation}
+I\left(a_i,b_i\right)=
+\begin{cases}
+    1 & \text{if both $a_i$ and $b_i$ are non-missing} \\
+    0 & \text{else} \\
+\end{cases}
+\end{equation}
+
+Here, \(a_i\) and \(b_i\) denote allele frequencies of entity A and B at SNP i. Non-missing here means that at least one allele in each groups is non-missing, such that a sample allele frequency is defined. Parts of group A and B could be missing, though.
+
+\subsection{Bias-correction}
+
+Many of the population genetic use-cases and properties of F-Statistics (described in \cite{Patterson2012-yq}) are derived from \textit{population} allele frequencies, that is, precise frequencies of an entire population. In practice, however, we only have a finite number of samples (in the most extreme case, one individual) to estimate population frequencies. 
+
+More precisely, given \textit{ population }allele frequencies \(a'\) and \(b'\), we consider \textit{ sample }allele frequencies \(a\) and \(b\)
+as imperfect \textit{estimators} of the population allele frequencies. 
+
+To reason about biases of these estimators, we first denote a noise-model. Under the assumption that the \(n\) samples of population A are independent samples, the sampling probability for observing \(k\) non-reference alleles within a sample of \(n\) samples, given a population frequency \(a'\) is a binomial distribution:
+
+\begin{equation}
+p_n(k|a')=\text{Binom}(k,n|a')=\binom{n}{k}\left(a'\right)^k(1-a')^{n-k}
+\end{equation}
+
+We can then define the estimator for the population allele frequency \(a'\):
+
+\begin{equation}
+a=\frac{k}{n}
+\end{equation}
+
+and can show, for example using Wolfram Mathematica's computer algebra system, that this estimator is indeed unbiased:
+
+\begin{lstlisting}
+In[1]:= Expectation[k/n, 
+    Distributed[k, BinomialDistribution[n, aPrime]]]
+
+Out[1]= aPrime
+\end{lstlisting}
+
+i.e. that its expectation is just the population allele frequency \(a\){'} itself.
+
+This fact can be used to show that F4-statistics using sample allele frequencies are unbiased estimators of the same statistics using population
+frequencies:
+
+\begin{equation}
+\begin{split}
+E\left( \text{F4}(a,b,c,d)\right) &=E((a-b)(c-d)) \\
+&=E(ac) -E(ad) -E(bc) +E(bd) \\
+&= E(a) E(c) -E(a) E(d) -E(b) E(c) +E(b) E(d) \\
+&=a'c'-a'd'-b'c'+b'd'\\
+&=\text{F4}(a',b',c'd')
+\end{split}
+\end{equation}
+
+In the second step we have made use of the fact that because the terms in the average-brackets are based on separate samples of individuals, the
+average over their product factorises. So for example we have 
+
+\begin{equation}
+\label{eq_freq_unbiased}
+E(a c) =E(a) E(c) =a' c' .
+\end{equation}
+
+Now, the same is \textit{not} true for quadratic terms. Concretely, consider the vanilla-F2 statistic:
+
+\begin{equation}
+\begin{split}
+F_{2,\text{vanilla}}(a,b)&=E\left((a-b)^2\right)\\
+&= E\left(a^2-2a b+b^2\right)\\
+&= E\left(a^2\right) -2E\left(a b\right)
++E(b^2)
+\end{split}
+\end{equation}
+
+Here, the middle term is again unproblematic, see equation \ref{eq_freq_unbiased}. But the quadratic terms are not unbiased. For example, we have
+
+\begin{lstlisting}
+In[2]:= Expectation[(k/n)^2,                                                    
+    Distributed[k, BinomialDistribution[n, aPrime]]]                            
+
+                       2         2
+        aPrime - aPrime  + aPrime  n
+Out[2]= ----------------------------
+                     n
+\end{lstlisting}
+
+or
+
+\begin{equation}
+=\left(a'\right)^2+\frac{a'(1-a')}{n}
+\end{equation}
+
+In other words \(\left\langle a^2\right\rangle\) \textit{overestimates} \((a')^2\) by a term inversely proportional to \(1/n\), so the smaller the sample size the larger the bias.
+
+Fortunately, we can \textit{correct} this bias, by using a different estimator for \((a')^2\). Specifically, we can try to simply subtract the term itself from the estimator, using \(a\) instead of \(a'\):
+
+\begin{lstlisting}
+In[3]:= Expectation[k^2/n^2 - (k/n (1 - k/n))/n,
+ k Distributed[BinomialDistribution[n, a]]   
+             2    2  2
+        a - a  + a  n
+Out[3]= --------------
+               2
+              n
+\end{lstlisting}
+
+which turns out not to be quite right yet. It turns out, replacing \(n\) by \(n-1\) in the denominator does the job:
+
+\begin{lstlisting}
+
+In[4]:= Expectation[k^2/n^2 - (k/n (1 - k/n))/(n - 1),                          
+ k Distributed[BinomialDistribution[n, a]]                                   
+
+         2
+Out[4]= a
+\end{lstlisting}
+
+So we now have an unbiased estimator for the square of the allele frequency
+
+\begin{equation}
+\label{eq_freqSquare_unbiased}
+E\left( a^2-\frac{a(1-a)}{n-1}\right) =\left(a'\right)^2
+\end{equation}
+
+which is what we need to describe unbiased estimators for F2 and F3 statistics. The following are the estimators proposed in \cite{Patterson2012-yq} (in Appendix A, page 1089):
+
+\begin{align}
+F_2(a,b) &= \left\langle (a-b)^2-\frac{a(1-a)}{n_a-1}-\frac{b(1-b)}{n_b-1}\right\rangle \\
+F_3(a,b,c) &= \left\langle( (c-a)(c-b)-\frac{c(1-c)}{n_c-1}\right\rangle
+\end{align}
+
+We can easily show that they are indeed unbiased:
+
+\begin{equation}
+\begin{split}
+F_2(a,b) &= E\left( (a-b)^2-\frac{a(1-a)}{n_a-1}-\frac{b(1-b)}{n_b-1}\right) \\
+&= E\left( a^2-2a b+b^2-\frac{a(1-a)}{n_a-1}-\frac{b(1-b)}{n_b-1}\right)\\
+&= E\left( a^2-\frac{a(1-a)}{n_a-1}\right) +E\left( b^2-\frac{b(1-b)}{n_b-1}\right) -2 E(a b) \\
+&=(a')^2-2 a' b' +(b')^2\\
+&=(a'-b')^2\\
+&=F_2(a',b')
+\end{split}
+\end{equation}
+
+where we have used the two identities defined above in equations \ref{eq_freq_unbiased} and \ref{eq_freqSquare_unbiased}.
+
+Similarly, we have
+
+\begin{equation}
+\begin{split}
+F_3(a,b,c) &= E\left( (c-a)(c-b)-\frac{c(1-c)}{n_c-1}\right) \\
+&= E\left( c^2-a c- b c - a b-\frac{c(1-c)}{n_c-1}\right) \\
+&= E\left( c^2-\frac{c(1-c)}{n_c-1}\right) -E(a c) -E(b c)  -E( a b) \\
+&= (c')^2-a' c'-b'c'-a'b'\\
+&= (c'-a')(c'-b').
+\end{split}
+\end{equation}
+
+\subsection{Pseudo-haploid sample sizes and bias-correction}
+
+So, as we see, for estimators to be unbiased, we need to subtract terms from F2 and F3 statistics, which depend on the sample size. More specifically, on the number of chromosomes sampled to obtain allele frequency estimates. The usual case with high-quality diploid genetic data is that given a sample from \(n_d\) diploid individuals, there are \(2n_d\) chromosomes. However, with low-quality ancient DNA, a common scheme to obtain genotype estimates is a simple random-sampling scheme of sequencing reads aligning to a given SNP position.
+
+In such a haploid sampling scheme, the resulting number of {``}chromosomes{''} that one uses for estimating allele frequencies is \(n_d\) instead of \(2n_d\). 
+
+In \texttt{xerxes}, we make use of the {``}Genotype$\_$Ploidy{''} column in the .janno File, to compute the correct number of chromosomes, since the genotype file itself does not provide this information (it is always coded as pseudo-diploid, even if the calling is haploid). If this column is missing, or contains missing data, \texttt{xerxes} will output a warning and assume that the data is fully diploid!
+
+\section{Beyond F-Statistics}
+
+Beyond F-Statistics, we support the following additional ones:
+
+\subsection{Heterozygosity}
+
+Heterozygosity is defined using population allele frequencies as:
+
+\begin{equation}
+\text{Het}(c')=\langle 2c'(1-c')\rangle
+\end{equation}
+
+and on sample allele frequencies:
+
+\begin{equation}
+\text{Het}(c)=\left\langle 2 c(1-c )\frac{n_c}{n_c-1}\right\rangle
+\end{equation}
+
+which again can be shown to be unbiased
+
+\begin{lstlisting}
+In[5]:= Expectation[2 k/n (1 - k/n) n/(n - 1),                                  
+ k \[Distributed] BinomialDistribution[n, aPrime]]                              
+
+                            2
+Out[5]= -2 (-aPrime + aPrime )
+\end{lstlisting}
+
+\subsection{F3star}
+
+In addition to \texttt{F3} and \texttt{F3vanilla}, we also have \texttt{F3star}, which is a bias-corrected F3 normalised by the heterozygosity of population C, defined on page 1071 (right) in \cite{Patterson2012-yq}. Based on population allele frequencies we would have
+
+\begin{equation}
+F_3^*(a',b',c')=\frac{\langle (c-a)(c-b)\rangle}{\langle 2 c'(1-c' )\rangle}
+\end{equation}
+
+and using the unbiased estimators for both the numerator and the denominator, we reproduce the estimator implemented in Patterson{'}s ADMIXTOOLS
+software:
+
+\begin{equation}
+F_3^*(a,b,c)=\frac{\left\langle (c-a)(c-b)-\frac{c(1-c)}{n_c-1}\right\rangle}{\left\langle 2 c(1-c )\frac{n_c}{n_c-1}\right\rangle}
+\end{equation}
+
+\subsection{$F_\text{ST}$}
+
+$F_\text{ST}$ is a measure for how differentiated two populations are, taking into account internal genetic variation. It is in spirit very similar to $F_2$, in that it becomes 0 if two populations are not differentiated at all (meaning they are effectively the same), and the more differentiated, the more positive is the measure. However, $F_\text{ST}$ is explicitly scaled in a way that exposes relative genetic drift. As derived by \cite{Bhatia2013-qj}, we here use the so-called Hudson estimator, which is defined as 
+
+\begin{equation}
+\text{FST}_\text{vanilla}(a',b')=\frac{\left\langle\left(a'-b'\right)^2\right\rangle}{\left\langle a' \left(1-b'\right)+\left(1-a'\right) b'\right\rangle}
+\end{equation}
+
+As discussed in \cite{Bhatia2013-qj}, there is no simple unbiased estimator for this complete expression, but there are unbiased estimators for both the numerator and denominator separately:
+
+\begin{equation}
+\text{FST}(a,b)=\frac{\left\langle\left(a-b\right)^2-\frac{a(1-a)}{n_a-1} - \frac{b(1-a}{n_b-1}\right\rangle}
+{\left\langle a(1-b) + b(1-a)\right\rangle}
+\end{equation}
+
+and this ratio of unbiased estimators turns out to be asymptotically also unbiased.
+
+\subsection{Pairwise mismatch rate}
+
+The pairwise mismatch rate (PWM) measures the rate of observing a different allele in two randomly sampled haplotypes. It is typically computed between pairs of individuals, for example to detect close relatives or identical individuals. 
+
+Its definition is:
+
+$$\text{PWM}(a, b) = \left\langle a (1 - b) + (1 - a) b \right\rangle$$
+
+\section{Summary of all supported statistics in xerxes}
+
+Here is a list of all statistics that can be computed in xerxes:
+
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Name (xerxes)} & \textbf{Formula} & \textbf{Bias} \\
+        \hline
+        \hline
+        \texttt{F2vanilla} & $\left\langle (a-b)^2\right\rangle$  & Biased \\
+        \hline
+        \texttt{F3vanilla} & $\langle (c-a)(c-b) \rangle$ & Biased \\
+        \hline
+        \texttt{F2} & $\left\langle (a-b)^2-\frac{a(1-a)}{n_a-1}-\frac{b(1-b)}{n_b-1}\right\rangle$  & Unbiased \\
+        \hline
+        \texttt{F3} & $\left\langle( (c-a)(c-b)-\frac{c(1-c)}{n_c-1}\right\rangle$  & Unbiased \\
+        \hline
+        \texttt{F3star} & $\frac{\left\langle (c-a)(c-b)-\frac{c(1-c)}{n_c-1}\right\rangle}{\left\langle 2 c(1-c )\frac{n_c}{n_c-1}\right\rangle}$ & Asymptotically unbbiased \\
+        \hline
+        \texttt{F4} & $\langle (a-b)(c-d) \rangle$  & Unbiased \\
+        \hline
+        \texttt{Het} & $\left\langle 2 c(1-c )\frac{n_c}{n_c-1}\right\rangle$  & Unbiased \\
+        \hline
+        \texttt{FSTvanilla} & $\frac{\left\langle(a'-b')^2\right\rangle}{\left\langle a'(1-b')+(1-a') b'\right\rangle}$  & Biased  \\
+        \hline
+        \texttt{FST} & $\frac{\left\langle\left(a-b\right)^2-\frac{a(1-a)}{n_a-1} - \frac{b(1-a}{n_b-1}\right\rangle}{\left\langle a(1-b) + b(1-a)\right\rangle}$  & Asympotically unbiased \\
+        \hline
+        \texttt{PWM} & $\left\langle a (1 - b) + (1 - a) b \right\rangle$  & Unbiased \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\section{Jackknife-Estimation of the standard error}
+
+\subsection{Theory}
+All of the above statistics are computed genome-wide, but we use a Block-Jackknife approach to estimate errors. This approach was also popularised in Patterson's software ADMIXTOOLS, and is based on a method proposed by \cite{Busing1999-ev}.
+
+The key idea is to evaluate the statistics not only genome-wide, but also for subsets of the genome. For these subsets, consider the entire data being divided into $g$ consecutive blocks, of equal or different sizes of $m_j$ sites in each block, where $j=1\ldots g$.
+
+Let 
+$$n = \sum_{j=1}^g m_j$$
+
+be the total number of sites.
+
+Let $\theta_n$ be the genome-wide estimate based on all $n$ sites, then we define $n$ partial estimates, each with one block removed. We use the notation $\theta_{-j}$ to denote the estimate of the statistics applied a partial dataset with the $j$th block removed.
+
+We then first define the Jackknife estimate:
+
+$$\theta_J = g \theta_n - \sum_{j=1}^g (1 - m_j / n) \theta_{-j}$$
+
+Note that for many statistics, one can show that $\theta_J=\theta_n$, but that is not in general the case, and in fact not for all of the above statistics. In \texttt{xerxes fstats}, we report both the genome-wide estimate $\theta_n$ (called "Estimate\_Full") and the Jackknife estimate $\theta_J$ (called "Estimate\_Jackknife") in the output table. In general, for ease of communication and clarity of methods, the genome-wide estimate should be reported as the actual estimate.
+
+We also can derive an estimate of the standard error $\sigma_J$ of the Jackknife estimate (which we take to be also the standard error of the total estimate). As derived in \cite{Busing1999-ev}, it is given by:
+
+\begin{equation}
+\begin{split}
+h_j &= \frac{n}{m_j}\\
+p_j &= h_j \theta_n - (h_j - 1) \theta_{-j}\\
+\sigma_J^2 &= \frac{1}{g} \sum_{j=1}^g \frac{1}{h_j - 1} (p_j - \theta_J)^2
+\end{split}
+\end{equation}
+
+Finally, we compute Z-scores for statistics as
+
+$$Z=\frac{\theta_J}{\sigma_J}$$
+
+\subsection{Implementation}
+
+We implement two ways to define blocks in \texttt{xerxes fstats}. First, simply by chunks of a given number of SNPs (by default 5000), as for example specified using the parameter \texttt{--jackknife 5000}. Second, by entire chromosomes, as specified using the special declaration \texttt{--jackknife CHR}. In practice, we have not seen great differences between the two approaches, and the default is to chunk by 5000 SNPs.
+
+The program takes the \emph{total number of sites} in each block as the basis for the weights $m_j$, not just the sites contributing to a given statistic, which could exclude sites due to missing data. This choice was made to make the computation more reproducible and comparable across multiple statistics. Note that this does not mean that missingness is ignored. Of course, missingness still contributes to variance seen throughout the genome, and this gets reflected in the Jackkknife estimation of the standard error. We just decided to fix the weights themselves by the total number of sites, ignoring missingness for the specific couting of $m_j$.
+
+\section{Frequency-Ascertainment}
+This is an experimental feature that will be described properly in a forthcoming preprint, and then will be added also to this whitepaper.
+
+\printbibliography
+
+\end{document}
