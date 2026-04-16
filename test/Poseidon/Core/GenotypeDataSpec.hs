@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.GenotypeDataSpec (spec) where
+module Poseidon.Core.GenotypeDataSpec (spec) where
 
-import           Poseidon.GenotypeData
-import           Poseidon.Utils             (PoseidonException (..), noLog,
+import           Poseidon.Core.GenotypeData
+import           Poseidon.Core.Utils             (PoseidonException (..), noLog,
                                              testLog)
 
 import           Data.List                  (isPrefixOf)
@@ -21,7 +21,7 @@ spec = do
 
 testSNPSetMergeList :: Spec
 testSNPSetMergeList =
-    describe "Poseidon.GenotypeData.snpSetMergeList" $ do
+    describe "Poseidon.Core.GenotypeData.snpSetMergeList" $ do
         it "should merge a list of length 1 correctly" $
             snpSetMergeList [SNPSet1240K] True `shouldBe` SNPSet1240K
         it "should merge a list with identical values correctly" $
@@ -52,7 +52,7 @@ mergedTestEntries1 = (
 
 testJoinGenoEntries :: Spec
 testJoinGenoEntries =
-    describe "Poseidon.GenotypeData.joinEntries" $
+    describe "Poseidon.Core.GenotypeData.joinEntries" $
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]

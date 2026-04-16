@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Forge where
+module Poseidon.CLI.Trident.Forge where
 
-import           Poseidon.BibFile            (BibEntry (..), BibTeX,
+import           Poseidon.Core.BibFile            (BibEntry (..), BibTeX,
                                               writeBibTeXFile)
-import           Poseidon.ColumnTypesJanno   (PoseidonID (..))
-import           Poseidon.ColumnTypesUtils   (ListColumn (..),
+import           Poseidon.Core.ColumnTypesJanno   (PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils   (ListColumn (..),
                                               getMaybeListColumn)
-import           Poseidon.EntityTypes        (EntityInput,
+import           Poseidon.Core.EntityTypes        (EntityInput,
                                               PacNameAndVersion (..),
                                               PoseidonEntity (..),
                                               SignedEntity (..),
@@ -16,7 +16,7 @@ import           Poseidon.EntityTypes        (EntityInput,
                                               makePacNameAndVersion,
                                               readEntityInputs,
                                               resolveUniqueEntityIndices)
-import           Poseidon.GenotypeData       (GenoDataSource (..),
+import           Poseidon.Core.GenotypeData       (GenoDataSource (..),
                                               GenotypeDataSpec (..),
                                               GenotypeFileSpec (..),
                                               GenotypeOutFormatSpec (..),
@@ -24,10 +24,10 @@ import           Poseidon.GenotypeData       (GenoDataSource (..),
                                               printSNPCopyProgress,
                                               selectIndices, snpSetMergeList,
                                               writeVCF)
-import           Poseidon.Janno              (JannoRow (..), JannoRows (..),
+import           Poseidon.Core.Janno              (JannoRow (..), JannoRows (..),
                                               jannoRows2EigenstratIndEntries,
                                               writeJannoFile)
-import           Poseidon.Package            (PackageReadOptions (..),
+import           Poseidon.Core.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               filterToRelevantPackages,
@@ -39,10 +39,10 @@ import           Poseidon.Package            (PackageReadOptions (..),
                                               newPackageTemplate,
                                               readPoseidonPackageCollection,
                                               writePoseidonPackage)
-import           Poseidon.SequencingSource   (SeqSourceRow (..),
+import           Poseidon.Core.SequencingSource   (SeqSourceRow (..),
                                               SeqSourceRows (..),
                                               writeSeqSourceFile)
-import           Poseidon.Utils              (PoseidonException (..),
+import           Poseidon.Core.Utils              (PoseidonException (..),
                                               PoseidonIO, checkFile,
                                               determinePackageOutName,
                                               envErrorLength, envLogAction,
@@ -60,7 +60,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Pipes                       (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (SafeT, runSafeT)
-import           Poseidon.ColumnTypesJanno   (JannoNrSNPs (..))
+import           Poseidon.Core.ColumnTypesJanno   (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat  (EigenstratSnpEntry (..),
                                               GenoEntry (..), GenoLine,
                                               writeEigenstrat)

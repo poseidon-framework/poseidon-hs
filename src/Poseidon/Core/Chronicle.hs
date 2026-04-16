@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Chronicle where
+module Poseidon.Core.Chronicle where
 
-import           Poseidon.EntityTypes   (HasNameAndVersion (..))
-import           Poseidon.Package       (PoseidonPackage (..))
-import           Poseidon.Utils         (Env (..), PoseidonException (..),
+import           Poseidon.Core.EntityTypes   (HasNameAndVersion (..))
+import           Poseidon.Core.Package       (PoseidonPackage (..))
+import           Poseidon.Core.Utils         (Env (..), PoseidonException (..),
                                          PoseidonIO, TestMode (..))
-import           Poseidon.Version       (VersionComponent (..),
+import           Poseidon.Core.Version       (VersionComponent (..),
                                          updateThreeComponentVersion)
 
 import           Control.Monad.Catch    (throwM)

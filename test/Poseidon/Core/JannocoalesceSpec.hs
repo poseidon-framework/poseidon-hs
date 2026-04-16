@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.JannocoalesceSpec (spec) where
+module Poseidon.Core.JannocoalesceSpec (spec) where
 
-import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              makeNewJannoRows, mergeRow)
-import           Poseidon.ColumnTypesJanno
-import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno             (JannoRow (..), createMinimalSample)
-import           Poseidon.PoseidonVersion
-import           Poseidon.Utils             (testLog)
+import           Poseidon.Core.ColumnTypesJanno
+import           Poseidon.Core.ColumnTypesUtils
+import           Poseidon.Core.Janno             (JannoRow (..), createMinimalSample)
+import           Poseidon.Core.PoseidonVersion
+import           Poseidon.Core.Utils             (testLog)
 
 import           Control.Monad.IO.Class     (liftIO)
 import qualified Data.HashMap.Strict        as HM
@@ -65,7 +65,7 @@ jannoSourceRows =
 
 testMergeSingleRow :: Spec
 testMergeSingleRow =
-    describe "Poseidon.Jannocoalesce.mergeRow" $ do
+    describe "Poseidon.Core.Jannocoalesce.mergeRow" $ do
         it "should correctly merge without fields and no override" $ do
             cp <- liftIO $ R.newIORef 0
             merged <- testLog $ mergeRow cp jannoTargetRow jannoSourceRow AllJannoColumns False "Poseidon_ID" "Poseidon_ID"
@@ -121,7 +121,7 @@ testMergeSingleRow =
                 ])
 
 testCoalesceMultipleRows :: Spec
-testCoalesceMultipleRows = describe "Poseidon.Jannocoalesce.makeNewJannoRows" $ do
+testCoalesceMultipleRows = describe "Poseidon.Core.Jannocoalesce.makeNewJannoRows" $ do
     it "should correctly copy with simple matching" $ do
         newJ <- testLog $ makeNewJannoRows jannoSourceRows jannoTargetRows AllJannoColumns False "Poseidon_ID" "Poseidon_ID" Nothing
         jCountry (newJ !! 0) `shouldBe` Just (JannoCountry "Germany")

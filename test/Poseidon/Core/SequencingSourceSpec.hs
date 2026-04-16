@@ -1,19 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.SequencingSourceSpec (spec) where
+module Poseidon.Core.SequencingSourceSpec (spec) where
 
-import           Poseidon.AccessionIDs
-import           Poseidon.ColumnTypesSSF
-import           Poseidon.ColumnTypesUtils
-import           Poseidon.JannoSpec        (checkEnDe)
-import           Poseidon.SequencingSource (SeqSourceRow (..),
+import           Poseidon.Core.AccessionIDs
+import           Poseidon.Core.ColumnTypesSSF
+import           Poseidon.Core.ColumnTypesUtils
+import           Poseidon.Core.JannoSpec        (checkEnDe)
+import           Poseidon.Core.SequencingSource (SeqSourceRow (..),
                                             SeqSourceRows (..),
                                             readSeqSourceFile)
-import           Poseidon.Utils            (testLog)
+import           Poseidon.Core.Utils            (testLog)
 
 import           Data.HashMap.Strict       (fromList)
 import           Data.Time                 (fromGregorian)
-import           Poseidon.PoseidonVersion
+import           Poseidon.Core.PoseidonVersion
 import           Test.Hspec                (Spec, anyException, describe, it,
                                             shouldBe, shouldThrow)
 
@@ -24,7 +24,7 @@ spec = do
 
 -- this mirrors the tests in JannoSpec.hs with a focus on
 testEnAndDecoding :: Spec
-testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and decoding" $ do
+testEnAndDecoding = describe "Poseidon.Core.SequencingSource: JSON and CSV en- and decoding" $ do
     it "should pass smoothly through all relevant en- and decoding cycles" $ do
         -- self defined instances
         checkEnDe (enumFrom minBound :: [SSFUDG])
@@ -54,7 +54,7 @@ testEnAndDecoding = describe "Poseidon.SequencingSource: JSON and CSV en- and de
         checkEnDe [SSFSubmittedFTPURI "http://www.google.de"]
 
 testReadSeqSourceFile :: Spec
-testReadSeqSourceFile = describe "Poseidon.SequencingSource.readSeqSourceFile" $ do
+testReadSeqSourceFile = describe "Poseidon.Core.SequencingSource.readSeqSourceFile" $ do
     let normalFullSeqSourcePath = "test/testDat/testSeqSourceFiles/normal_full.ssf"
     it "should read normal .ssf files correctly" $ do
         (SeqSourceRows s) <- testLog $ readSeqSourceFile latestPoseidonVersion [] normalFullSeqSourcePath

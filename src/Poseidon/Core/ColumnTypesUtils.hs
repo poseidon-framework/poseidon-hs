@@ -8,7 +8,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Poseidon.ColumnTypesUtils where
+module Poseidon.Core.ColumnTypesUtils where
 
 import qualified Control.Monad.Except     as E
 import qualified Control.Monad.Writer     as W
@@ -28,7 +28,7 @@ import           GHC.Generics             as G hiding (conName)
 import           Language.Haskell.TH      (Con (..), Dec (..), DecsQ, Info (..),
                                            Name, conE, conP, conT, mkName,
                                            reify, varE, varP)
-import           Poseidon.PoseidonVersion (PoseidonVersion)
+import           Poseidon.Core.PoseidonVersion (PoseidonVersion)
 import qualified Text.Parsec              as P
 import qualified Text.Parsec.String       as P
 

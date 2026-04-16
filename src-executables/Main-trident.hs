@@ -1,37 +1,37 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Paths_poseidon_hs                       (version)
-import           Poseidon.CLI.Chronicle                  (ChronicleOptions (..),
+import           Poseidon.CLI.Trident.Chronicle                  (ChronicleOptions (..),
                                                           runChronicle)
-import           Poseidon.CLI.Fetch                      (FetchOptions (..),
+import           Poseidon.CLI.Trident.Fetch                      (FetchOptions (..),
                                                           runFetch)
-import           Poseidon.CLI.Forge                      (ForgeOptions (..),
+import           Poseidon.CLI.Trident.Forge                      (ForgeOptions (..),
                                                           runForge)
-import           Poseidon.CLI.Genoconvert                (GenoconvertOptions (..),
+import           Poseidon.CLI.Trident.Genoconvert                (GenoconvertOptions (..),
                                                           runGenoconvert)
-import           Poseidon.CLI.Init                       (InitOptions (..),
+import           Poseidon.CLI.Trident.Init                       (InitOptions (..),
                                                           runInit)
-import           Poseidon.CLI.Jannocoalesce              (JannoCoalesceOptions (..),
+import           Poseidon.CLI.Trident.Jannocoalesce              (JannoCoalesceOptions (..),
                                                           runJannocoalesce)
-import           Poseidon.CLI.List                       (ListOptions (..),
+import           Poseidon.CLI.Trident.List                       (ListOptions (..),
                                                           runList)
-import           Poseidon.CLI.OptparseApplicativeParsers
-import           Poseidon.CLI.Rectify                    (RectifyOptions (..),
+import           Poseidon.CLI.Trident.OptparseApplicativeParsers
+import           Poseidon.CLI.Trident.Rectify                    (RectifyOptions (..),
                                                           runRectify)
-import           Poseidon.CLI.Serve                      (ServeOptions (..),
+import           Poseidon.CLI.Trident.Serve                      (ServeOptions (..),
                                                           runServerMainThread)
-import           Poseidon.CLI.Summarise                  (SummariseOptions (..),
+import           Poseidon.CLI.Trident.Summarise                  (SummariseOptions (..),
                                                           runSummarise)
-import           Poseidon.CLI.Survey                     (SurveyOptions (..),
+import           Poseidon.CLI.Trident.Survey                     (SurveyOptions (..),
                                                           runSurvey)
-import           Poseidon.CLI.Timetravel                 (TimetravelOptions (..),
+import           Poseidon.CLI.Trident.Timetravel                 (TimetravelOptions (..),
                                                           runTimetravel)
-import           Poseidon.CLI.Validate                   (ValidateOptions (..),
+import           Poseidon.CLI.Trident.Validate                   (ValidateOptions (..),
                                                           runValidate)
-import           Poseidon.Janno                          (jannoHeaderString)
-import           Poseidon.PoseidonVersion                (showPoseidonVersion,
+import           Poseidon.Core.Janno                          (jannoHeaderString)
+import           Poseidon.Core.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
-import           Poseidon.Utils                          (ErrorLength (..),
+import           Poseidon.Core.Utils                          (ErrorLength (..),
                                                           LogMode (..),
                                                           PlinkPopNameMode (..),
                                                           PoseidonException (..),

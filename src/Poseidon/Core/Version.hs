@@ -1,4 +1,4 @@
-module Poseidon.Version (
+module Poseidon.Core.Version (
     VersionComponent (..),
     updateThreeComponentVersion,
     parseVersion

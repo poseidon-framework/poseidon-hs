@@ -1,4 +1,4 @@
-module Poseidon.PoseidonVersion where
+module Poseidon.Core.PoseidonVersion where
 
 import           Data.Aeson   (FromJSON, ToJSON (..), parseJSON, toJSON)
 import           Data.Version (Version (..), makeVersion, showVersion)

@@ -1,4 +1,4 @@
-module Poseidon.MathHelpers where
+module Poseidon.Core.MathHelpers where
 
 import           Data.List   (foldl')
 import           Text.Printf (PrintfArg, printf)

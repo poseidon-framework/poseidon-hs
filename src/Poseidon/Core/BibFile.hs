@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..), renderBibEntry, parseAuthors, authorAbbrvString) where
+module Poseidon.Core.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..), renderBibEntry, parseAuthors, authorAbbrvString) where
 
-import           Poseidon.Utils                     (PoseidonException (..),
+import           Poseidon.Core.Utils                     (PoseidonException (..),
                                                      showParsecErr)
 
 import           Control.Exception                  (throwIO)

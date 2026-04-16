@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Analysis.CLI.RAS where
+module Poseidon.CLI.Xerxes.RAS where
 
 import           Poseidon.Analysis.RASconfig (PopConfig (..))
 import           Poseidon.Analysis.Utils     (GenomPos, JackknifeMode (..),
@@ -29,21 +29,21 @@ import           Pipes                       (cat, (>->))
 import           Pipes.Group                 (chunksOf, foldsM, groupsBy)
 import qualified Pipes.Prelude               as P
 import           Pipes.Safe                  (runSafeT)
-import           Poseidon.ColumnTypesJanno   (JannoGenotypePloidy (..))
-import           Poseidon.EntityTypes        (EntitiesList, IndividualInfo (..),
+import           Poseidon.Core.ColumnTypesJanno   (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes        (EntitiesList, IndividualInfo (..),
                                               PoseidonEntity (..),
                                               checkIfAllEntitiesExist,
                                               determineRelevantPackages,
                                               resolveUniqueEntityIndices,
                                               underlyingEntity)
-import           Poseidon.Package            (PackageReadOptions (..),
+import           Poseidon.Core.Package            (PackageReadOptions (..),
                                               PoseidonPackage (..),
                                               defaultPackageReadOptions,
                                               getJointGenotypeData,
                                               getJointIndividualInfo,
                                               getJointJanno,
                                               readPoseidonPackageCollection)
-import           Poseidon.Utils              (PoseidonException (..),
+import           Poseidon.Core.Utils              (PoseidonException (..),
                                               PoseidonIO, envErrorLength,
                                               envLogAction, logInfo, logWithEnv)
 import           SequenceFormats.Bed         (filterThroughBed, readBedFile)

@@ -1,37 +1,37 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.OptparseApplicativeParsers where
+module Poseidon.CLI.Trident.OptparseApplicativeParsers where
 
-import           Poseidon.CLI.Chronicle     (ChronOperation (..))
-import           Poseidon.CLI.Forge         (ForgeOutMode (..))
-import           Poseidon.CLI.Jannocoalesce (CoalesceJannoColumnSpec (..),
+import           Poseidon.CLI.Trident.Chronicle     (ChronOperation (..))
+import           Poseidon.CLI.Trident.Forge         (ForgeOutMode (..))
+import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..),
                                              JannoSourceSpec (..))
-import           Poseidon.CLI.List          (ListEntity (..),
+import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                              RepoLocationSpec (..))
-import           Poseidon.CLI.Rectify       (ChecksumsToRectify (..),
+import           Poseidon.CLI.Trident.Rectify       (ChecksumsToRectify (..),
                                              PackageVersionUpdate (..))
-import           Poseidon.CLI.Serve         (ArchiveConfig (..),
+import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
                                              ArchiveSpec (..))
-import           Poseidon.CLI.Validate      (ValidatePlan (..))
-import           Poseidon.Contributor       (ContributorSpec (..),
+import           Poseidon.CLI.Trident.Validate      (ValidatePlan (..))
+import           Poseidon.Core.Contributor       (ContributorSpec (..),
                                              contributorSpecParser)
-import           Poseidon.EntityTypes       (EntitiesList, EntityInput (..),
+import           Poseidon.Core.EntityTypes       (EntitiesList, EntityInput (..),
                                              EntitySpec, PoseidonEntity,
                                              SignedEntitiesList, SignedEntity,
                                              readEntitiesFromString)
-import           Poseidon.GenotypeData      (GenoDataSource (..),
+import           Poseidon.Core.GenotypeData      (GenoDataSource (..),
                                              GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              GenotypeOutFormatSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.PoseidonVersion
-import           Poseidon.ServerClient      (AddColSpec (..),
+import           Poseidon.Core.PoseidonVersion
+import           Poseidon.Core.ServerClient      (AddColSpec (..),
                                              ArchiveEndpoint (..))
-import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
+import           Poseidon.Core.Utils             (ErrorLength (..), LogMode (..),
                                              TestMode (..),
                                              renderPoseidonException,
                                              showParsecErr)
-import           Poseidon.Version           (VersionComponent (..),
+import           Poseidon.Core.Version           (VersionComponent (..),
                                              parseVersion)
 
 import           Control.Applicative        ((<|>))

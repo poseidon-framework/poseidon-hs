@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Utils (
+module Poseidon.Core.Utils (
     PoseidonException (..),
     renderPoseidonException,
     usePoseidonLogger,

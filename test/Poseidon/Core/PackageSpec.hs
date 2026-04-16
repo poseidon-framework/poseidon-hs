@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
-module Poseidon.PackageSpec (spec) where
+module Poseidon.Core.PackageSpec (spec) where
 
-import           Poseidon.Contributor       (ContributorSpec (..), ORCID (..))
-import           Poseidon.EntityTypes       (HasNameAndVersion (..))
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.Core.Contributor       (ContributorSpec (..), ORCID (..))
+import           Poseidon.Core.EntityTypes       (HasNameAndVersion (..))
+import           Poseidon.Core.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              SNPSetSpec (..))
-import           Poseidon.Janno             (createMinimalJanno)
-import           Poseidon.Package           (LicenseSpec (..),
+import           Poseidon.Core.Janno             (createMinimalJanno)
+import           Poseidon.Core.Package           (LicenseSpec (..),
                                              PackageReadOptions (..),
                                              PoseidonPackage (..),
                                              PoseidonYamlStruct (..),
@@ -18,8 +18,8 @@ import           Poseidon.Package           (LicenseSpec (..),
                                              readPoseidonPackage,
                                              readPoseidonPackageCollection,
                                              renderMismatch, zipWithPadding)
-import           Poseidon.PoseidonVersion   (PoseidonVersion (..))
-import           Poseidon.Utils             (ErrorLength (..), LogMode (..),
+import           Poseidon.Core.PoseidonVersion   (PoseidonVersion (..))
+import           Poseidon.Core.Utils             (ErrorLength (..), LogMode (..),
                                              PoseidonException (..),
                                              TestMode (..), getChecksum, noLog,
                                              testLog, usePoseidonLogger)
@@ -244,7 +244,7 @@ checksums = ["0332344057c0c4dce2ff7176f8e1103d",
              "59f4419dd96989c6185823e93f1aee0a"]
 
 testGetChecksum :: Spec
-testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
+testGetChecksum = describe "Poseidon.Core.Package.getChecksum" $ do
     it "should determine checksums correctly" $ do
         mapM_ (\(f, c) -> do
             c_real <- getChecksum f
@@ -253,7 +253,7 @@ testGetChecksum = describe "Poseidon.Package.getChecksum" $ do
 
 testRenderMismatch :: Spec
 testRenderMismatch =
-    describe "Poseidon.CLI.Validate.renderMismatch" $ do
+    describe "Poseidon.CLI.Trident.Validate.renderMismatch" $ do
     it "should not find mismatch for equal one-element lists" $ do
         renderMismatch ["a"] ["a"] `shouldBe` ""
     it "should find mismatch for non-equal one-element lists" $ do
@@ -276,7 +276,7 @@ testRenderMismatch =
             "(a = d), (b = ?), (c = ?)"
 
 testZipWithPadding :: Spec
-testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
+testZipWithPadding = describe "Poseidon.CLI.Trident.Validate.zipWithPadding" $ do
     it "should zip normally for lists of equal length" $
         zwp ["a", "b"] ["c", "d"] `shouldBe` [("a", "c"), ("b", "d")]
     it "should fill for empty lists" $
@@ -289,7 +289,7 @@ testZipWithPadding = describe "Poseidon.CLI.Validate.zipWithPadding" $ do
     zwp = zipWithPadding ("?" :: String) ("!" :: String)
 
 testGetJointGenotypeData :: Spec
-testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
+testGetJointGenotypeData = describe "Poseidon.Core.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load genotype data without intersect" $ do
@@ -343,7 +343,7 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
     isInputOrderException (WrongInputOrderException _) = True
 
 testGetJointGzippedGenotypeData :: Spec
-testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
+testGetJointGzippedGenotypeData = describe "Poseidon.Core.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/other_test_packages/Lamnidis_2018_gzipped/POSEIDON.yml",
                     "test/testDat/testPackages/ancient/Schiffels_2016/POSEIDON.yml"]
     it "should correctly load gzipped and non-gzipped genotype data without intersect" $ do
@@ -358,7 +358,7 @@ testGetJointGzippedGenotypeData = describe "Poseidon.Package.getJointGenotypeDat
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
 
 testGetVCFdata :: Spec
-testGetVCFdata = describe "Poseidon.Package.getJointGenotypeData" $ do
+testGetVCFdata = describe "Poseidon.Core.Package.getJointGenotypeData" $ do
     let pacFiles = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                     "test/testDat/testPackages/other_test_packages/Schiffels_2016_vcf/POSEIDON.yml"]
     it "should correctly load VCF and Eigenstrat genotype data" $ do
@@ -373,7 +373,7 @@ testGetVCFdata = describe "Poseidon.Package.getJointGenotypeData" $ do
                                   V.fromList $ replicate 10 Missing ++ [Het, Het, HomRef, Het, Missing, HomAlt, Het, HomRef, HomAlt, Het])
 
 testThrowOnRead :: Spec
-testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
+testThrowOnRead = describe "Poseidon.Core.Package.readPoseidonPackage" $ do
     it "should throw if bibentries aren't found" $ do
         let opts = defaultPackageReadOptions {_readOptGenoCheck = False}
         let ymlPath = "test/testDat/testPackages/other_test_packages/Lamnidis_2018_nobib/POSEIDON.yml"
@@ -394,7 +394,7 @@ testThrowOnRead = describe "Poseidon.Package.readPoseidonPackage" $ do
 
 
 testCheckJannoIndConsistency :: Spec
-testCheckJannoIndConsistency = describe "Poseidon.Package.checkJannoIndConsistency" $ do
+testCheckJannoIndConsistency = describe "Poseidon.Core.Package.checkJannoIndConsistency" $ do
     let testIndEntries = [
             EigenstratIndEntry "Ind1" Male "Pop1",
             EigenstratIndEntry "Ind2" Female "Pop2",

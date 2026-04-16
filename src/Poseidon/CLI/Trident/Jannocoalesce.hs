@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
-module Poseidon.CLI.Jannocoalesce where
+module Poseidon.CLI.Trident.Jannocoalesce where
 
-import           Poseidon.Janno           (JannoRow (..), JannoRows (..),
+import           Poseidon.Core.Janno           (JannoRow (..), JannoRows (..),
                                            parseJannoRowFromNamedRecord,
                                            readJannoFile, writeJannoFile)
-import           Poseidon.Package         (PackageReadOptions (..),
+import           Poseidon.Core.Package         (PackageReadOptions (..),
                                            defaultPackageReadOptions,
                                            getJointJanno,
                                            readPoseidonPackageCollection)
-import           Poseidon.PoseidonVersion (VersionedFile (..),
+import           Poseidon.Core.PoseidonVersion (VersionedFile (..),
                                            latestPoseidonVersion)
-import           Poseidon.Utils           (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils           (PoseidonException (..), PoseidonIO,
                                            logDebug, logInfo, logWarning)
 
 import           Control.Monad            (filterM, forM_, when)

@@ -1,7 +1,7 @@
-module Poseidon.Generator.Parsers where
+module Poseidon.Analysis.Generator.Parsers where
 
-import           Poseidon.Generator.Types
-import           Poseidon.Generator.Utils
+import           Poseidon.Analysis.Generator.Types
+import           Poseidon.Analysis.Generator.Utils
 
 import           Control.Exception        (throwIO)
 import           Data.List                (intercalate)

@@ -12,19 +12,19 @@ import qualified Data.ByteString.Char8      as B
 import qualified Data.Vector                as V
 import           Pipes                      (Pipe, cat)
 import qualified Pipes.Prelude              as P
-import           Poseidon.ColumnTypesJanno  (GroupName (..),
+import           Poseidon.Core.ColumnTypesJanno  (GroupName (..),
                                              JannoGenotypePloidy (..),
                                              PoseidonID (..))
-import           Poseidon.ColumnTypesUtils  (ListColumn (..))
-import           Poseidon.EntityTypes       (IndividualInfo (..),
+import           Poseidon.Core.ColumnTypesUtils  (ListColumn (..))
+import           Poseidon.Core.EntityTypes       (IndividualInfo (..),
                                              SignedEntitiesList,
                                              indInfoConformsToEntitySpecs,
                                              isLatestInCollection,
                                              makePacNameAndVersion)
-import           Poseidon.Janno             (JannoRow (..), JannoRows (..))
-import           Poseidon.Package           (PoseidonPackage (..),
+import           Poseidon.Core.Janno             (JannoRow (..), JannoRows (..))
+import           Poseidon.Core.Package           (PoseidonPackage (..),
                                              getJannoRowsFromPac)
-import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils             (PoseidonException (..), PoseidonIO,
                                              logWarning)
 import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
                                              GenoEntry (..), GenoLine)

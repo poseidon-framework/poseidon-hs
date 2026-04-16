@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Poseidon.ColumnTypesJanno where
+module Poseidon.Core.ColumnTypesJanno where
 
-import           Poseidon.AccessionIDs
-import           Poseidon.ColumnTypesUtils
+import           Poseidon.Core.AccessionIDs
+import           Poseidon.Core.ColumnTypesUtils
 
 import           Country                    (Country, alphaTwoUpper,
                                              decodeAlphaTwo)
@@ -18,7 +18,7 @@ import qualified Data.Text.Read             as T
 import           Data.Version               (makeVersion)
 import           GHC.Generics               (Generic)
 import           Network.URI                (isURIReference)
-import           Poseidon.PoseidonVersion
+import           Poseidon.Core.PoseidonVersion
 import           SequenceFormats.Eigenstrat (Sex (..))
 
 -- | A datatype for the Genetic_Sex .janno column

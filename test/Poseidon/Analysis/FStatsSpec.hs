@@ -3,12 +3,12 @@
 module Poseidon.Analysis.FStatsSpec (spec) where
 
 
-import           Poseidon.Analysis.CLI.FStats   (collectStatSpecGroups)
+import           Poseidon.CLI.Xerxes.FStats   (collectStatSpecGroups)
 import           Poseidon.Analysis.FStatsConfig (AscertainmentSpec (..),
                                                  FStatSpec (..), FStatType (..),
                                                  fStatSpecParser,
                                                  readFStatsSimpleText)
-import           Poseidon.EntityTypes           (PoseidonEntity (..))
+import           Poseidon.Core.EntityTypes           (PoseidonEntity (..))
 
 import qualified Data.ByteString.Char8          as B
 import           System.IO                      (IOMode (..), withFile)

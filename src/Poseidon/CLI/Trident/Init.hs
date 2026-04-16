@@ -1,17 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Init where
+module Poseidon.CLI.Trident.Init where
 
-import           Poseidon.BibFile       (dummyBibEntry, writeBibTeXFile)
-import           Poseidon.GenotypeData  (GenotypeDataSpec (..),
+import           Poseidon.Core.BibFile       (dummyBibEntry, writeBibTeXFile)
+import           Poseidon.Core.GenotypeData  (GenotypeDataSpec (..),
                                          GenotypeFileSpec (..), loadIndividuals,
                                          reduceGenotypeFilepaths)
-import           Poseidon.Janno         (writeJannoFile)
-import           Poseidon.Package       (PoseidonPackage (..),
+import           Poseidon.Core.Janno         (writeJannoFile)
+import           Poseidon.Core.Package       (PoseidonPackage (..),
                                          newMinimalPackageTemplate,
                                          newPackageTemplate,
                                          writePoseidonPackage)
-import           Poseidon.Utils         (PoseidonIO, checkFile,
+import           Poseidon.Core.Utils         (PoseidonIO, checkFile,
                                          determinePackageOutName, logInfo)
 
 import           Control.Monad          (forM_, unless)

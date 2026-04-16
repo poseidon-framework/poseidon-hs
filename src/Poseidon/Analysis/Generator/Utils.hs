@@ -1,4 +1,4 @@
-module Poseidon.Generator.Utils where
+module Poseidon.Analysis.Generator.Utils where
 
 import           Control.Exception (Exception)
 

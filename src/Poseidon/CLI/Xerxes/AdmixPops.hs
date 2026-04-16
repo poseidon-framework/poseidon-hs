@@ -1,17 +1,17 @@
-module Poseidon.Generator.CLI.AdmixPops where
+module Poseidon.CLI.Xerxes.AdmixPops where
 
-import           Poseidon.ColumnTypesJanno     (JannoGenotypePloidy (..))
-import           Poseidon.EntityTypes          (HasNameAndVersion (..))
-import           Poseidon.Generator.Parsers
-import           Poseidon.Generator.SampleGeno
-import           Poseidon.Generator.Types
-import           Poseidon.Generator.Utils
-import           Poseidon.GenotypeData
-import           Poseidon.Janno                (JannoRows (..),
+import           Poseidon.Core.ColumnTypesJanno     (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes          (HasNameAndVersion (..))
+import           Poseidon.Analysis.Generator.Parsers
+import           Poseidon.Analysis.Generator.SampleGeno
+import           Poseidon.Analysis.Generator.Types
+import           Poseidon.Analysis.Generator.Utils
+import           Poseidon.Core.GenotypeData
+import           Poseidon.Core.Janno                (JannoRows (..),
                                                 createMinimalJanno,
                                                 jGenotypePloidy)
-import           Poseidon.Package
-import           Poseidon.Utils
+import           Poseidon.Core.Package
+import           Poseidon.Core.Utils
 
 import           Control.Exception             (catch, throwIO)
 import           Control.Monad                 (forM, unless, when)

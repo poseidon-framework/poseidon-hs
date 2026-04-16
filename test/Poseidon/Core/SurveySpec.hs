@@ -1,10 +1,10 @@
-module Poseidon.SurveySpec (spec) where
+module Poseidon.Core.SurveySpec (spec) where
 
-import           Poseidon.CLI.Survey
-import           Poseidon.Janno
-import           Poseidon.PoseidonVersion
+import           Poseidon.CLI.Trident.Survey
+import           Poseidon.Core.Janno
+import           Poseidon.Core.PoseidonVersion
 
-import           Poseidon.Utils           (testLog)
+import           Poseidon.Core.Utils           (testLog)
 import           Test.Hspec
 
 spec :: Spec
@@ -19,7 +19,7 @@ testJannoMinimal = "test/testDat/testJannoFiles/minimal.janno"
 
 testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness =
-    describe "Poseidon.CLI.Survey.renderJannoCompleteness" $ do
+    describe "Poseidon.CLI.Trident.Survey.renderJannoCompleteness" $ do
     it "should work for a full janno file" $ do
         janno <- testLog $ readJannoFile latestPoseidonVersion [] testJannoNormal
         renderJannoCompleteness janno

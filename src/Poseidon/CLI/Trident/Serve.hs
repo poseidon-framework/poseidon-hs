@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
-module Poseidon.CLI.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
+module Poseidon.CLI.Trident.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
-import           Poseidon.EntityTypes         (HasNameAndVersion (..),
+import           Poseidon.Core.EntityTypes         (HasNameAndVersion (..),
                                                PacNameAndVersion (PacNameAndVersion),
                                                renderNameWithVersion)
-import           Poseidon.GenotypeData        (GenotypeDataSpec (..),
+import           Poseidon.Core.GenotypeData        (GenotypeDataSpec (..),
                                                GenotypeFileSpec (..))
-import           Poseidon.Janno               (JannoRow (..), getJannoRows)
-import           Poseidon.Package             (PackageReadOptions (..),
+import           Poseidon.Core.Janno               (JannoRow (..), getJannoRows)
+import           Poseidon.Core.Package             (PackageReadOptions (..),
                                                PoseidonPackage (..),
                                                defaultPackageReadOptions,
                                                getAllGroupInfo,
@@ -18,13 +18,13 @@ import           Poseidon.Package             (PackageReadOptions (..),
                                                getJannoRowsFromPac,
                                                packagesToPackageInfos,
                                                readPoseidonPackageCollection)
-import           Poseidon.PoseidonVersion     (minimalRequiredClientVersion)
-import           Poseidon.ServerClient        (AddColSpec (..),
+import           Poseidon.Core.PoseidonVersion     (minimalRequiredClientVersion)
+import           Poseidon.Core.ServerClient        (AddColSpec (..),
                                                ApiReturnData (..),
                                                ServerApiReturnType (..))
-import           Poseidon.ServerHTML
-import           Poseidon.ServerStylesheet    (stylesBS)
-import           Poseidon.Utils               (LogA, PoseidonIO, envLogAction,
+import           Poseidon.Core.ServerHTML
+import           Poseidon.Core.ServerStylesheet    (stylesBS)
+import           Poseidon.Core.Utils               (LogA, PoseidonIO, envLogAction,
                                                logDebug, logInfo, logWithEnv)
 
 import           Codec.Archive.Zip            (Archive, addEntryToArchive,
@@ -54,8 +54,8 @@ import           Network.Wai.Handler.WarpTLS  (runTLS, tlsSettings,
                                                tlsSettingsChain)
 import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Paths_poseidon_hs            (version)
-import           Poseidon.BibFile             (renderBibEntry)
-import           Poseidon.ColumnTypesJanno    (JannoLatitude (..),
+import           Poseidon.Core.BibFile             (renderBibEntry)
+import           Poseidon.Core.ColumnTypesJanno    (JannoLatitude (..),
                                                JannoLongitude (..))
 import           System.Directory             (createDirectoryIfMissing,
                                                doesFileExist,

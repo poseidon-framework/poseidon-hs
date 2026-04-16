@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Poseidon.ColumnTypesSSF where
+module Poseidon.Core.ColumnTypesSSF where
 
-import           Poseidon.AccessionIDs
-import           Poseidon.ColumnTypesUtils
+import           Poseidon.Core.AccessionIDs
+import           Poseidon.Core.ColumnTypesUtils
 
 import           Data.Char                 (isHexDigit)
 import qualified Data.Csv                  as Csv

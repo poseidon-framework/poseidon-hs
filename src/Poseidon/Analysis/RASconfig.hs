@@ -6,7 +6,7 @@ import           Poseidon.Analysis.Utils (GroupDef, parseGroupDefsFromJSON)
 
 import           Data.Aeson              (FromJSON, parseJSON, withObject, (.:),
                                           (.:?))
-import           Poseidon.EntityTypes    (EntitiesList, PoseidonEntity (..))
+import           Poseidon.Core.EntityTypes    (EntitiesList, PoseidonEntity (..))
 
 data PopConfig = PopConfigYamlStruct
     { popConfigGroupDef :: [GroupDef]

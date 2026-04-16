@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.EntitiesListSpec (spec) where
+module Poseidon.Core.EntitiesListSpec (spec) where
 
-import           Poseidon.EntityTypes
-import           Poseidon.Package     (PackageReadOptions (..),
+import           Poseidon.Core.EntityTypes
+import           Poseidon.Core.Package     (PackageReadOptions (..),
                                        defaultPackageReadOptions,
                                        filterToRelevantPackages,
                                        getJointIndividualInfo,
                                        readPoseidonPackageCollection)
-import           Poseidon.Utils       (PoseidonException, testLog)
+import           Poseidon.Core.Utils       (PoseidonException, testLog)
 
 import           Data.Aeson           (decode, encode)
 import           Data.Either          (fromRight, isLeft)

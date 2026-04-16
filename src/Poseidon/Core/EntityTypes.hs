@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.EntityTypes (
+module Poseidon.Core.EntityTypes (
     IndividualInfo (..),
     IndividualInfoCollection,
     renderNameWithVersion,
@@ -19,9 +19,9 @@ module Poseidon.EntityTypes (
     checkIfAllEntitiesExist,
     resolveEntityIndices, reportDuplicateIndividuals) where
 
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, showParsecErr)
-import           Poseidon.Version       (parseVersion)
+import           Poseidon.Core.Version       (parseVersion)
 
 import           Control.Applicative    ((<|>))
 import           Control.Exception      (throwIO)

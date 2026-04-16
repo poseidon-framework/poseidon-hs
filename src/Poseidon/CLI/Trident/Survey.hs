@@ -5,19 +5,19 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Poseidon.CLI.Survey where
+module Poseidon.CLI.Trident.Survey where
 
-import           Poseidon.BibFile          (BibTeX)
-import           Poseidon.ColumnTypesJanno (GeneticSex (..), PoseidonID (..))
-import           Poseidon.ColumnTypesUtils (CsvNamedRecord, ListColumn (..))
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
+import           Poseidon.Core.BibFile          (BibTeX)
+import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..), PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord, ListColumn (..))
+import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
-import           Poseidon.Janno            (JannoRows (..))
-import           Poseidon.Package          (PackageReadOptions (..),
+import           Poseidon.Core.Janno            (JannoRows (..))
+import           Poseidon.Core.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
                                             readPoseidonPackageCollection)
-import           Poseidon.Utils            (PoseidonIO, logInfo)
+import           Poseidon.Core.Utils            (PoseidonIO, logInfo)
 
 import           Control.Monad             (forM)
 import           Control.Monad.IO.Class    (liftIO)
@@ -28,7 +28,7 @@ import           Generics.SOP              (All, Generic (Code, from),
                                             HPure (hpure), I, K (K), NP,
                                             Proxy (..), SListI, hcmap, hzipWith,
                                             unI, unSOP, unZ)
-import           Poseidon.SequencingSource (SeqSourceRows (..))
+import           Poseidon.Core.SequencingSource (SeqSourceRows (..))
 import           System.Directory          (doesFileExist)
 import           System.FilePath           ((</>))
 import           Text.Layout.Table         (asciiRoundS, column, def,

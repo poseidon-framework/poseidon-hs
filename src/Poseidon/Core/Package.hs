@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Package (
+module Poseidon.Core.Package (
     PoseidonYamlStruct (..),
     PoseidonPackage(..),
     PoseidonException(..),
@@ -32,17 +32,17 @@ module Poseidon.Package (
     getBibliographyInfo
 ) where
 
-import           Poseidon.BibFile           (BibEntry (..), BibTeX,
+import           Poseidon.Core.BibFile           (BibEntry (..), BibTeX,
                                              readBibTeXFile)
-import           Poseidon.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
+import           Poseidon.Core.ColumnTypesJanno  (GeneticSex (..), GroupName (..),
                                              JannoLibraryBuilt (..),
                                              JannoPublication (..),
                                              JannoUDG (..), PoseidonID (..))
-import           Poseidon.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
-import           Poseidon.ColumnTypesUtils  (ListColumn (..),
+import           Poseidon.Core.ColumnTypesSSF    (SSFLibraryBuilt (..), SSFUDG (..))
+import           Poseidon.Core.ColumnTypesUtils  (ListColumn (..),
                                              getMaybeListColumn)
-import           Poseidon.Contributor       (ContributorSpec (..))
-import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
+import           Poseidon.Core.Contributor       (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              IndividualInfo (..),
                                              IndividualInfoCollection,
                                              PacNameAndVersion (..),
@@ -50,27 +50,27 @@ import           Poseidon.EntityTypes       (EntitySpec, HasNameAndVersion (..),
                                              isLatestInCollection,
                                              makePacNameAndVersion,
                                              renderNameWithVersion)
-import           Poseidon.GenotypeData      (GenotypeDataSpec (..),
+import           Poseidon.Core.GenotypeData      (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..), joinEntries,
                                              loadGenotypeData, loadIndividuals,
                                              printSNPCopyProgress,
                                              reduceGenotypeFilepaths)
-import           Poseidon.Janno             (JannoRow (..), JannoRows (..),
+import           Poseidon.Core.Janno             (JannoRow (..), JannoRows (..),
                                              createMinimalJanno,
                                              jannoHeaderString,
                                              mainJannoColumns, readJannoFile)
-import           Poseidon.PoseidonVersion   (PoseidonVersion (..), asVersion,
+import           Poseidon.Core.PoseidonVersion   (PoseidonVersion (..), asVersion,
                                              latestPoseidonVersion,
                                              showPoseidonVersion,
                                              validPoseidonVersions)
-import           Poseidon.SequencingSource  (SeqSourceRow (..),
+import           Poseidon.Core.SequencingSource  (SeqSourceRow (..),
                                              SeqSourceRows (..), mainSSFColumns,
                                              readSeqSourceFile)
-import           Poseidon.ServerClient      (AddColSpec (..),
+import           Poseidon.Core.ServerClient      (AddColSpec (..),
                                              BibliographyInfo (..),
                                              ExtendedIndividualInfo (..),
                                              GroupInfo (..), PackageInfo (..))
-import           Poseidon.Utils             (LogA, PoseidonException (..),
+import           Poseidon.Core.Utils             (LogA, PoseidonException (..),
                                              PoseidonIO, checkFile,
                                              envErrorLength, envLogAction,
                                              logDebug, logError, logInfo,

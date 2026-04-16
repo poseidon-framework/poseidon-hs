@@ -2,13 +2,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Poseidon.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
+module Poseidon.Core.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
 
-import           Poseidon.ColumnTypesJanno
-import           Poseidon.ColumnTypesUtils   (getListColumn)
-import           Poseidon.EntityTypes
-import           Poseidon.Janno
-import           Poseidon.Package
+import           Poseidon.Core.ColumnTypesJanno
+import           Poseidon.Core.ColumnTypesUtils   (getListColumn)
+import           Poseidon.Core.EntityTypes
+import           Poseidon.Core.Janno
+import           Poseidon.Core.Package
 
 import           Control.Monad               (forM_)
 import qualified Control.Monad               as OP

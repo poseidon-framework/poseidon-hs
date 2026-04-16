@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Poseidon.ChronicleSpec (spec) where
+module Poseidon.Core.ChronicleSpec (spec) where
 
-import           Poseidon.Chronicle    (PackageIteration (..),
+import           Poseidon.Core.Chronicle    (PackageIteration (..),
                                         PoseidonPackageChronicle (..),
                                         makeChronicle, readChronicle,
                                         updateChronicle, writeChronicle)
-import           Poseidon.Package      (PackageReadOptions (..),
+import           Poseidon.Core.Package      (PackageReadOptions (..),
                                         defaultPackageReadOptions,
                                         readPoseidonPackageCollection)
-import           Poseidon.Utils        (testLog)
+import           Poseidon.Core.Utils        (testLog)
 
 import qualified Data.ByteString.Char8 as B
 import           Data.Either           (fromRight)
@@ -118,14 +118,14 @@ testPacReadOpts = defaultPackageReadOptions {
     }
 
 testChronicleFromYaml :: Spec
-testChronicleFromYaml = describe "Poseidon.Chronicle.fromYAML" $ do
+testChronicleFromYaml = describe "Poseidon.Core.Chronicle.fromYAML" $ do
     let p = fromRight newChronicle -- will fail with newChronicle
             (decodeEither' yamlExampleChronicle :: Either ParseException PoseidonPackageChronicle)
     it "should parse correct YAML data" $
         p `shouldBe` exampleChronicle
 
 testEncodeDecodeChronicleFile :: Spec
-testEncodeDecodeChronicleFile = describe "Poseidon.Chronicle.writeChronicle+readChronicle" $ do
+testEncodeDecodeChronicleFile = describe "Poseidon.Core.Chronicle.writeChronicle+readChronicle" $ do
     let tmpFile = "/tmp/poseidonTestChronicleFile"
     it "should write and read again correctly" $ do
         testLog $ writeChronicle tmpFile exampleChronicle
@@ -134,7 +134,7 @@ testEncodeDecodeChronicleFile = describe "Poseidon.Chronicle.writeChronicle+read
         res `shouldBe` exampleChronicle
 
 testMakeChronicle :: Spec
-testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
+testMakeChronicle = describe "Poseidon.Core.Chronicle.makeChronicle" $ do
     it "should make a chronicle as expected" $ do
         pacs <- testLog $ readPoseidonPackageCollection (testPacReadOpts {_readOptOnlyLatest = True})
                           ["test/testDat/testPackages/ancient"]
@@ -142,7 +142,7 @@ testMakeChronicle = describe "Poseidon.Chronicle.makeChronicle" $ do
         snap {snapYamlLastModified = fromGregorian 2023 04 02} `shouldBe` exampleChronicle
 
 testUpdateChronicle :: Spec
-testUpdateChronicle = describe "Poseidon.Chronicle.updateChronicle" $ do
+testUpdateChronicle = describe "Poseidon.Core.Chronicle.updateChronicle" $ do
     it "should correctly produce a new, merged chronicle" $ do
         updateChronicle exampleChronicle newChronicle `shouldBe`
             PoseidonPackageChronicle {

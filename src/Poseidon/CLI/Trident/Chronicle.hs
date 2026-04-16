@@ -1,11 +1,11 @@
-module Poseidon.CLI.Chronicle where
+module Poseidon.CLI.Trident.Chronicle where
 
-import           Poseidon.Chronicle (makeChronicle, readChronicle,
+import           Poseidon.Core.Chronicle (makeChronicle, readChronicle,
                                      updateChronicle, writeChronicle)
-import           Poseidon.Package   (PackageReadOptions (..),
+import           Poseidon.Core.Package   (PackageReadOptions (..),
                                      defaultPackageReadOptions,
                                      readPoseidonPackageCollection)
-import           Poseidon.Utils     (PoseidonIO)
+import           Poseidon.Core.Utils     (PoseidonIO)
 
 
 data ChronicleOptions = ChronicleOptions

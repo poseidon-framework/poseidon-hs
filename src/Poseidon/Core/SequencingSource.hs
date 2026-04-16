@@ -6,12 +6,12 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
 
-module Poseidon.SequencingSource where
+module Poseidon.Core.SequencingSource where
 
-import           Poseidon.ColumnTypesJanno  (PoseidonID)
-import           Poseidon.ColumnTypesSSF
-import           Poseidon.ColumnTypesUtils
-import           Poseidon.Utils
+import           Poseidon.Core.ColumnTypesJanno  (PoseidonID)
+import           Poseidon.Core.ColumnTypesSSF
+import           Poseidon.Core.ColumnTypesUtils
+import           Poseidon.Core.Utils
 
 import           Control.Exception          (throwIO)
 import           Control.Monad              (unless, when)
@@ -30,7 +30,7 @@ import           Data.Maybe                 (catMaybes, isJust, mapMaybe)
 import qualified Data.Vector                as V
 import           Generics.SOP.TH            (deriveGeneric)
 import           GHC.Generics               (Generic)
-import           Poseidon.PoseidonVersion
+import           Poseidon.Core.PoseidonVersion
 import qualified Text.Parsec                as P
 
 -- | A data type to represent a seqSourceFile

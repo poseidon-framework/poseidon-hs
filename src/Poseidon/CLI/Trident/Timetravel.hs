@@ -1,13 +1,13 @@
-module Poseidon.CLI.Timetravel where
+module Poseidon.CLI.Trident.Timetravel where
 
-import           Poseidon.Chronicle     (PackageIteration (..),
+import           Poseidon.Core.Chronicle     (PackageIteration (..),
                                          PoseidonPackageChronicle (..),
                                          chroniclePackages, readChronicle)
-import           Poseidon.EntityTypes   (renderNameWithVersion)
-import           Poseidon.Package       (PackageReadOptions (..),
+import           Poseidon.Core.EntityTypes   (renderNameWithVersion)
+import           Poseidon.Core.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.Utils         (LogA, PoseidonException (..),
+import           Poseidon.Core.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
                                          logInfo, logWithEnv)
 

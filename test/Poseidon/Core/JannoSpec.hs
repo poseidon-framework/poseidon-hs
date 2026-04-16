@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.JannoSpec (spec, checkEnDe) where
+module Poseidon.Core.JannoSpec (spec, checkEnDe) where
 
-import           Poseidon.AccessionIDs
-import           Poseidon.ColumnTypesJanno
-import           Poseidon.ColumnTypesUtils
-import           Poseidon.Janno
-import           Poseidon.PoseidonVersion
-import           Poseidon.Utils             (testLog)
+import           Poseidon.Core.AccessionIDs
+import           Poseidon.Core.ColumnTypesJanno
+import           Poseidon.Core.ColumnTypesUtils
+import           Poseidon.Core.Janno
+import           Poseidon.Core.PoseidonVersion
+import           Poseidon.Core.Utils             (testLog)
 
 import           Country                    (decodeAlphaTwo)
 import qualified Data.Csv                   as C
@@ -26,7 +26,7 @@ spec = do
     testPoseidonSampleFromJannoFile
 
 testMakeHeaderWithAdditionalColumns :: Spec
-testMakeHeaderWithAdditionalColumns = describe "Poseidon.Janno: Column sorting (header preparation)" $ do
+testMakeHeaderWithAdditionalColumns = describe "Poseidon.Core.Janno: Column sorting (header preparation)" $ do
     it "should sort columns as expected" $ do
         let jannoRowEmpty = createMinimalSample (EigenstratIndEntry "a" Unknown "test")
             jannoRow = jannoRowEmpty {
@@ -52,7 +52,7 @@ testMakeHeaderWithAdditionalColumns = describe "Poseidon.Janno: Column sorting (
         header `shouldContain` ["Keywords", "AdditionalColumn1", "AdditionalColumn2"]
 
 testEnAndDecoding :: Spec
-testEnAndDecoding = describe "Poseidon.Janno: JSON and CSV en- and decoding" $ do
+testEnAndDecoding = describe "Poseidon.Core.Janno: JSON and CSV en- and decoding" $ do
     it "should pass smoothly through all relevant en- and decoding cycles" $ do
         -- generic instances
         checkEnDe (["a", "b", "c"] :: [String])
@@ -88,7 +88,7 @@ checkEnDe xs = cassavaCycle xs `shouldBe` cassavaResult xs
         cassavaResult = map Right
 
 testPoseidonSampleFromJannoFile :: Spec
-testPoseidonSampleFromJannoFile = describe "Poseidon.Janno.readJannoFile" $ do
+testPoseidonSampleFromJannoFile = describe "Poseidon.Core.Janno.readJannoFile" $ do
     let minimalJannoPath      = "test/testDat/testJannoFiles/minimal.janno"
     let normalJannoPath       = "test/testDat/testJannoFiles/normal.janno"
     let borkedJannoPath       = "test/testDat/testJannoFiles/borked.janno"

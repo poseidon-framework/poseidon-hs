@@ -1,6 +1,6 @@
-module Poseidon.MathHelpersSpec (spec) where
+module Poseidon.Core.MathHelpersSpec (spec) where
 
-import           Poseidon.MathHelpers
+import           Poseidon.Core.MathHelpers
 
 import           Test.Hspec
 import           Test.QuickCheck
@@ -13,7 +13,7 @@ spec = do
 
 testAvg :: Spec
 testAvg =
-    describe "Poseidon.MathHelpers.avg" $ do
+    describe "Poseidon.Core.MathHelpers.avg" $ do
     it "should calculate the mean correctly for single element lists" $ do
         avg [1] `shouldBe` 1
     it "should calculate the mean correctly for normal lists" $ do
@@ -31,7 +31,7 @@ genSmallCounts = choose (0, 10)
 
 testRoundTo :: Spec
 testRoundTo =
-    describe "Poseidon.MathHelpers.roundTo" $ do
+    describe "Poseidon.Core.MathHelpers.roundTo" $ do
     it "should round down for .4" $ do
         roundTo 0 1.4 `shouldBe` 1
     it "should round up for .5" $ do
@@ -44,7 +44,7 @@ testRoundTo =
 
 testStdev :: Spec
 testStdev =
-    describe "Poseidon.MathHelpers.stdev" $ do
+    describe "Poseidon.Core.MathHelpers.stdev" $ do
     it "should calculate the sd correctly for single element lists" $ do
         stdev [1] `shouldBe` 0.0
     it "should calculate the sd correctly for normal lists" $ do

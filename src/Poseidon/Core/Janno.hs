@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
 
-module Poseidon.Janno (
+module Poseidon.Core.Janno (
     JannoRow(..),
     writeJannoFile,
     writeJannoFileWithoutEmptyCols,
@@ -22,10 +22,10 @@ module Poseidon.Janno (
     parseJannoRowFromNamedRecord
 ) where
 
-import           Poseidon.ColumnTypesJanno
-import           Poseidon.ColumnTypesUtils
-import           Poseidon.PoseidonVersion
-import           Poseidon.Utils
+import           Poseidon.Core.ColumnTypesJanno
+import           Poseidon.Core.ColumnTypesUtils
+import           Poseidon.Core.PoseidonVersion
+import           Poseidon.Core.Utils
 
 import           Control.Exception                    (throwIO)
 import           Control.Monad                        (unless, when)

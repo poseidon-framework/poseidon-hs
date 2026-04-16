@@ -1,19 +1,19 @@
-module Poseidon.CLI.Summarise where
+module Poseidon.CLI.Trident.Summarise where
 
-import           Poseidon.ColumnTypesJanno (JannoDateBCADMedian (..))
-import           Poseidon.ColumnTypesUtils (ListColumn (..))
-import           Poseidon.Janno            (JannoRow (..), JannoRows (..))
-import           Poseidon.MathHelpers      (meanAndSdInteger, meanAndSdRoundTo)
-import           Poseidon.Package          (PackageReadOptions (..),
+import           Poseidon.Core.ColumnTypesJanno (JannoDateBCADMedian (..))
+import           Poseidon.Core.ColumnTypesUtils (ListColumn (..))
+import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..))
+import           Poseidon.Core.MathHelpers      (meanAndSdInteger, meanAndSdRoundTo)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
                                             PoseidonPackage (..),
                                             defaultPackageReadOptions,
                                             readPoseidonPackageCollection)
-import           Poseidon.Utils            (PoseidonIO, logInfo, uniquePO)
+import           Poseidon.Core.Utils            (PoseidonIO, logInfo, uniquePO)
 
 import           Control.Monad.IO.Class    (liftIO)
 import           Data.List                 (group, intercalate, sort, sortBy)
 import           Data.Maybe                (mapMaybe)
-import           Poseidon.ColumnTypesJanno (JannoCoverageOnTargets (..),
+import           Poseidon.Core.ColumnTypesJanno (JannoCoverageOnTargets (..),
                                             JannoEndogenous (JannoEndogenous),
                                             JannoNrSNPs (..))
 import           Text.Layout.Table         (asciiRoundS, column, def,

@@ -1,6 +1,6 @@
-module Poseidon.Generator.SampleGeno where
+module Poseidon.Analysis.Generator.SampleGeno where
 
-import           Poseidon.Generator.Types
+import           Poseidon.Analysis.Generator.Types
 
 import           Control.Monad.Random       (RandomGen, evalRand, fromList,
                                              getStdGen, newStdGen)
@@ -9,7 +9,7 @@ import           Data.Ratio                 ((%))
 import qualified Data.Vector                as V
 import           Pipes
 import           Pipes.Safe
-import           Poseidon.Utils             (LogA, logDebug, logWithEnv)
+import           Poseidon.Core.Utils             (LogA, logDebug, logWithEnv)
 import           SequenceFormats.Eigenstrat
 
 -- admixpops

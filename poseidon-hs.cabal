@@ -21,15 +21,15 @@ library
                         Poseidon.Core.PoseidonVersion, Poseidon.Core.SequencingSource,
                         Poseidon.Core.Chronicle, Poseidon.Core.EntityTypes, Poseidon.Core.ServerClient,
                         Poseidon.Core.ServerHTML, Poseidon.Core.ServerStylesheet, Poseidon.Core.Contributor,
-                        Poseidon.Core.Version,
+                        Poseidon.Core.Version, Poseidon.Core.Utils
                         -- trident CLI
                         Poseidon.CLI.Trident.List, Poseidon.CLI.Trident.Chronicle, Poseidon.CLI.Trident.Serve,
-                        Poseidon.CLI.Trident.Summarise, Poseidon.CLI.Trident.Validate, Poseidon.CLI.Trident.Utils,
+                        Poseidon.CLI.Trident.Summarise, Poseidon.CLI.Trident.Validate,
                         Poseidon.CLI.Trident.Survey, Poseidon.CLI.Trident.Forge, Poseidon.CLI.Trident.Init,
                         Poseidon.CLI.Trident.Rectify, Poseidon.CLI.Trident.Fetch, Poseidon.CLI.Trident.Genoconvert,
                         Poseidon.CLI.Trident.OptparseApplicativeParsers, Poseidon.CLI.Trident.Timetravel,
                         Poseidon.CLI.Trident.Jannocoalesce,
-                        -- Analysis
+                        -- analysis
                         Poseidon.Analysis.FStatsConfig, Poseidon.Analysis.RASconfig, Poseidon.Analysis.Utils,
                         Poseidon.Analysis.Generator.Parsers, Poseidon.Analysis.Generator.Types,
                         Poseidon.Analysis.Generator.SampleGeno, Poseidon.Analysis.Generator.Utils,
@@ -65,14 +65,18 @@ Test-Suite poseidon-tools-tests
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
                         unordered-containers, cassava, containers, process, country,
                         optparse-applicative, parsec
-    other-modules:      Poseidon.PackageSpec, Poseidon.JannoSpec,
-                        Poseidon.BibFileSpec, Poseidon.MathHelpersSpec, Poseidon.JannocoalesceSpec,
-                        Poseidon.SummariseSpec, Poseidon.SurveySpec, Poseidon.GenotypeDataSpec,
-                        Poseidon.EntitiesListSpec, PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
-                        PoseidonGoldenTests.GoldenTestsRunCommands, Poseidon.ChronicleSpec,
-                        Poseidon.SequencingSourceSpec, Poseidon.InterfaceSpec,
+    other-modules:      
+                        -- golden
+                        PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
+                        PoseidonGoldenTests.GoldenTestsRunCommands,
+                        -- core
+                        Poseidon.Core.PackageSpec, Poseidon.Core.JannoSpec, Poseidon.Core.BibFileSpec,
+                        Poseidon.Core.MathHelpersSpec, Poseidon.Core.JannocoalesceSpec, Poseidon.Core.SummariseSpec,
+                        Poseidon.Core.SurveySpec, Poseidon.Core.GenotypeDataSpec, Poseidon.Core.EntitiesListSpec,
+                        Poseidon.Core.ChronicleSpec, Poseidon.Core.SequencingSourceSpec, Poseidon.Core.InterfaceSpec,
+                        -- analysis
                         Poseidon.Analysis.FStatsSpec, Poseidon.Analysis.UtilsSpec
-  default-language:     Haskell2010
+    default-language:   Haskell2010
 
 executable poseidon-devtools
     main-is:            Main-devtools.hs

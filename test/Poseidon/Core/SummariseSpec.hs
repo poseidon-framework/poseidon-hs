@@ -1,6 +1,6 @@
-module Poseidon.SummariseSpec (spec) where
+module Poseidon.Core.SummariseSpec (spec) where
 
-import           Poseidon.CLI.Summarise
+import           Poseidon.CLI.Trident.Summarise
 
 import           Test.Hspec
 
@@ -14,7 +14,7 @@ spec = do
 
 testPaste :: Spec
 testPaste =
-    describe "Poseidon.CLI.Summarise.paste" $ do
+    describe "Poseidon.CLI.Trident.Summarise.paste" $ do
     it "should deal with an empty list correctly" $ do
         paste [] `shouldBe` "no values"
     it "should display singular elements correctly" $ do
@@ -24,7 +24,7 @@ testPaste =
 
 testFrequency :: Spec
 testFrequency =
-    describe "Poseidon.CLI.Summarise.frequency" $ do
+    describe "Poseidon.CLI.Trident.Summarise.frequency" $ do
     it "should calculate frequencies correctly for strings" $ do
         frequency ["ab", "bc", "cd", "cd", "ab"] `shouldBe`
             [("ab", 2), ("cd", 2), ("bc", 1)]
@@ -34,7 +34,7 @@ testFrequency =
 
 testPrintFrequency :: Spec
 testPrintFrequency =
-    describe "Poseidon.CLI.Summarise.printFrequency" $ do
+    describe "Poseidon.CLI.Trident.Summarise.printFrequency" $ do
     it "should deal with an empty list correctly" $ do
         printFrequency ":-)" ([] :: [(Int, Int)]) `shouldBe` "no values"
     it "should display frequencies correctly for strings" $ do
@@ -46,7 +46,7 @@ testPrintFrequency =
 
 testPrintFrequencyMaybe :: Spec
 testPrintFrequencyMaybe =
-    describe "Poseidon.CLI.Summarise.printFrequencyMaybe" $ do
+    describe "Poseidon.CLI.Trident.Summarise.printFrequencyMaybe" $ do
     it "should deal with an empty list correctly" $ do
         printFrequencyMaybe ":-)" ([] :: [(Maybe Int, Int)]) `shouldBe` "no values"
     it "should deal with an effectivly empty list correctly" $ do
@@ -60,7 +60,7 @@ testPrintFrequencyMaybe =
 
 testMaybeShow :: Spec
 testMaybeShow =
-    describe "Poseidon.CLI.Summarise.maybeShow" $ do
+    describe "Poseidon.CLI.Trident.Summarise.maybeShow" $ do
     it "should show a in case of Maybe a" $ do
         maybeShow (Just "test") `shouldBe` "\"test\""
     it "should show \"n/a\" in case of Nothing" $ do

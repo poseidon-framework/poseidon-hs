@@ -21,14 +21,14 @@ To install the development version of poseidon-hs/trident you can follow these s
 
 ### Development Quickstart
 
-The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html) (you can also render it locally using `stack haddock` and open it subsequently using `stack haddock --open`). The critical package is the `Poseidon.Package` module which defines the core functions to read and work with module files.
+The technical haddock documentation for the poseidon-hs Haskell library is available [here](https://poseidon-framework.github.io/poseidon-hs/index.html) (you can also render it locally using `stack haddock` and open it subsequently using `stack haddock --open`). The critical package is the `Poseidon.Core.Package` module which defines the core functions to read and work with module files.
 
 Important packages to look into to understand the architecture of this tool:
 
-* Start with `Poseidon.Package`: It defines the main package format and provides some functions how to access the data inside packages.
-* The `Poseidon.Utils` module only provides the definition of an Exception type.
+* Start with `Poseidon.Core.Package`: It defines the main package format and provides some functions how to access the data inside packages.
+* The `Poseidon.Core.Utils` module only provides the definition of an Exception type.
 * The modules in `CLI/` define the functionality provided in the command line functions for `trident`.
-* The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Package` interface.
+* The `list` command might be a good place to start understanding what's going on and how to use the `Poseidon.Core.Package` interface.
 
 ### Preparing a new stable release
 

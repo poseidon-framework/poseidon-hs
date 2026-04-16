@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Validate where
+module Poseidon.CLI.Trident.Validate where
 
-import           Poseidon.BibFile          (readBibTeXFile)
-import           Poseidon.GenotypeData     (GenotypeDataSpec (..),
+import           Poseidon.Core.BibFile          (readBibTeXFile)
+import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
                                             GenotypeFileSpec (..))
-import           Poseidon.Janno            (JannoRows (..), readJannoFile)
-import           Poseidon.Package          (PackageReadOptions (..),
+import           Poseidon.Core.Janno            (JannoRows (..), readJannoFile)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
                                             PoseidonException (..),
                                             PoseidonYamlStruct (..),
                                             defaultPackageReadOptions,
@@ -15,9 +15,9 @@ import           Poseidon.Package          (PackageReadOptions (..),
                                             makePseudoPackageFromGenotypeData,
                                             readPoseidonPackageCollectionWithSkipIndicator,
                                             validateGeno)
-import           Poseidon.SequencingSource (SeqSourceRows (..),
+import           Poseidon.Core.SequencingSource (SeqSourceRows (..),
                                             readSeqSourceFile)
-import           Poseidon.Utils            (PoseidonIO, logError, logInfo)
+import           Poseidon.Core.Utils            (PoseidonIO, logError, logInfo)
 
 import           Control.Monad             (forM_, unless)
 import           Control.Monad.Catch       (throwM)
@@ -26,8 +26,8 @@ import qualified Data.ByteString           as B
 import qualified Data.ByteString.Char8     as Bchs
 import           Data.List                 (groupBy, intercalate, sortOn)
 import           Data.Yaml                 (decodeEither')
-import           Poseidon.EntityTypes      (IndividualInfo (..))
-import           Poseidon.PoseidonVersion  (VersionedFile (..))
+import           Poseidon.Core.EntityTypes      (IndividualInfo (..))
+import           Poseidon.Core.PoseidonVersion  (VersionedFile (..))
 import           System.Exit               (exitFailure, exitSuccess)
 
 -- | A datatype representing command line options for the validate command

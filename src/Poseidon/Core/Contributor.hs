@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Contributor (
+module Poseidon.Core.Contributor (
     ContributorSpec (..),
     contributorSpecParser,
     ORCID (..),
     renderORCID
 ) where
 
-import           Poseidon.Utils     (showParsecErr)
+import           Poseidon.Core.Utils     (showParsecErr)
 
 import           Control.Monad      (guard, mzero)
 import           Data.Aeson         (FromJSON, ToJSON (..), Value (String),

@@ -1,23 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
+module Poseidon.CLI.Trident.List (runList, ListOptions(..), ListEntity(..), RepoLocationSpec(..)) where
 
-import           Poseidon.BibFile       (authorAbbrvString, parseAuthors)
-import           Poseidon.Contributor   (ContributorSpec (..), renderORCID)
-import           Poseidon.EntityTypes   (HasNameAndVersion (..))
-import           Poseidon.Package       (PackageReadOptions (..),
+import           Poseidon.Core.BibFile       (authorAbbrvString, parseAuthors)
+import           Poseidon.Core.Contributor   (ContributorSpec (..), renderORCID)
+import           Poseidon.Core.EntityTypes   (HasNameAndVersion (..))
+import           Poseidon.Core.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          getAllGroupInfo, getBibliographyInfo,
                                          getExtendedIndividualInfo,
                                          packagesToPackageInfos,
                                          readPoseidonPackageCollection)
-import           Poseidon.ServerClient  (AddColSpec (..), ApiReturnData (..),
+import           Poseidon.Core.ServerClient  (AddColSpec (..), ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          BibliographyInfo (..),
                                          ExtendedIndividualInfo (..),
                                          GroupInfo (..), PackageInfo (..),
                                          processApiResponse, qDefault)
-import           Poseidon.Utils         (PoseidonIO, logInfo, logWarning)
+import           Poseidon.Core.Utils         (PoseidonIO, logInfo, logWarning)
 
 import           Control.Monad          (forM_, when)
 import           Control.Monad.IO.Class (liftIO)

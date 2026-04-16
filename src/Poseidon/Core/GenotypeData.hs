@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Poseidon.GenotypeData where
+module Poseidon.Core.GenotypeData where
 
 import           Paths_poseidon_hs                (version)
-import           Poseidon.ColumnTypesJanno        (GroupName (..),
+import           Poseidon.Core.ColumnTypesJanno        (GroupName (..),
                                                    JannoGenotypePloidy (..),
                                                    PoseidonID (..))
-import           Poseidon.ColumnTypesUtils        (ListColumn (..))
-import           Poseidon.Janno                   (JannoRow (..))
-import           Poseidon.Utils                   (LogA, PoseidonException (..),
+import           Poseidon.Core.ColumnTypesUtils        (ListColumn (..))
+import           Poseidon.Core.Janno                   (JannoRow (..))
+import           Poseidon.Core.Utils                   (LogA, PoseidonException (..),
                                                    PoseidonIO,
                                                    envInputPlinkMode, logDebug,
                                                    logInfo, logWarning,

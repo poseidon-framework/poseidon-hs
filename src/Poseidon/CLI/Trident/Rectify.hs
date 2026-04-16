@@ -1,25 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Rectify (
+module Poseidon.CLI.Trident.Rectify (
     runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
     ) where
 
-import           Poseidon.Contributor     (ContributorSpec (..))
-import           Poseidon.EntityTypes     (HasNameAndVersion (..),
+import           Poseidon.Core.Contributor     (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
                                            PacNameAndVersion (..),
                                            renderNameWithVersion)
-import           Poseidon.GenotypeData    (GenotypeDataSpec (..),
+import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
                                            GenotypeFileSpec (..))
-import           Poseidon.Janno           (writeJannoFileWithoutEmptyCols)
-import           Poseidon.Package         (PackageReadOptions (..),
+import           Poseidon.Core.Janno           (writeJannoFileWithoutEmptyCols)
+import           Poseidon.Core.Package         (PackageReadOptions (..),
                                            PoseidonPackage (..),
                                            defaultPackageReadOptions,
                                            readPoseidonPackageCollection,
                                            writePoseidonPackage)
-import           Poseidon.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Utils           (PoseidonIO, getChecksum, logDebug,
+import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
+import           Poseidon.Core.Utils           (PoseidonIO, getChecksum, logDebug,
                                            logInfo, logWarning)
-import           Poseidon.Version         (VersionComponent (..),
+import           Poseidon.Core.Version         (VersionComponent (..),
                                            updateThreeComponentVersion)
 
 import           Control.DeepSeq          ((<$!!>))

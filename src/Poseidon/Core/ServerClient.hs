@@ -2,7 +2,7 @@
 {-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.ServerClient (
+module Poseidon.Core.ServerClient (
     ServerApiReturnType(..),
     ApiReturnData(..),
     processApiResponse,
@@ -15,12 +15,12 @@ module Poseidon.ServerClient (
 ) where
 
 import           Paths_poseidon_hs      (version)
-import           Poseidon.Contributor   (ContributorSpec (..))
-import           Poseidon.EntityTypes   (HasNameAndVersion (..),
+import           Poseidon.Core.Contributor   (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes   (HasNameAndVersion (..),
                                          IndividualInfo (..),
                                          IndividualInfoCollection,
                                          PacNameAndVersion (..))
-import           Poseidon.Utils         (PoseidonException (..), PoseidonIO,
+import           Poseidon.Core.Utils         (PoseidonException (..), PoseidonIO,
                                          logError, logInfo)
 
 import           Control.Exception      (catch, throwIO)

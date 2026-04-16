@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Poseidon.ServerStylesheet (stylesBS) where
+module Poseidon.Core.ServerStylesheet (stylesBS) where
 
 import           Data.ByteString.Lazy as BL
 import qualified Data.FileEmbed       as FE

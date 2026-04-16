@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Poseidon.AccessionIDs where
+module Poseidon.Core.AccessionIDs where
 
 import qualified Data.Text       as T
 import           GHC.Generics    (Generic)

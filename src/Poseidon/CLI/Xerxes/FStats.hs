@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.Analysis.CLI.FStats (
+module Poseidon.CLI.Xerxes.FStats (
       FStatSpec(..)
     , P.ParseError
     , P.runParser
@@ -44,21 +44,21 @@ import           Pipes                          (cat, for, yield, (>->))
 import           Pipes.Group                    (chunksOf, foldsM, groupsBy)
 import qualified Pipes.Prelude                  as P
 import           Pipes.Safe                     (runSafeT)
-import           Poseidon.ColumnTypesJanno      (JannoGenotypePloidy (..))
-import           Poseidon.EntityTypes           (IndividualInfo (..),
+import           Poseidon.Core.ColumnTypesJanno      (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes           (IndividualInfo (..),
                                                  PoseidonEntity (..),
                                                  checkIfAllEntitiesExist,
                                                  determineRelevantPackages,
                                                  resolveUniqueEntityIndices,
                                                  underlyingEntity)
-import           Poseidon.Package               (PackageReadOptions (..),
+import           Poseidon.Core.Package               (PackageReadOptions (..),
                                                  PoseidonPackage (..),
                                                  defaultPackageReadOptions,
                                                  getJointGenotypeData,
                                                  getJointIndividualInfo,
                                                  getJointJanno,
                                                  readPoseidonPackageCollection)
-import           Poseidon.Utils                 (PoseidonException (..),
+import           Poseidon.Core.Utils                 (PoseidonException (..),
                                                  PoseidonIO, envErrorLength,
                                                  envLogAction, logInfo,
                                                  logWithEnv)

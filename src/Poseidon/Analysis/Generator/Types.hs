@@ -1,4 +1,4 @@
-module Poseidon.Generator.Types where
+module Poseidon.Analysis.Generator.Types where
 
 import           Data.List (intercalate)
 

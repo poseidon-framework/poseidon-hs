@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.Analysis.CLI.FStats            (FstatsOptions (..),
+import           Poseidon.CLI.Xerxes.FStats            (FstatsOptions (..),
                                                           runFstats, runParser)
-import           Poseidon.Analysis.CLI.RAS               (FreqSpec (..),
+import           Poseidon.CLI.Xerxes.RAS               (FreqSpec (..),
                                                           RASOptions (..),
                                                           runRAS)
 import           Poseidon.Analysis.FStatsConfig          (FStatInput (..),
                                                           fStatSpecParser)
 import           Poseidon.Analysis.Utils                 (JackknifeMode (..))
-import           Poseidon.Generator.CLI.AdmixPops        (AdmixPopsMethodSettings (..),
+import           Poseidon.CLI.Xerxes.AdmixPops        (AdmixPopsMethodSettings (..),
                                                           AdmixPopsOptions (..),
                                                           runAdmixPops)
-import           Poseidon.Generator.Parsers              (readIndWithAdmixtureSetString)
-import           Poseidon.Generator.Types                (RequestedInd)
+import           Poseidon.Analysis.Generator.Parsers              (readIndWithAdmixtureSetString)
+import           Poseidon.Analysis.Generator.Types                (RequestedInd)
 
 import           Control.Applicative                     ((<|>))
 import           Control.Exception                       (catch)
@@ -21,10 +21,10 @@ import           Data.List                               (intercalate)
 import           Data.Version                            (showVersion)
 import qualified Options.Applicative                     as OP
 import           Paths_poseidon_hs                       (version)
-import           Poseidon.CLI.OptparseApplicativeParsers
-import           Poseidon.PoseidonVersion                (showPoseidonVersion,
+import           Poseidon.CLI.Trident.OptparseApplicativeParsers
+import           Poseidon.Core.PoseidonVersion                (showPoseidonVersion,
                                                           validPoseidonVersions)
-import           Poseidon.Utils                          (ErrorLength (..),
+import           Poseidon.Core.Utils                          (ErrorLength (..),
                                                           LogMode (..),
                                                           PlinkPopNameMode (..),
                                                           PoseidonException (..),

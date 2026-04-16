@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Fetch where
+module Poseidon.CLI.Trident.Fetch where
 
-import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
+import           Poseidon.Core.EntityTypes   (EntityInput, HasNameAndVersion (..),
                                          PacNameAndVersion (..), PoseidonEntity,
                                          checkIfAllEntitiesExist,
                                          determineRelevantPackages,
@@ -10,18 +10,18 @@ import           Poseidon.EntityTypes   (EntityInput, HasNameAndVersion (..),
                                          makePacNameAndVersion,
                                          readEntityInputs,
                                          renderNameWithVersion)
-import           Poseidon.MathHelpers   (roundTo, roundToStr)
-import           Poseidon.Package       (PackageReadOptions (..),
+import           Poseidon.Core.MathHelpers   (roundTo, roundToStr)
+import           Poseidon.Core.Package       (PackageReadOptions (..),
                                          defaultPackageReadOptions,
                                          readPoseidonPackageCollection)
-import           Poseidon.ServerClient  (ApiReturnData (..),
+import           Poseidon.Core.ServerClient  (ApiReturnData (..),
                                          ArchiveEndpoint (..),
                                          ExtendedIndividualInfo (..),
                                          PackageInfo (..),
                                          extIndInfo2IndInfoCollection,
                                          processApiResponse, qDefault,
                                          qPacVersion, (+&+))
-import           Poseidon.Utils         (LogA, PoseidonException (..),
+import           Poseidon.Core.Utils         (LogA, PoseidonException (..),
                                          PoseidonIO, envLogAction, logDebug,
                                          logInfo, logWithEnv, padLeft)
 
