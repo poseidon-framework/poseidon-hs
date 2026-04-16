@@ -19,16 +19,16 @@
 </span><a href="Poseidon.Analysis.RASconfig.html#popConfigOutgroup"><span class="hs-identifier hs-var hs-var">popConfigOutgroup</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.Core.EntityTypes.html#PoseidonEntity"><span class="hs-identifier hs-type">PoseidonEntity</span></a></span><span>
 </span><span id="line-16"></span><span>    </span><span class="hs-special">}</span><span>
 </span><span id="line-17"></span><span>
-</span><span id="line-18"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679753102"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.RASconfig.html#PopConfig"><span class="hs-identifier hs-type">PopConfig</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-19"></span><span>    </span><span id="local-6989586621679753130"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PopConfig
+</span><span id="line-18"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679753115"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.RASconfig.html#PopConfig"><span class="hs-identifier hs-type">PopConfig</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>    </span><span id="local-6989586621679753143"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser PopConfig
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Object -&gt; Parser PopConfig) -&gt; Value -&gt; Parser PopConfig
 forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 </span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;PopConfigYamlStruct&quot;</span></span><span> </span><span class="annot"><span class="annottext">((Object -&gt; Parser PopConfig) -&gt; Value -&gt; Parser PopConfig)
 -&gt; (Object -&gt; Parser PopConfig) -&gt; Value -&gt; Parser PopConfig
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679753131"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679753131"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[GroupDef]
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679753144"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679753144"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[GroupDef]
 -&gt; EntitiesList
 -&gt; EntitiesList
 -&gt; Maybe PoseidonEntity
@@ -44,7 +44,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
      (EntitiesList -&gt; EntitiesList -&gt; Maybe PoseidonEntity -&gt; PopConfig)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679753131"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe Object)
+</span><a href="#local-6989586621679753144"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe Object)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;groupDefs&quot;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Maybe Object)
@@ -68,7 +68,7 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679753131"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser EntitiesList
+</span><a href="#local-6989586621679753144"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser EntitiesList
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;popLefts&quot;</span></span><span>
@@ -78,7 +78,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679753131"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser EntitiesList
+</span><a href="#local-6989586621679753144"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser EntitiesList
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;popRights&quot;</span></span><span>
@@ -87,7 +87,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679753131"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe PoseidonEntity)
+</span><a href="#local-6989586621679753144"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe PoseidonEntity)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;outgroup&quot;</span></span><span>

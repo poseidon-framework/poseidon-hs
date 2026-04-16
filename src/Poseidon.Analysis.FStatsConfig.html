@@ -34,7 +34,7 @@
 </span><span id="line-34"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="FST"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FST"><span class="hs-identifier hs-var">FST</span></a></span></span><span>
 </span><span id="line-35"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="F3vanilla"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#F3vanilla"><span class="hs-identifier hs-var">F3vanilla</span></a></span></span><span>
 </span><span id="line-36"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="F2vanilla"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#F2vanilla"><span class="hs-identifier hs-var">F2vanilla</span></a></span></span><span>
-</span><span id="line-37"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679756964"><span id="local-6989586621679756966"><span id="local-6989586621679756969"><span class="annot"><span class="annottext">Int -&gt; FStatType -&gt; ShowS
+</span><span id="line-37"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679756977"><span id="local-6989586621679756979"><span id="local-6989586621679756982"><span class="annot"><span class="annottext">Int -&gt; FStatType -&gt; ShowS
 [FStatType] -&gt; ShowS
 FStatType -&gt; String
 (Int -&gt; FStatType -&gt; ShowS)
@@ -49,7 +49,7 @@ $cshow :: FStatType -&gt; String
 show :: FStatType -&gt; String
 $cshowList :: [FStatType] -&gt; ShowS
 showList :: [FStatType] -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679756973"><span id="local-6989586621679756976"><span id="local-6989586621679756979"><span id="local-6989586621679756992"><span class="annot"><span class="annottext">ReadPrec [FStatType]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679756986"><span id="local-6989586621679756989"><span id="local-6989586621679756992"><span id="local-6989586621679757005"><span class="annot"><span class="annottext">ReadPrec [FStatType]
 ReadPrec FStatType
 Int -&gt; ReadS FStatType
 ReadS [FStatType]
@@ -69,7 +69,7 @@ $creadPrec :: ReadPrec FStatType
 readPrec :: ReadPrec FStatType
 $creadListPrec :: ReadPrec [FStatType]
 readListPrec :: ReadPrec [FStatType]
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679756996"><span id="local-6989586621679756998"><span class="annot"><span class="annottext">FStatType -&gt; FStatType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757009"><span id="local-6989586621679757011"><span class="annot"><span class="annottext">FStatType -&gt; FStatType -&gt; Bool
 (FStatType -&gt; FStatType -&gt; Bool)
 -&gt; (FStatType -&gt; FStatType -&gt; Bool) -&gt; Eq FStatType
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -81,7 +81,7 @@ $c/= :: FStatType -&gt; FStatType -&gt; Bool
 </span><span id="line-38"></span><span>
 </span><span id="line-39"></span><span class="annot"><span class="hs-comment">-- | A datatype to represent F-Statistics to be computed from genotype data.</span></span><span>
 </span><span id="line-40"></span><span class="hs-keyword">data</span><span> </span><span id="FStatSpec"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FStatSpec"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatType"><span class="hs-identifier hs-type">FStatType</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Core.EntityTypes.html#PoseidonEntity"><span class="hs-identifier hs-type">PoseidonEntity</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#AscertainmentSpec"><span class="hs-identifier hs-type">AscertainmentSpec</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-41"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757004"><span id="local-6989586621679757013"><span class="annot"><span class="annottext">FStatSpec -&gt; FStatSpec -&gt; Bool
+</span><span id="line-41"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757017"><span id="local-6989586621679757026"><span class="annot"><span class="annottext">FStatSpec -&gt; FStatSpec -&gt; Bool
 (FStatSpec -&gt; FStatSpec -&gt; Bool)
 -&gt; (FStatSpec -&gt; FStatSpec -&gt; Bool) -&gt; Eq FStatSpec
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -89,7 +89,7 @@ $c== :: FStatSpec -&gt; FStatSpec -&gt; Bool
 == :: FStatSpec -&gt; FStatSpec -&gt; Bool
 $c/= :: FStatSpec -&gt; FStatSpec -&gt; Bool
 /= :: FStatSpec -&gt; FStatSpec -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757019"><span id="local-6989586621679757030"><span id="local-6989586621679757034"><span class="annot"><span class="annottext">Int -&gt; FStatSpec -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757032"><span id="local-6989586621679757043"><span id="local-6989586621679757047"><span class="annot"><span class="annottext">Int -&gt; FStatSpec -&gt; ShowS
 [FStatSpec] -&gt; ShowS
 FStatSpec -&gt; String
 (Int -&gt; FStatSpec -&gt; ShowS)
@@ -117,7 +117,7 @@ showList :: [FStatSpec] -&gt; ShowS
 </span><span id="line-48"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="ascUpperFreqSpec"><span class="annot"><span class="annottext">AscertainmentSpec -&gt; Double
 </span><a href="Poseidon.Analysis.FStatsConfig.html#ascUpperFreqSpec"><span class="hs-identifier hs-var hs-var">ascUpperFreqSpec</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
 </span><span id="line-49"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-50"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757044"><span id="local-6989586621679757053"><span id="local-6989586621679757056"><span class="annot"><span class="annottext">Int -&gt; AscertainmentSpec -&gt; ShowS
+</span><span id="line-50"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757057"><span id="local-6989586621679757066"><span id="local-6989586621679757069"><span class="annot"><span class="annottext">Int -&gt; AscertainmentSpec -&gt; ShowS
 [AscertainmentSpec] -&gt; ShowS
 AscertainmentSpec -&gt; String
 (Int -&gt; AscertainmentSpec -&gt; ShowS)
@@ -132,7 +132,7 @@ $cshow :: AscertainmentSpec -&gt; String
 show :: AscertainmentSpec -&gt; String
 $cshowList :: [AscertainmentSpec] -&gt; ShowS
 showList :: [AscertainmentSpec] -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757059"><span id="local-6989586621679757067"><span class="annot"><span class="annottext">AscertainmentSpec -&gt; AscertainmentSpec -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757072"><span id="local-6989586621679757080"><span class="annot"><span class="annottext">AscertainmentSpec -&gt; AscertainmentSpec -&gt; Bool
 (AscertainmentSpec -&gt; AscertainmentSpec -&gt; Bool)
 -&gt; (AscertainmentSpec -&gt; AscertainmentSpec -&gt; Bool)
 -&gt; Eq AscertainmentSpec
@@ -153,7 +153,7 @@ $c/= :: AscertainmentSpec -&gt; AscertainmentSpec -&gt; Bool
 </span><span id="line-58"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="fcFStatSpecs"><span class="annot"><span class="annottext">FStatConfigYaml -&gt; [MultiFStatSpec]
 </span><a href="Poseidon.Analysis.FStatsConfig.html#fcFStatSpecs"><span class="hs-identifier hs-var hs-var">fcFStatSpecs</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#MultiFStatSpec"><span class="hs-identifier hs-type">MultiFStatSpec</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-59"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-60"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757077"><span id="local-6989586621679757084"><span id="local-6989586621679757088"><span class="annot"><span class="annottext">Int -&gt; FStatConfigYaml -&gt; ShowS
+</span><span id="line-60"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757090"><span id="local-6989586621679757097"><span id="local-6989586621679757101"><span class="annot"><span class="annottext">Int -&gt; FStatConfigYaml -&gt; ShowS
 [FStatConfigYaml] -&gt; ShowS
 FStatConfigYaml -&gt; String
 (Int -&gt; FStatConfigYaml -&gt; ShowS)
@@ -184,7 +184,7 @@ showList :: [FStatConfigYaml] -&gt; ShowS
 </span><span id="line-68"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="mFstatAscertainment"><span class="annot"><span class="annottext">MultiFStatSpec -&gt; Maybe AscertainmentSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#mFstatAscertainment"><span class="hs-identifier hs-var hs-var">mFstatAscertainment</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#AscertainmentSpec"><span class="hs-identifier hs-type">AscertainmentSpec</span></a></span><span>
 </span><span id="line-69"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-70"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757106"><span id="local-6989586621679757117"><span id="local-6989586621679757120"><span class="annot"><span class="annottext">Int -&gt; MultiFStatSpec -&gt; ShowS
+</span><span id="line-70"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679757119"><span id="local-6989586621679757130"><span id="local-6989586621679757133"><span class="annot"><span class="annottext">Int -&gt; MultiFStatSpec -&gt; ShowS
 [MultiFStatSpec] -&gt; ShowS
 MultiFStatSpec -&gt; String
 (Int -&gt; MultiFStatSpec -&gt; ShowS)
@@ -201,9 +201,9 @@ $cshowList :: [MultiFStatSpec] -&gt; ShowS
 showList :: [MultiFStatSpec] -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-71"></span><span>
-</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757124"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-type">FStatConfigYaml</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-73"></span><span>    </span><span id="local-6989586621679757146"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FStatConfigYaml
-</span><a href="#local-6989586621679757146"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757137"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-type">FStatConfigYaml</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>    </span><span id="local-6989586621679757159"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FStatConfigYaml
+</span><a href="#local-6989586621679757159"><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; (Object -&gt; Parser FStatConfigYaml)
 -&gt; Value
 -&gt; Parser FStatConfigYaml
@@ -215,15 +215,15 @@ forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser FStatConfigYaml
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757148"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757148"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[GroupDef] -&gt; [MultiFStatSpec] -&gt; FStatConfigYaml
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757161"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679757161"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[GroupDef] -&gt; [MultiFStatSpec] -&gt; FStatConfigYaml
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-var">FStatConfigYaml</span></a></span><span>
 </span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">([GroupDef] -&gt; [MultiFStatSpec] -&gt; FStatConfigYaml)
 -&gt; Parser [GroupDef]
 -&gt; Parser ([MultiFStatSpec] -&gt; FStatConfigYaml)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757148"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe Object)
+</span><a href="#local-6989586621679757161"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe Object)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;groupDefs&quot;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Maybe Object)
@@ -245,13 +245,13 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span>  </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757148"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [MultiFStatSpec]
+</span><a href="#local-6989586621679757161"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [MultiFStatSpec]
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;fstats&quot;</span></span><span>
 </span><span id="line-76"></span><span>
-</span><span id="line-77"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757153"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#MultiFStatSpec"><span class="hs-identifier hs-type">MultiFStatSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-78"></span><span>    </span><span id="local-6989586621679757186"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser MultiFStatSpec
+</span><span id="line-77"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757166"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#MultiFStatSpec"><span class="hs-identifier hs-type">MultiFStatSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-78"></span><span>    </span><span id="local-6989586621679757199"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser MultiFStatSpec
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; (Object -&gt; Parser MultiFStatSpec)
 -&gt; Value
@@ -264,8 +264,8 @@ forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser MultiFStatSpec
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757187"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FStatType
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757200"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity]
 -&gt; [PoseidonEntity]
 -&gt; [PoseidonEntity]
@@ -290,7 +290,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
       -&gt; MultiFStatSpec)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser FStatType
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser FStatType
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;type&quot;</span></span><span>
@@ -311,7 +311,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [PoseidonEntity]
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [PoseidonEntity]
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;a&quot;</span></span><span>
@@ -328,7 +328,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;b&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Maybe [PoseidonEntity])
@@ -357,7 +357,7 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;c&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Maybe [PoseidonEntity])
@@ -384,7 +384,7 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe [PoseidonEntity])
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;d&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Maybe [PoseidonEntity])
@@ -409,13 +409,13 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757187"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe AscertainmentSpec)
+</span><a href="#local-6989586621679757200"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe AscertainmentSpec)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;ascertainment&quot;</span></span><span>
 </span><span id="line-85"></span><span>
-</span><span id="line-86"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757190"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#AscertainmentSpec"><span class="hs-identifier hs-type">AscertainmentSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-87"></span><span>    </span><span id="local-6989586621679757205"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser AscertainmentSpec
+</span><span id="line-86"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757203"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#AscertainmentSpec"><span class="hs-identifier hs-type">AscertainmentSpec</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>    </span><span id="local-6989586621679757218"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser AscertainmentSpec
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 -&gt; (Object -&gt; Parser AscertainmentSpec)
 -&gt; Value
@@ -428,8 +428,8 @@ forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
 -&gt; Value
 -&gt; Parser AscertainmentSpec
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757206"><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757206"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe PoseidonEntity
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757219"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679757219"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe PoseidonEntity
 -&gt; PoseidonEntity -&gt; Double -&gt; Double -&gt; AscertainmentSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#AscertainmentSpec"><span class="hs-identifier hs-var">AscertainmentSpec</span></a></span><span>
 </span><span id="line-88"></span><span>        </span><span class="annot"><span class="annottext">(Maybe PoseidonEntity
@@ -438,7 +438,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 -&gt; Parser (PoseidonEntity -&gt; Double -&gt; Double -&gt; AscertainmentSpec)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757206"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe PoseidonEntity)
+</span><a href="#local-6989586621679757219"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser (Maybe PoseidonEntity)
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 </span><span class="hs-operator hs-var">.:?</span></span><span> </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;outgroup&quot;</span></span><span>
@@ -448,7 +448,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser (Maybe a)
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757206"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser PoseidonEntity
+</span><a href="#local-6989586621679757219"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser PoseidonEntity
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;reference&quot;</span></span><span>
@@ -457,7 +457,7 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757206"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Double
+</span><a href="#local-6989586621679757219"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Double
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;lower&quot;</span></span><span>
@@ -466,22 +466,22 @@ forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object
-</span><a href="#local-6989586621679757206"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Double
+</span><a href="#local-6989586621679757219"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser Double
 forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
 </span><span class="hs-operator hs-var">.:</span></span><span>  </span><span class="annot"><span class="annottext">Key
 </span><span class="hs-string">&quot;upper&quot;</span></span><span>
 </span><span id="line-92"></span><span>
-</span><span id="line-93"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757209"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatType"><span class="hs-identifier hs-type">FStatType</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-94"></span><span>    </span><span id="local-6989586621679757245"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FStatType
+</span><span id="line-93"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679757222"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatType"><span class="hs-identifier hs-type">FStatType</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-94"></span><span>    </span><span id="local-6989586621679757258"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser FStatType
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Text -&gt; Parser FStatType) -&gt; Value -&gt; Parser FStatType
 forall a. String -&gt; (Text -&gt; Parser a) -&gt; Value -&gt; Parser a
 </span><span class="hs-identifier hs-var">withText</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;FStatType&quot;</span></span><span> </span><span class="annot"><span class="annottext">((Text -&gt; Parser FStatType) -&gt; Value -&gt; Parser FStatType)
 -&gt; (Text -&gt; Parser FStatType) -&gt; Value -&gt; Parser FStatType
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757246"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679757246"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621679757246"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757259"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679757259"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679757259"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-95"></span><span>        </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;F4&quot;</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; Parser FStatType
 forall a. a -&gt; Parser a
@@ -552,29 +552,29 @@ forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
 </span><span id="line-107"></span><span>
 </span><span id="line-108"></span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#processYamlConfig"><span class="hs-identifier hs-type">processYamlConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-type">FStatConfigYaml</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Utils.html#XerxesException"><span class="hs-identifier hs-type">XerxesException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Utils.html#GroupDef"><span class="hs-identifier hs-type">GroupDef</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
 </span><span id="line-109"></span><span id="processYamlConfig"><span class="annot"><span class="annottext">processYamlConfig :: FStatConfigYaml -&gt; Either XerxesException ([GroupDef], [FStatSpec])
-</span><a href="Poseidon.Analysis.FStatsConfig.html#processYamlConfig"><span class="hs-identifier hs-var hs-var">processYamlConfig</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-type">FStatConfigYaml</span></a></span><span> </span><span id="local-6989586621679757248"><span class="annot"><span class="annottext">[GroupDef]
-</span><a href="#local-6989586621679757248"><span class="hs-identifier hs-var">groupDefs</span></a></span></span><span> </span><span id="local-6989586621679757249"><span class="annot"><span class="annottext">[MultiFStatSpec]
-</span><a href="#local-6989586621679757249"><span class="hs-identifier hs-var">multiFstats</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-110"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679757286"><span class="annot"><span class="annottext">eitherFStats :: [Either XerxesException FStatSpec]
-</span><a href="#local-6989586621679757286"><span class="hs-identifier hs-var hs-var">eitherFStats</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-111"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#MultiFStatSpec"><span class="hs-identifier hs-type">MultiFStatSpec</span></a></span><span> </span><span id="local-6989586621679757287"><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679757288"><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span></span><span> </span><span id="local-6989586621679757289"><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span></span><span> </span><span id="local-6989586621679757290"><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757290"><span class="hs-identifier hs-var">cList</span></a></span></span><span> </span><span id="local-6989586621679757291"><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757291"><span class="hs-identifier hs-var">dList</span></a></span></span><span> </span><span id="local-6989586621679757292"><span class="annot"><span class="annottext">Maybe AscertainmentSpec
-</span><a href="#local-6989586621679757292"><span class="hs-identifier hs-var">maybeAsc</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[MultiFStatSpec]
-</span><a href="#local-6989586621679757249"><span class="hs-identifier hs-var">multiFstats</span></a></span><span>
+</span><a href="Poseidon.Analysis.FStatsConfig.html#processYamlConfig"><span class="hs-identifier hs-var hs-var">processYamlConfig</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatConfigYaml"><span class="hs-identifier hs-type">FStatConfigYaml</span></a></span><span> </span><span id="local-6989586621679757261"><span class="annot"><span class="annottext">[GroupDef]
+</span><a href="#local-6989586621679757261"><span class="hs-identifier hs-var">groupDefs</span></a></span></span><span> </span><span id="local-6989586621679757262"><span class="annot"><span class="annottext">[MultiFStatSpec]
+</span><a href="#local-6989586621679757262"><span class="hs-identifier hs-var">multiFstats</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679757299"><span class="annot"><span class="annottext">eitherFStats :: [Either XerxesException FStatSpec]
+</span><a href="#local-6989586621679757299"><span class="hs-identifier hs-var hs-var">eitherFStats</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-111"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#MultiFStatSpec"><span class="hs-identifier hs-type">MultiFStatSpec</span></a></span><span> </span><span id="local-6989586621679757300"><span class="annot"><span class="annottext">FStatType
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679757301"><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span></span><span> </span><span id="local-6989586621679757302"><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span></span><span> </span><span id="local-6989586621679757303"><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">cList</span></a></span></span><span> </span><span id="local-6989586621679757304"><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757304"><span class="hs-identifier hs-var">dList</span></a></span></span><span> </span><span id="local-6989586621679757305"><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">maybeAsc</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[MultiFStatSpec]
+</span><a href="#local-6989586621679757262"><span class="hs-identifier hs-var">multiFstats</span></a></span><span>
 </span><span id="line-112"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; Int
 </span><a href="Poseidon.Analysis.FStatsConfig.html#fstatSlotLength"><span class="hs-identifier hs-var">fstatSlotLength</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-113"></span><span>                </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-114"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
 </span><span id="line-115"></span><span>                        </span><span class="hs-special">[</span><span class="annot"><span class="annottext">XerxesException -&gt; Either XerxesException FStatSpec
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(XerxesException -&gt; Either XerxesException FStatSpec)
@@ -592,7 +592,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; statistics&quot;</span></span><span class="hs-special">]</span><span>
@@ -605,23 +605,23 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity] -&gt; Maybe AscertainmentSpec -&gt; FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757298"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
-</span><a href="#local-6989586621679757292"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757298"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757298"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757311"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757311"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757311"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-118"></span><span>                </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-119"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
 </span><span id="line-120"></span><span>                        </span><span class="hs-special">[</span><span class="annot"><span class="annottext">XerxesException -&gt; Either XerxesException FStatSpec
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(XerxesException -&gt; Either XerxesException FStatSpec)
@@ -639,7 +639,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; statistics&quot;</span></span><span class="hs-special">]</span><span>
@@ -652,31 +652,31 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity] -&gt; Maybe AscertainmentSpec -&gt; FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
-</span><a href="#local-6989586621679757292"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757300"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757301"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757313"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757314"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757313"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757313"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757314"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757314"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-123"></span><span>                </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">3</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-124"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757290"><span class="hs-identifier hs-var">cList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
+</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">cList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
 </span><span id="line-125"></span><span>                        </span><span class="hs-special">[</span><span class="annot"><span class="annottext">XerxesException -&gt; Either XerxesException FStatSpec
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(XerxesException -&gt; Either XerxesException FStatSpec)
@@ -694,7 +694,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; statistics&quot;</span></span><span class="hs-special">]</span><span>
@@ -707,39 +707,39 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity] -&gt; Maybe AscertainmentSpec -&gt; FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757304"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
-</span><a href="#local-6989586621679757292"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757302"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757303"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757304"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757304"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757290"><span class="hs-identifier hs-var">cList</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757315"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757316"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757317"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757315"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757315"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757316"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757316"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757317"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757317"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">cList</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-128"></span><span>                </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">4</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-129"></span><span>                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757290"><span class="hs-identifier hs-var">cList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">cList</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757291"><span class="hs-identifier hs-var">dList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
+</span><a href="#local-6989586621679757304"><span class="hs-identifier hs-var">dList</span></a></span><span> </span><span class="hs-keyword">then</span><span>
 </span><span id="line-130"></span><span>                        </span><span class="hs-special">[</span><span class="annot"><span class="annottext">XerxesException -&gt; Either XerxesException FStatSpec
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(XerxesException -&gt; Either XerxesException FStatSpec)
@@ -757,7 +757,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; statistics&quot;</span></span><span class="hs-special">]</span><span>
@@ -770,63 +770,63 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity] -&gt; Maybe AscertainmentSpec -&gt; FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757287"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757306"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757307"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757308"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
-</span><a href="#local-6989586621679757292"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757305"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757288"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757306"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757306"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757289"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757307"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757307"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757290"><span class="hs-identifier hs-var">cList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757308"><span class="annot"><span class="annottext">PoseidonEntity
-</span><a href="#local-6989586621679757308"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757291"><span class="hs-identifier hs-var">dList</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679757300"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757318"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757319"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757320"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757321"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757305"><span class="hs-identifier hs-var">maybeAsc</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679757318"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757318"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757301"><span class="hs-identifier hs-var">aList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757319"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757319"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757302"><span class="hs-identifier hs-var">bList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757320"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757320"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757303"><span class="hs-identifier hs-var">cList</span></a></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679757321"><span class="annot"><span class="annottext">PoseidonEntity
+</span><a href="#local-6989586621679757321"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757304"><span class="hs-identifier hs-var">dList</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-133"></span><span>                </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; [Either XerxesException FStatSpec]
 forall a. HasCallStack =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;should never happen&quot;</span></span><span>
-</span><span id="line-134"></span><span>    </span><span id="local-6989586621679757310"><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757310"><span class="hs-identifier hs-var">fStats</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Either XerxesException FStatSpec]
+</span><span id="line-134"></span><span>    </span><span id="local-6989586621679757323"><span class="annot"><span class="annottext">[FStatSpec]
+</span><a href="#local-6989586621679757323"><span class="hs-identifier hs-var">fStats</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Either XerxesException FStatSpec]
 -&gt; Either XerxesException [FStatSpec]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a.
 (Traversable t, Monad m) =&gt;
 t (m a) -&gt; m (t a)
 forall (m :: * -&gt; *) a. Monad m =&gt; [m a] -&gt; m [a]
 </span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="annot"><span class="annottext">[Either XerxesException FStatSpec]
-</span><a href="#local-6989586621679757286"><span class="hs-identifier hs-var">eitherFStats</span></a></span><span>
+</span><a href="#local-6989586621679757299"><span class="hs-identifier hs-var">eitherFStats</span></a></span><span>
 </span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec])
 -&gt; Either XerxesException ([GroupDef], [FStatSpec])
 forall a. a -&gt; Either XerxesException a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[GroupDef]
-</span><a href="#local-6989586621679757248"><span class="hs-identifier hs-var">groupDefs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757310"><span class="hs-identifier hs-var">fStats</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679757261"><span class="hs-identifier hs-var">groupDefs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[FStatSpec]
+</span><a href="#local-6989586621679757323"><span class="hs-identifier hs-var">fStats</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-136"></span><span>
-</span><span id="line-137"></span><span id="local-6989586621679756799"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFstatsYamlConfig"><span class="hs-identifier hs-type">readFstatsYamlConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756799"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756799"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Utils.html#GroupDef"><span class="hs-identifier hs-type">GroupDef</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-137"></span><span id="local-6989586621679756812"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFstatsYamlConfig"><span class="hs-identifier hs-type">readFstatsYamlConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756812"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756812"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Utils.html#GroupDef"><span class="hs-identifier hs-type">GroupDef</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
 </span><span id="line-138"></span><span id="readFstatsYamlConfig"><span class="annot"><span class="annottext">readFstatsYamlConfig :: forall (m :: * -&gt; *).
 MonadIO m =&gt;
 String -&gt; m ([GroupDef], [FStatSpec])
-</span><a href="Poseidon.Analysis.FStatsConfig.html#readFstatsYamlConfig"><span class="hs-identifier hs-var hs-var">readFstatsYamlConfig</span></a></span></span><span> </span><span id="local-6989586621679757327"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757327"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-139"></span><span>    </span><span id="local-6989586621679757328"><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679757328"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; m ByteString
+</span><a href="Poseidon.Analysis.FStatsConfig.html#readFstatsYamlConfig"><span class="hs-identifier hs-var hs-var">readFstatsYamlConfig</span></a></span></span><span> </span><span id="local-6989586621679757340"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757340"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-139"></span><span>    </span><span id="local-6989586621679757341"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; m ByteString
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO ByteString -&gt; m ByteString) -&gt; IO ByteString -&gt; m ByteString
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ByteString
 </span><span class="hs-identifier hs-var">B.readFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757327"><span class="hs-identifier hs-var">fn</span></a></span><span>
+</span><a href="#local-6989586621679757340"><span class="hs-identifier hs-var">fn</span></a></span><span>
 </span><span id="line-140"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either ParseException FStatConfigYaml
 forall a. FromJSON a =&gt; ByteString -&gt; Either ParseException a
 </span><span class="hs-identifier hs-var">decodeEither'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679757328"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-141"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757330"><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679757330"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-141"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757343"><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679757343"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec]))
@@ -841,16 +841,16 @@ forall e a. Exception e =&gt; e -&gt; IO a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; XerxesException
 </span><a href="Poseidon.Analysis.Utils.html#PopConfigYamlException"><span class="hs-identifier hs-var">PopConfigYamlException</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757327"><span class="hs-identifier hs-var">fn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseException -&gt; String
+</span><a href="#local-6989586621679757340"><span class="hs-identifier hs-var">fn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679757330"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-142"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757332"><span class="annot"><span class="annottext">FStatConfigYaml
-</span><a href="#local-6989586621679757332"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatConfigYaml -&gt; Either XerxesException ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757343"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757345"><span class="annot"><span class="annottext">FStatConfigYaml
+</span><a href="#local-6989586621679757345"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatConfigYaml -&gt; Either XerxesException ([GroupDef], [FStatSpec])
 </span><a href="Poseidon.Analysis.FStatsConfig.html#processYamlConfig"><span class="hs-identifier hs-var">processYamlConfig</span></a></span><span> </span><span class="annot"><span class="annottext">FStatConfigYaml
-</span><a href="#local-6989586621679757332"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-143"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757333"><span class="annot"><span class="annottext">XerxesException
-</span><a href="#local-6989586621679757333"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757345"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-143"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757346"><span class="annot"><span class="annottext">XerxesException
+</span><a href="#local-6989586621679757346"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO ([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec]))
@@ -864,20 +864,20 @@ forall e a. Exception e =&gt; e -&gt; IO a
 -&gt; XerxesException -&gt; m ([GroupDef], [FStatSpec])
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XerxesException
-</span><a href="#local-6989586621679757333"><span class="hs-identifier hs-var">e</span></a></span><span>
-</span><span id="line-144"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757334"><span class="annot"><span class="annottext">([GroupDef], [FStatSpec])
-</span><a href="#local-6989586621679757334"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757346"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-144"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757347"><span class="annot"><span class="annottext">([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757347"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec])
-</span><a href="#local-6989586621679757334"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><a href="#local-6989586621679757347"><span class="hs-identifier hs-var">c</span></a></span><span>
 </span><span id="line-145"></span><span>
 </span><span id="line-146"></span><span class="annot"><span class="hs-comment">-- | A parser to parse Summary Statistic specifications from the simple text file input. Every line is one statistics. No ascertainment can be given with this interface.</span></span><span>
 </span><span id="line-147"></span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#fStatSpecParser"><span class="hs-identifier hs-type">fStatSpecParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">P.Parser</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span>
 </span><span id="line-148"></span><span id="fStatSpecParser"><span class="annot"><span class="annottext">fStatSpecParser :: Parser FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#fStatSpecParser"><span class="hs-identifier hs-var hs-var">fStatSpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-149"></span><span>    </span><span id="local-6989586621679757336"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757336"><span class="hs-identifier hs-var">typeStr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
+</span><span id="line-149"></span><span>    </span><span id="local-6989586621679757349"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757349"><span class="hs-identifier hs-var">typeStr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
 -&gt; ParsecT String () Identity String
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
@@ -886,23 +886,23 @@ ParsecT s u m a -&gt; ParsecT s u m [a]
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 (Char -&gt; Bool) -&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757339"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757339"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757339"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757352"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679757352"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679757352"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'('</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-150"></span><span>    </span><span id="local-6989586621679757341"><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">fStatType</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe FStatType
+</span><span id="line-150"></span><span>    </span><span id="local-6989586621679757354"><span class="annot"><span class="annottext">FStatType
+</span><a href="#local-6989586621679757354"><span class="hs-identifier hs-var">fStatType</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe FStatType
 forall a. Read a =&gt; String -&gt; Maybe a
 </span><span class="hs-identifier hs-var">readMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757336"><span class="hs-identifier hs-var">typeStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-151"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679757342"><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757342"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; ParsecT String () Identity FStatType
+</span><a href="#local-6989586621679757349"><span class="hs-identifier hs-var">typeStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-151"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679757355"><span class="annot"><span class="annottext">FStatType
+</span><a href="#local-6989586621679757355"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; ParsecT String () Identity FStatType
 forall a. a -&gt; ParsecT String () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757342"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621679757355"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-152"></span><span>        </span><span class="annot"><span class="annottext">Maybe FStatType
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String () Identity FStatType
 forall a. String -&gt; ParsecT String () Identity a
@@ -914,13 +914,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Cannot parse Statistic type &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757336"><span class="hs-identifier hs-var">typeStr</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757349"><span class="hs-identifier hs-var">typeStr</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span>
 </span><span id="line-153"></span><span>            </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;. Must be one of F4, F3, F2, FST, PWM, Het, F3vanilla, FSTvanilla&quot;</span></span><span>
-</span><span id="line-154"></span><span>    </span><span id="local-6989586621679757343"><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757343"><span class="hs-identifier hs-var">slots</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
+</span><span id="line-154"></span><span>    </span><span id="local-6989586621679757356"><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757356"><span class="hs-identifier hs-var">slots</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
 -&gt; ParsecT String () Identity Char
 -&gt; ParsecT String () Identity [PoseidonEntity]
 -&gt; ParsecT String () Identity [PoseidonEntity]
@@ -939,20 +939,20 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">')'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity [PoseidonEntity]
-</span><a href="#local-6989586621679757346"><span class="hs-identifier hs-var">parseEntities</span></a></span><span>
+</span><a href="#local-6989586621679757359"><span class="hs-identifier hs-var">parseEntities</span></a></span><span>
 </span><span id="line-155"></span><span>    </span><span class="annot"><span class="annottext">Bool
 -&gt; ParsecT String () Identity () -&gt; ParsecT String () Identity ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FStatType -&gt; Int
 </span><a href="Poseidon.Analysis.FStatsConfig.html#fstatSlotLength"><span class="hs-identifier hs-var">fstatSlotLength</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679757354"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757343"><span class="hs-identifier hs-var">slots</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ParsecT String () Identity () -&gt; ParsecT String () Identity ())
+</span><a href="#local-6989586621679757356"><span class="hs-identifier hs-var">slots</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ParsecT String () Identity () -&gt; ParsecT String () Identity ())
 -&gt; ParsecT String () Identity () -&gt; ParsecT String () Identity ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
@@ -968,7 +968,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">FStatType -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">fStatType</span></a></span><span>
+</span><a href="#local-6989586621679757354"><span class="hs-identifier hs-var">fStatType</span></a></span><span>
 </span><span id="line-157"></span><span>    </span><span class="annot"><span class="annottext">FStatSpec -&gt; Parser FStatSpec
 forall a. a -&gt; ParsecT String () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -977,20 +977,20 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">FStatType
 -&gt; [PoseidonEntity] -&gt; Maybe AscertainmentSpec -&gt; FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-var">FStatSpec</span></a></span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757341"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
-</span><a href="#local-6989586621679757343"><span class="hs-identifier hs-var">slots</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
+</span><a href="#local-6989586621679757354"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonEntity]
+</span><a href="#local-6989586621679757356"><span class="hs-identifier hs-var">slots</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe AscertainmentSpec
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-comment">-- no ascertainment can be specified using this input interface.</span><span>
 </span><span id="line-158"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-159"></span><span>    </span><span id="local-6989586621679757346"><span class="annot"><span class="annottext">parseEntities :: ParsecT String () Identity [PoseidonEntity]
-</span><a href="#local-6989586621679757346"><span class="hs-identifier hs-var hs-var">parseEntities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><span id="line-159"></span><span>    </span><span id="local-6989586621679757359"><span class="annot"><span class="annottext">parseEntities :: ParsecT String () Identity [PoseidonEntity]
+</span><a href="#local-6989586621679757359"><span class="hs-identifier hs-var hs-var">parseEntities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity Char
 -&gt; ParsecT String () Identity [PoseidonEntity]
 forall s (m :: * -&gt; *) t u a sep.
 Stream s m t =&gt;
 ParsecT s u m a -&gt; ParsecT s u m sep -&gt; ParsecT s u m [a]
 </span><span class="hs-identifier hs-var">P.sepBy1</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757355"><span class="hs-identifier hs-var">customEntitySpecParser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
+</span><a href="#local-6989586621679757368"><span class="hs-identifier hs-var">customEntitySpecParser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
@@ -1004,9 +1004,9 @@ forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
 </span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity ()
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
 </span><span class="hs-identifier hs-var">P.spaces</span></span><span class="hs-special">)</span><span>
-</span><span id="line-160"></span><span>    </span><span id="local-6989586621679757355"><span class="annot"><span class="annottext">customEntitySpecParser :: ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757355"><span class="hs-identifier hs-var hs-var">customEntitySpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757361"><span class="hs-identifier hs-var">parsePac</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><span id="line-160"></span><span>    </span><span id="local-6989586621679757368"><span class="annot"><span class="annottext">customEntitySpecParser :: ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757368"><span class="hs-identifier hs-var hs-var">customEntitySpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var">parsePac</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 forall a.
@@ -1015,7 +1015,7 @@ ParsecT String () Identity a
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 </span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 forall {u}. ParsecT String u Identity PoseidonEntity
-</span><a href="#local-6989586621679757362"><span class="hs-identifier hs-var">parseGroup</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757375"><span class="hs-identifier hs-var">parseGroup</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 forall a.
@@ -1023,11 +1023,11 @@ ParsecT String () Identity a
 -&gt; ParsecT String () Identity a -&gt; ParsecT String () Identity a
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 </span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757363"><span class="hs-identifier hs-var">parseInd</span></a></span><span>
+</span><a href="#local-6989586621679757376"><span class="hs-identifier hs-var">parseInd</span></a></span><span>
 </span><span id="line-161"></span><span>    </span><span class="hs-comment">-- annoyingly we have to use a custom parser here, because in this input</span><span>
 </span><span id="line-162"></span><span>    </span><span class="hs-comment">-- form we cannot allow brackets in entity-names. The code is 99% copies from Poseidon.Core.EntityTypes.</span><span>
-</span><span id="line-163"></span><span>    </span><span id="local-6989586621679757361"><span class="annot"><span class="annottext">parsePac :: ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757361"><span class="hs-identifier hs-var hs-var">parsePac</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion -&gt; PoseidonEntity
+</span><span id="line-163"></span><span>    </span><span id="local-6989586621679757374"><span class="annot"><span class="annottext">parsePac :: ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var hs-var">parsePac</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion -&gt; PoseidonEntity
 </span><a href="Poseidon.Core.EntityTypes.html#Pac"><span class="hs-identifier hs-var">Pac</span></a></span><span>   </span><span class="annot"><span class="annottext">(PacNameAndVersion -&gt; PoseidonEntity)
 -&gt; ParsecT String () Identity PacNameAndVersion
 -&gt; ParsecT String () Identity PoseidonEntity
@@ -1051,23 +1051,23 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'*'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PacNameAndVersion
-</span><a href="#local-6989586621679757371"><span class="hs-identifier hs-var">parseNameAndVer</span></a></span><span>
-</span><span id="line-164"></span><span>    </span><span id="local-6989586621679757362"><span class="annot"><span class="annottext">parseGroup :: ParsecT String u Identity PoseidonEntity
-</span><a href="#local-6989586621679757362"><span class="hs-identifier hs-var hs-var">parseGroup</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonEntity
+</span><a href="#local-6989586621679757384"><span class="hs-identifier hs-var">parseNameAndVer</span></a></span><span>
+</span><span id="line-164"></span><span>    </span><span id="local-6989586621679757375"><span class="annot"><span class="annottext">parseGroup :: ParsecT String u Identity PoseidonEntity
+</span><a href="#local-6989586621679757375"><span class="hs-identifier hs-var hs-var">parseGroup</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonEntity
 </span><a href="Poseidon.Core.EntityTypes.html#Group"><span class="hs-identifier hs-var">Group</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonEntity)
 -&gt; ParsecT String u Identity String
 -&gt; ParsecT String u Identity PoseidonEntity
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
 forall {u}. ParsecT String u Identity String
-</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var">parseName</span></a></span><span>
-</span><span id="line-165"></span><span>    </span><span id="local-6989586621679757363"><span class="annot"><span class="annottext">parseInd :: ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757363"><span class="hs-identifier hs-var hs-var">parseInd</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757387"><span class="hs-identifier hs-var">parseName</span></a></span><span>
+</span><span id="line-165"></span><span>    </span><span id="local-6989586621679757376"><span class="annot"><span class="annottext">parseInd :: ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757376"><span class="hs-identifier hs-var hs-var">parseInd</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
 </span><span class="hs-identifier hs-var">P.try</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 forall {u}. ParsecT String u Identity PoseidonEntity
-</span><a href="#local-6989586621679757377"><span class="hs-identifier hs-var">parseSimpleInd</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757390"><span class="hs-identifier hs-var">parseSimpleInd</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 -&gt; ParsecT String () Identity PoseidonEntity
 forall a.
@@ -1075,15 +1075,15 @@ ParsecT String () Identity a
 -&gt; ParsecT String () Identity a -&gt; ParsecT String () Identity a
 forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
 </span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757378"><span class="hs-identifier hs-var">parseSpecificInd</span></a></span><span>
-</span><span id="line-166"></span><span>    </span><span id="local-6989586621679757371"><span class="annot"><span class="annottext">parseNameAndVer :: ParsecT String () Identity PacNameAndVersion
-</span><a href="#local-6989586621679757371"><span class="hs-identifier hs-var hs-var">parseNameAndVer</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-167"></span><span>        </span><span id="local-6989586621679757384"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757384"><span class="hs-identifier hs-var">namePart</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String () Identity String
-</span><a href="#local-6989586621679757385"><span class="hs-identifier hs-var">parseNamePart</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757391"><span class="hs-identifier hs-var">parseSpecificInd</span></a></span><span>
+</span><span id="line-166"></span><span>    </span><span id="local-6989586621679757384"><span class="annot"><span class="annottext">parseNameAndVer :: ParsecT String () Identity PacNameAndVersion
+</span><a href="#local-6989586621679757384"><span class="hs-identifier hs-var hs-var">parseNameAndVer</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-167"></span><span>        </span><span id="local-6989586621679757397"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757397"><span class="hs-identifier hs-var">namePart</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String () Identity String
+</span><a href="#local-6989586621679757398"><span class="hs-identifier hs-var">parseNamePart</span></a></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;&quot;</span></span><span>
-</span><span id="line-168"></span><span>        </span><span id="local-6989586621679757386"><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679757386"><span class="hs-identifier hs-var">versionPart</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Version
+</span><span id="line-168"></span><span>        </span><span id="local-6989586621679757399"><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679757399"><span class="hs-identifier hs-var">versionPart</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Version
 -&gt; ParsecT String () Identity (Maybe Version)
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
@@ -1099,13 +1099,13 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Version -&gt; PacNameAndVersion
 </span><a href="Poseidon.Core.EntityTypes.html#PacNameAndVersion"><span class="hs-identifier hs-var">PacNameAndVersion</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757384"><span class="hs-identifier hs-var">namePart</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
-</span><a href="#local-6989586621679757386"><span class="hs-identifier hs-var">versionPart</span></a></span><span>
-</span><span id="line-170"></span><span>    </span><span id="local-6989586621679757385"><span class="annot"><span class="annottext">parseNamePart :: String -&gt; ParsecT String () Identity String
-</span><a href="#local-6989586621679757385"><span class="hs-identifier hs-var hs-var">parseNamePart</span></a></span></span><span> </span><span id="local-6989586621679757405"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757405"><span class="hs-identifier hs-var">prevPart</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-171"></span><span>        </span><span id="local-6989586621679757406"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757406"><span class="hs-identifier hs-var">curPart</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
+</span><a href="#local-6989586621679757397"><span class="hs-identifier hs-var">namePart</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Version
+</span><a href="#local-6989586621679757399"><span class="hs-identifier hs-var">versionPart</span></a></span><span>
+</span><span id="line-170"></span><span>    </span><span id="local-6989586621679757398"><span class="annot"><span class="annottext">parseNamePart :: String -&gt; ParsecT String () Identity String
+</span><a href="#local-6989586621679757398"><span class="hs-identifier hs-var hs-var">parseNamePart</span></a></span></span><span> </span><span id="local-6989586621679757418"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757418"><span class="hs-identifier hs-var">prevPart</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-171"></span><span>        </span><span id="local-6989586621679757419"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757419"><span class="hs-identifier hs-var">curPart</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
 -&gt; ParsecT String () Identity String
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
@@ -1114,13 +1114,13 @@ ParsecT s u m a -&gt; ParsecT s u m [a]
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 (Char -&gt; Bool) -&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757407"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757407"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757420"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679757420"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Bool
 </span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757407"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757420"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757407"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679757420"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
 forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
@@ -1132,8 +1132,8 @@ forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-char">'-'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'('</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">')'</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-172"></span><span>        </span><span id="local-6989586621679757409"><span class="annot"><span class="annottext">Maybe Char
-</span><a href="#local-6989586621679757409"><span class="hs-identifier hs-var">nextChar</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
+</span><span id="line-172"></span><span>        </span><span id="local-6989586621679757422"><span class="annot"><span class="annottext">Maybe Char
+</span><a href="#local-6989586621679757422"><span class="hs-identifier hs-var">nextChar</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
 -&gt; ParsecT String () Identity (Maybe Char)
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
@@ -1142,13 +1142,13 @@ ParsecT s u m a -&gt; ParsecT s u m (Maybe a)
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 (Char -&gt; Bool) -&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757410"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757410"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757423"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679757423"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Bool
 </span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757410"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757423"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757410"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679757423"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
 forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
@@ -1160,28 +1160,28 @@ forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-char">'('</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">')'</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-173"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Char
-</span><a href="#local-6989586621679757409"><span class="hs-identifier hs-var">nextChar</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621679757422"><span class="hs-identifier hs-var">nextChar</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-174"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'-'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-175"></span><span>                </span><span id="local-6989586621679757411"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679757411"><span class="hs-identifier hs-var">isVersionComing</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Bool
-</span><a href="#local-6989586621679757412"><span class="hs-identifier hs-var">probeForVersion</span></a></span><span>
+</span><span id="line-175"></span><span>                </span><span id="local-6989586621679757424"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679757424"><span class="hs-identifier hs-var">isVersionComing</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Bool
+</span><a href="#local-6989586621679757425"><span class="hs-identifier hs-var">probeForVersion</span></a></span><span>
 </span><span id="line-176"></span><span>                </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679757411"><span class="hs-identifier hs-var">isVersionComing</span></a></span><span>
+</span><a href="#local-6989586621679757424"><span class="hs-identifier hs-var">isVersionComing</span></a></span><span>
 </span><span id="line-177"></span><span>                </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String () Identity String
 forall a. a -&gt; ParsecT String () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757405"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757418"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757406"><span class="hs-identifier hs-var">curPart</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679757419"><span class="hs-identifier hs-var">curPart</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-178"></span><span>                </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String () Identity String
-</span><a href="#local-6989586621679757385"><span class="hs-identifier hs-var">parseNamePart</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757405"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757398"><span class="hs-identifier hs-var">parseNamePart</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757418"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757406"><span class="hs-identifier hs-var">curPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757419"><span class="hs-identifier hs-var">curPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;-&quot;</span></span><span class="hs-special">)</span><span>
@@ -1190,12 +1190,12 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. a -&gt; ParsecT String () Identity a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757405"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679757418"><span class="hs-identifier hs-var">prevPart</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757406"><span class="hs-identifier hs-var">curPart</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-180"></span><span>    </span><span id="local-6989586621679757412"><span class="annot"><span class="annottext">probeForVersion :: ParsecT String () Identity Bool
-</span><a href="#local-6989586621679757412"><span class="hs-identifier hs-var hs-var">probeForVersion</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Bool -&gt; ParsecT String () Identity Bool
+</span><a href="#local-6989586621679757419"><span class="hs-identifier hs-var">curPart</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-180"></span><span>    </span><span id="local-6989586621679757425"><span class="annot"><span class="annottext">probeForVersion :: ParsecT String () Identity Bool
+</span><a href="#local-6989586621679757425"><span class="hs-identifier hs-var hs-var">probeForVersion</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Bool -&gt; ParsecT String () Identity Bool
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
 ParsecT s u m a -&gt; ParsecT s u m a
@@ -1223,8 +1223,8 @@ forall a. a -&gt; ParsecT String () Identity a
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span>
-</span><span id="line-181"></span><span>    </span><span id="local-6989586621679757374"><span class="annot"><span class="annottext">parseName :: ParsecT String u Identity String
-</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var hs-var">parseName</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity String
+</span><span id="line-181"></span><span>    </span><span id="local-6989586621679757387"><span class="annot"><span class="annottext">parseName :: ParsecT String u Identity String
+</span><a href="#local-6989586621679757387"><span class="hs-identifier hs-var hs-var">parseName</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity String
 forall s (m :: * -&gt; *) t u a.
 Stream s m t =&gt;
 ParsecT s u m a -&gt; ParsecT s u m [a]
@@ -1232,13 +1232,13 @@ ParsecT s u m a -&gt; ParsecT s u m [a]
 forall s (m :: * -&gt; *) u.
 Stream s m Char =&gt;
 (Char -&gt; Bool) -&gt; ParsecT s u m Char
-</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757429"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757429"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">P.satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757442"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679757442"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Bool
 </span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757429"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621679757442"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621679757429"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679757442"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
 forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
@@ -1249,8 +1249,8 @@ forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
 </span><span class="hs-char">'*'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'('</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">')'</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-182"></span><span>    </span><span id="local-6989586621679757377"><span class="annot"><span class="annottext">parseSimpleInd :: ParsecT String u Identity PoseidonEntity
-</span><a href="#local-6989586621679757377"><span class="hs-identifier hs-var hs-var">parseSimpleInd</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonEntity
+</span><span id="line-182"></span><span>    </span><span id="local-6989586621679757390"><span class="annot"><span class="annottext">parseSimpleInd :: ParsecT String u Identity PoseidonEntity
+</span><a href="#local-6989586621679757390"><span class="hs-identifier hs-var hs-var">parseSimpleInd</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonEntity
 </span><a href="Poseidon.Core.EntityTypes.html#Ind"><span class="hs-identifier hs-var">Ind</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PoseidonEntity)
 -&gt; ParsecT String u Identity String
 -&gt; ParsecT String u Identity PoseidonEntity
@@ -1275,9 +1275,9 @@ Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'&gt;'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
 forall {u}. ParsecT String u Identity String
-</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var">parseName</span></a></span><span>
-</span><span id="line-183"></span><span>    </span><span id="local-6989586621679757378"><span class="annot"><span class="annottext">parseSpecificInd :: ParsecT String () Identity PoseidonEntity
-</span><a href="#local-6989586621679757378"><span class="hs-identifier hs-var hs-var">parseSpecificInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a href="#local-6989586621679757387"><span class="hs-identifier hs-var">parseName</span></a></span><span>
+</span><span id="line-183"></span><span>    </span><span id="local-6989586621679757391"><span class="annot"><span class="annottext">parseSpecificInd :: ParsecT String () Identity PoseidonEntity
+</span><a href="#local-6989586621679757391"><span class="hs-identifier hs-var hs-var">parseSpecificInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-184"></span><span>        </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
@@ -1285,9 +1285,9 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">'&lt;'</span></span><span>
-</span><span id="line-185"></span><span>        </span><span id="local-6989586621679757451"><span class="annot"><span class="annottext">PacNameAndVersion
-</span><a href="#local-6989586621679757451"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PacNameAndVersion
-</span><a href="#local-6989586621679757371"><span class="hs-identifier hs-var">parseNameAndVer</span></a></span><span>
+</span><span id="line-185"></span><span>        </span><span id="local-6989586621679757464"><span class="annot"><span class="annottext">PacNameAndVersion
+</span><a href="#local-6989586621679757464"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PacNameAndVersion
+</span><a href="#local-6989586621679757384"><span class="hs-identifier hs-var">parseNameAndVer</span></a></span><span>
 </span><span id="line-186"></span><span>        </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
@@ -1295,10 +1295,10 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">':'</span></span><span>
-</span><span id="line-187"></span><span>        </span><span id="local-6989586621679757452"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757452"><span class="hs-identifier hs-var">groupName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity String
+</span><span id="line-187"></span><span>        </span><span id="local-6989586621679757465"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757465"><span class="hs-identifier hs-var">groupName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity String
 forall {u}. ParsecT String u Identity String
-</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var">parseName</span></a></span><span>
+</span><a href="#local-6989586621679757387"><span class="hs-identifier hs-var">parseName</span></a></span><span>
 </span><span id="line-188"></span><span>        </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
@@ -1306,10 +1306,10 @@ Stream s m Char =&gt;
 Char -&gt; ParsecT s u m Char
 </span><span class="hs-identifier hs-var">P.char</span></span><span> </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-char">':'</span></span><span>
-</span><span id="line-189"></span><span>        </span><span id="local-6989586621679757453"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757453"><span class="hs-identifier hs-var">indName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity String
+</span><span id="line-189"></span><span>        </span><span id="local-6989586621679757466"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757466"><span class="hs-identifier hs-var">indName</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity String
 forall {u}. ParsecT String u Identity String
-</span><a href="#local-6989586621679757374"><span class="hs-identifier hs-var">parseName</span></a></span><span>
+</span><a href="#local-6989586621679757387"><span class="hs-identifier hs-var">parseName</span></a></span><span>
 </span><span id="line-190"></span><span>        </span><span class="annot"><span class="annottext">Char
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String () Identity Char
 forall s (m :: * -&gt; *) u.
@@ -1325,16 +1325,16 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; PacNameAndVersion -&gt; PoseidonEntity
 </span><a href="Poseidon.Core.EntityTypes.html#SpecificInd"><span class="hs-identifier hs-var">SpecificInd</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757453"><span class="hs-identifier hs-var">indName</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757452"><span class="hs-identifier hs-var">groupName</span></a></span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion
-</span><a href="#local-6989586621679757451"><span class="hs-identifier hs-var">pac</span></a></span><span>
+</span><a href="#local-6989586621679757466"><span class="hs-identifier hs-var">indName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757465"><span class="hs-identifier hs-var">groupName</span></a></span><span> </span><span class="annot"><span class="annottext">PacNameAndVersion
+</span><a href="#local-6989586621679757464"><span class="hs-identifier hs-var">pac</span></a></span><span>
 </span><span id="line-192"></span><span>
 </span><span id="line-193"></span><span>
 </span><span id="line-194"></span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#fstatSlotLength"><span class="hs-identifier hs-type">fstatSlotLength</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatType"><span class="hs-identifier hs-type">FStatType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-195"></span><span id="fstatSlotLength"><span class="annot"><span class="annottext">fstatSlotLength :: FStatType -&gt; Int
-</span><a href="Poseidon.Analysis.FStatsConfig.html#fstatSlotLength"><span class="hs-identifier hs-var hs-var">fstatSlotLength</span></a></span></span><span> </span><span id="local-6989586621679757455"><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757455"><span class="hs-identifier hs-var">fStatType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatType
-</span><a href="#local-6989586621679757455"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="Poseidon.Analysis.FStatsConfig.html#fstatSlotLength"><span class="hs-identifier hs-var hs-var">fstatSlotLength</span></a></span></span><span> </span><span id="local-6989586621679757468"><span class="annot"><span class="annottext">FStatType
+</span><a href="#local-6989586621679757468"><span class="hs-identifier hs-var">fStatType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatType
+</span><a href="#local-6989586621679757468"><span class="hs-identifier hs-var">fStatType</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-196"></span><span>    </span><span class="annot"><span class="annottext">FStatType
 </span><a href="Poseidon.Analysis.FStatsConfig.html#F4"><span class="hs-identifier hs-var">F4</span></a></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">4</span></span><span>
@@ -1366,12 +1366,12 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Poseidon.Analysis.FStatsConfig.html#F2vanilla"><span class="hs-identifier hs-var">F2vanilla</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span>
 </span><span id="line-206"></span><span>
-</span><span id="line-207"></span><span id="local-6989586621679756875"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFStatsSimpleText"><span class="hs-identifier hs-type">readFStatsSimpleText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756875"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756875"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-207"></span><span id="local-6989586621679756888"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFStatsSimpleText"><span class="hs-identifier hs-type">readFStatsSimpleText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756888"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756888"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span></span><span>
 </span><span id="line-208"></span><span id="readFStatsSimpleText"><span class="annot"><span class="annottext">readFStatsSimpleText :: forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; m [FStatSpec]
-</span><a href="Poseidon.Analysis.FStatsConfig.html#readFStatsSimpleText"><span class="hs-identifier hs-var hs-var">readFStatsSimpleText</span></a></span></span><span> </span><span id="local-6989586621679757470"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757470"><span class="hs-identifier hs-var">statSpecsFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-209"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679757476"><span class="annot"><span class="annottext">multiFstatSpecParser :: ParsecT String () Identity [FStatSpec]
-</span><a href="#local-6989586621679757476"><span class="hs-identifier hs-var hs-var">multiFstatSpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser FStatSpec
+</span><a href="Poseidon.Analysis.FStatsConfig.html#readFStatsSimpleText"><span class="hs-identifier hs-var hs-var">readFStatsSimpleText</span></a></span></span><span> </span><span id="local-6989586621679757483"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757483"><span class="hs-identifier hs-var">statSpecsFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-209"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679757489"><span class="annot"><span class="annottext">multiFstatSpecParser :: ParsecT String () Identity [FStatSpec]
+</span><a href="#local-6989586621679757489"><span class="hs-identifier hs-var hs-var">multiFstatSpecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser FStatSpec
 </span><a href="Poseidon.Analysis.FStatsConfig.html#fStatSpecParser"><span class="hs-identifier hs-var">fStatSpecParser</span></a></span><span> </span><span class="annot"><span class="annottext">Parser FStatSpec
 -&gt; ParsecT String () Identity ()
 -&gt; ParsecT String () Identity [FStatSpec]
@@ -1389,8 +1389,8 @@ forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
 </span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity ()
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
 </span><span class="hs-identifier hs-var">P.spaces</span></span><span class="hs-special">)</span><span>
-</span><span id="line-210"></span><span>    </span><span id="local-6989586621679757478"><span class="annot"><span class="annottext">Either ParseError [FStatSpec]
-</span><a href="#local-6989586621679757478"><span class="hs-identifier hs-var">eitherParseResult</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either ParseError [FStatSpec])
+</span><span id="line-210"></span><span>    </span><span id="local-6989586621679757491"><span class="annot"><span class="annottext">Either ParseError [FStatSpec]
+</span><a href="#local-6989586621679757491"><span class="hs-identifier hs-var">eitherParseResult</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either ParseError [FStatSpec])
 -&gt; m (Either ParseError [FStatSpec])
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
@@ -1412,7 +1412,7 @@ ParsecT String () Identity a
 -&gt; ParsecT String () Identity b -&gt; ParsecT String () Identity b
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
 </span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity [FStatSpec]
-</span><a href="#local-6989586621679757476"><span class="hs-identifier hs-var">multiFstatSpecParser</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity [FStatSpec]
+</span><a href="#local-6989586621679757489"><span class="hs-identifier hs-var">multiFstatSpecParser</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity [FStatSpec]
 -&gt; ParsecT String () Identity ()
 -&gt; ParsecT String () Identity [FStatSpec]
 forall a b.
@@ -1422,11 +1422,11 @@ forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
 </span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity ()
 forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
 </span><span class="hs-identifier hs-var">P.spaces</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757470"><span class="hs-identifier hs-var">statSpecsFile</span></a></span><span>
+</span><a href="#local-6989586621679757483"><span class="hs-identifier hs-var">statSpecsFile</span></a></span><span>
 </span><span id="line-211"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either ParseError [FStatSpec]
-</span><a href="#local-6989586621679757478"><span class="hs-identifier hs-var">eitherParseResult</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-212"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757480"><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679757480"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO [FStatSpec] -&gt; m [FStatSpec]
+</span><a href="#local-6989586621679757491"><span class="hs-identifier hs-var">eitherParseResult</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-212"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679757493"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679757493"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO [FStatSpec] -&gt; m [FStatSpec]
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO [FStatSpec] -&gt; m [FStatSpec])
@@ -1443,60 +1443,60 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Poseidon.Analysis.Utils.html#FStatException"><span class="hs-identifier hs-var">FStatException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseError -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseError
-</span><a href="#local-6989586621679757480"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-213"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757481"><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757481"><span class="hs-identifier hs-var">r</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[FStatSpec] -&gt; m [FStatSpec]
+</span><a href="#local-6989586621679757493"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-213"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679757494"><span class="annot"><span class="annottext">[FStatSpec]
+</span><a href="#local-6989586621679757494"><span class="hs-identifier hs-var">r</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[FStatSpec] -&gt; m [FStatSpec]
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757481"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><a href="#local-6989586621679757494"><span class="hs-identifier hs-var">r</span></a></span><span>
 </span><span id="line-214"></span><span>
-</span><span id="line-215"></span><span id="local-6989586621679756884"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFstatInput"><span class="hs-identifier hs-type">readFstatInput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756884"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInput"><span class="hs-identifier hs-type">FStatInput</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756884"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Utils.html#GroupDef"><span class="hs-identifier hs-type">GroupDef</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-215"></span><span id="local-6989586621679756897"><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#readFstatInput"><span class="hs-identifier hs-type">readFstatInput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679756897"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInput"><span class="hs-identifier hs-type">FStatInput</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679756897"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Utils.html#GroupDef"><span class="hs-identifier hs-type">GroupDef</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatSpec"><span class="hs-identifier hs-type">FStatSpec</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
 </span><span id="line-216"></span><span id="readFstatInput"><span class="annot"><span class="annottext">readFstatInput :: forall (m :: * -&gt; *).
 MonadIO m =&gt;
 [FStatInput] -&gt; m ([GroupDef], [FStatSpec])
-</span><a href="Poseidon.Analysis.FStatsConfig.html#readFstatInput"><span class="hs-identifier hs-var hs-var">readFstatInput</span></a></span></span><span> </span><span id="local-6989586621679757499"><span class="annot"><span class="annottext">[FStatInput]
-</span><a href="#local-6989586621679757499"><span class="hs-identifier hs-var">inputSources</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-217"></span><span>    </span><span id="local-6989586621679757500"><span class="annot"><span class="annottext">[([GroupDef], [FStatSpec])]
-</span><a href="#local-6989586621679757500"><span class="hs-identifier hs-var">listOfPairs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[FStatInput]
+</span><a href="Poseidon.Analysis.FStatsConfig.html#readFstatInput"><span class="hs-identifier hs-var hs-var">readFstatInput</span></a></span></span><span> </span><span id="local-6989586621679757512"><span class="annot"><span class="annottext">[FStatInput]
+</span><a href="#local-6989586621679757512"><span class="hs-identifier hs-var">inputSources</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-217"></span><span>    </span><span id="local-6989586621679757513"><span class="annot"><span class="annottext">[([GroupDef], [FStatSpec])]
+</span><a href="#local-6989586621679757513"><span class="hs-identifier hs-var">listOfPairs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[FStatInput]
 -&gt; (FStatInput -&gt; m ([GroupDef], [FStatSpec]))
 -&gt; m [([GroupDef], [FStatSpec])]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m (t b)
 </span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="annot"><span class="annottext">[FStatInput]
-</span><a href="#local-6989586621679757499"><span class="hs-identifier hs-var">inputSources</span></a></span><span> </span><span class="annot"><span class="annottext">((FStatInput -&gt; m ([GroupDef], [FStatSpec]))
+</span><a href="#local-6989586621679757512"><span class="hs-identifier hs-var">inputSources</span></a></span><span> </span><span class="annot"><span class="annottext">((FStatInput -&gt; m ([GroupDef], [FStatSpec]))
  -&gt; m [([GroupDef], [FStatSpec])])
 -&gt; (FStatInput -&gt; m ([GroupDef], [FStatSpec]))
 -&gt; m [([GroupDef], [FStatSpec])]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757501"><span class="annot"><span class="annottext">FStatInput
-</span><a href="#local-6989586621679757501"><span class="hs-identifier hs-var">inputSource</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679757514"><span class="annot"><span class="annottext">FStatInput
+</span><a href="#local-6989586621679757514"><span class="hs-identifier hs-var">inputSource</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-218"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">FStatInput
-</span><a href="#local-6989586621679757501"><span class="hs-identifier hs-var">inputSource</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-219"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputDirect"><span class="hs-identifier hs-type">FStatInputDirect</span></a></span><span> </span><span id="local-6989586621679757502"><span class="annot"><span class="annottext">FStatSpec
-</span><a href="#local-6989586621679757502"><span class="hs-identifier hs-var">fStat</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757514"><span class="hs-identifier hs-var">inputSource</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-219"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputDirect"><span class="hs-identifier hs-type">FStatInputDirect</span></a></span><span> </span><span id="local-6989586621679757515"><span class="annot"><span class="annottext">FStatSpec
+</span><a href="#local-6989586621679757515"><span class="hs-identifier hs-var">fStat</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FStatSpec
-</span><a href="#local-6989586621679757502"><span class="hs-identifier hs-var">fStat</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-220"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputYaml"><span class="hs-identifier hs-type">FStatInputYaml</span></a></span><span> </span><span id="local-6989586621679757503"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757503"><span class="hs-identifier hs-var">fn</span></a></span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m ([GroupDef], [FStatSpec])
+</span><a href="#local-6989586621679757515"><span class="hs-identifier hs-var">fStat</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-220"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputYaml"><span class="hs-identifier hs-type">FStatInputYaml</span></a></span><span> </span><span id="local-6989586621679757516"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757516"><span class="hs-identifier hs-var">fn</span></a></span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m ([GroupDef], [FStatSpec])
 forall (m :: * -&gt; *).
 MonadIO m =&gt;
 String -&gt; m ([GroupDef], [FStatSpec])
 </span><a href="Poseidon.Analysis.FStatsConfig.html#readFstatsYamlConfig"><span class="hs-identifier hs-var">readFstatsYamlConfig</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757503"><span class="hs-identifier hs-var">fn</span></a></span><span>
-</span><span id="line-221"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputSimpleText"><span class="hs-identifier hs-type">FStatInputSimpleText</span></a></span><span> </span><span id="local-6989586621679757504"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757504"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757505"><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757505"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[FStatSpec]
-</span><a href="#local-6989586621679757505"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([FStatSpec] -&gt; ([GroupDef], [FStatSpec]))
+</span><a href="#local-6989586621679757516"><span class="hs-identifier hs-var">fn</span></a></span><span>
+</span><span id="line-221"></span><span>            </span><span class="annot"><a href="Poseidon.Analysis.FStatsConfig.html#FStatInputSimpleText"><span class="hs-identifier hs-type">FStatInputSimpleText</span></a></span><span> </span><span id="local-6989586621679757517"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679757517"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679757518"><span class="annot"><span class="annottext">[FStatSpec]
+</span><a href="#local-6989586621679757518"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[FStatSpec]
+</span><a href="#local-6989586621679757518"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([FStatSpec] -&gt; ([GroupDef], [FStatSpec]))
 -&gt; m [FStatSpec] -&gt; m ([GroupDef], [FStatSpec])
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m [FStatSpec]
 forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; m [FStatSpec]
 </span><a href="Poseidon.Analysis.FStatsConfig.html#readFStatsSimpleText"><span class="hs-identifier hs-var">readFStatsSimpleText</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679757504"><span class="hs-identifier hs-var">fn</span></a></span><span>
+</span><a href="#local-6989586621679757517"><span class="hs-identifier hs-var">fn</span></a></span><span>
 </span><span id="line-222"></span><span>    </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; m ([GroupDef], [FStatSpec])
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
@@ -1506,13 +1506,13 @@ forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
 </span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; [GroupDef]
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">[([GroupDef], [FStatSpec])]
-</span><a href="#local-6989586621679757500"><span class="hs-identifier hs-var">listOfPairs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(([GroupDef], [FStatSpec]) -&gt; [FStatSpec])
+</span><a href="#local-6989586621679757513"><span class="hs-identifier hs-var">listOfPairs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(([GroupDef], [FStatSpec]) -&gt; [FStatSpec])
 -&gt; [([GroupDef], [FStatSpec])] -&gt; [FStatSpec]
 forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
 </span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">([GroupDef], [FStatSpec]) -&gt; [FStatSpec]
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[([GroupDef], [FStatSpec])]
-</span><a href="#local-6989586621679757500"><span class="hs-identifier hs-var">listOfPairs</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679757513"><span class="hs-identifier hs-var">listOfPairs</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-223"></span><span>
 </span><span id="line-224"></span><span class="hs-comment">------------ DHALL implementation, experimental and commented out for now -------------------</span><span>
 </span><span id="line-225"></span><span class="hs-comment">-- readFstatConfigDhall :: FilePath -&gt; IO FStatConfig</span><span>
