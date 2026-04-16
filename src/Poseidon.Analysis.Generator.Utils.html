@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Poseidon.Analysis.Generator.Utils</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">data</span><span> </span><span id="PoseidonGeneratorException"><span class="annot"><a href="Poseidon.Analysis.Generator.Utils.html#PoseidonGeneratorException"><span class="hs-identifier hs-var">PoseidonGeneratorException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-6"></span><span>     </span><span id="PoseidonGeneratorCLIParsingException"><span class="annot"><a href="Poseidon.Analysis.Generator.Utils.html#PoseidonGeneratorCLIParsingException"><span class="hs-identifier hs-var">PoseidonGeneratorCLIParsingException</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-7"></span><span>     </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679724524"><span id="local-6989586621679724531"><span id="local-6989586621679724535"><span class="annot"><span class="annottext">Int -&gt; PoseidonGeneratorException -&gt; ShowS
+[PoseidonGeneratorException] -&gt; ShowS
+PoseidonGeneratorException -&gt; String
+(Int -&gt; PoseidonGeneratorException -&gt; ShowS)
+-&gt; (PoseidonGeneratorException -&gt; String)
+-&gt; ([PoseidonGeneratorException] -&gt; ShowS)
+-&gt; Show PoseidonGeneratorException
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PoseidonGeneratorException -&gt; ShowS
+showsPrec :: Int -&gt; PoseidonGeneratorException -&gt; ShowS
+$cshow :: PoseidonGeneratorException -&gt; String
+show :: PoseidonGeneratorException -&gt; String
+$cshowList :: [PoseidonGeneratorException] -&gt; ShowS
+showList :: [PoseidonGeneratorException] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679724544"><span id="local-6989586621679724548"><span id="local-6989586621679724551"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Utils.html#PoseidonGeneratorException"><span class="hs-identifier hs-type">PoseidonGeneratorException</span></a></span></span></span></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span id="local-6989586621679724497"><span id="local-6989586621679724498"><span id="local-6989586621679724499"><span class="annot"><a href="Poseidon.Analysis.Generator.Utils.html#extractFirst"><span class="hs-identifier hs-type">extractFirst</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679724497"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679724498"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679724499"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679724497"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-12"></span><span id="extractFirst"><span class="annot"><span class="annottext">extractFirst :: forall a b c. (a, b, c) -&gt; a
+</span><a href="Poseidon.Analysis.Generator.Utils.html#extractFirst"><span class="hs-identifier hs-var hs-var">extractFirst</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679724555"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679724555"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">c
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679724555"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span id="local-6989586621679724503"><span id="local-6989586621679724504"><span class="annot"><a href="Poseidon.Analysis.Generator.Utils.html#zipGroup"><span class="hs-identifier hs-type">zipGroup</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679724503"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679724504"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679724503"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679724504"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-15"></span><span id="zipGroup"><span class="annot"><span class="annottext">zipGroup :: forall a b. [a] -&gt; [[b]] -&gt; [(Int, a, b)]
+</span><a href="Poseidon.Analysis.Generator.Utils.html#zipGroup"><span class="hs-identifier hs-var hs-var">zipGroup</span></a></span></span><span> </span><span id="local-6989586621679724564"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679724564"><span class="hs-identifier hs-var">list</span></a></span></span><span> </span><span id="local-6989586621679724565"><span class="annot"><span class="annottext">[[b]]
+</span><a href="#local-6989586621679724565"><span class="hs-identifier hs-var">nestedList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679724567"><span class="annot"><span class="annottext">lenghtsNestedList :: [Int]
+</span><a href="#local-6989586621679724567"><span class="hs-identifier hs-var hs-var">lenghtsNestedList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([b] -&gt; Int) -&gt; [[b]] -&gt; [Int]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">[b] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[b]]
+</span><a href="#local-6989586621679724565"><span class="hs-identifier hs-var">nestedList</span></a></span><span>
+</span><span id="line-17"></span><span>        </span><span id="local-6989586621679724569"><span class="annot"><span class="annottext">listWithlenghtsNestedList :: [(Int, a)]
+</span><a href="#local-6989586621679724569"><span class="hs-identifier hs-var hs-var">listWithlenghtsNestedList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; [a] -&gt; [(Int, a)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679724567"><span class="hs-identifier hs-var">lenghtsNestedList</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679724564"><span class="hs-identifier hs-var">list</span></a></span><span>
+</span><span id="line-18"></span><span>        </span><span id="local-6989586621679724570"><span class="annot"><span class="annottext">longerA :: [[a]]
+</span><a href="#local-6989586621679724570"><span class="hs-identifier hs-var hs-var">longerA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Int, a) -&gt; [a]) -&gt; [(Int, a)] -&gt; [[a]]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Int -&gt; a -&gt; [a]) -&gt; (Int, a) -&gt; [a]
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; a -&gt; [a]
+forall a. Int -&gt; a -&gt; [a]
+</span><span class="hs-identifier hs-var">replicate</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(Int, a)]
+</span><a href="#local-6989586621679724569"><span class="hs-identifier hs-var">listWithlenghtsNestedList</span></a></span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; [a] -&gt; [b] -&gt; [(Int, a, b)]
+forall a b c. [a] -&gt; [b] -&gt; [c] -&gt; [(a, b, c)]
+</span><span class="hs-identifier hs-var">zip3</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-glyph">..</span><span class="hs-special">]</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[a]] -&gt; [a]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679724570"><span class="hs-identifier hs-var">longerA</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[b]] -&gt; [b]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">[[b]]
+</span><a href="#local-6989586621679724565"><span class="hs-identifier hs-var">nestedList</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span></pre></body></html>
