@@ -299,14 +299,14 @@ vcf2eigenstratPipe = for cat $ \vcfEntry -> do
                 \file are biallelic and either haploid or diploid")
     yield (eigenstratSnpEntry, genoLine)
 
-joinEntries :: (MonadIO m) => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-joinEntries logA nrInds pacNames maybeTupleList = do
+joinEntries :: (MonadIO m) => LogA -> [Int] -> [String] -> Bool -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
+joinEntries logA nrInds pacNames strandCheck maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
-    consensusSnpEntry <- getConsensusSnpEntry logA allSnpEntries
+    consensusSnpEntry <- getConsensusSnpEntry logA strandCheck allSnpEntries
     recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) ->
         case maybeTuple of
             Nothing -> return (V.replicate n Missing)
-            Just (snpEntry, genoLine) -> case recodeAlleles consensusSnpEntry snpEntry genoLine of
+            Just (snpEntry, genoLine) -> case recodeAlleles consensusSnpEntry snpEntry strandCheck genoLine of
                 Left err -> do
                     let msg = "Error in genotype data of package " ++ name ++ ": " ++ err
                     liftIO . throwIO $ PoseidonGenotypeException msg
@@ -314,13 +314,11 @@ joinEntries logA nrInds pacNames maybeTupleList = do
     return (consensusSnpEntry, V.concat recodedGenotypes)
 
 getConsensusSnpEntry :: (MonadIO m) => LogA -> Bool -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
-getConsensusSnpEntry logA strandcheck snpEntries = do
+getConsensusSnpEntry logA strandCheck snpEntries = do
     let chrom = snpChrom . head $ snpEntries
         pos = snpPos . head $ snpEntries
         uniqueIds = nub . map snpId $ snpEntries
         uniqueGenPos = sort . nub . map snpGeneticPos $ snpEntries
-        allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
-        uniqueAlleles = nub . filter (\a -> a /= 'N' && a /= '0' && a /= 'X') $ allAlleles
     id_ <- case uniqueIds of
         [i] -> return i
         _ -> do -- multiple Ids: Picking the first rs-number if possible, otherwise the first one.
@@ -340,27 +338,42 @@ getConsensusSnpEntry logA strandcheck snpEntries = do
                 "Found inconsistent genetic positions in SNP " ++ show id_ ++ ": " ++
                 show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
-    case uniqueAlleles of
-        [] -> do -- no non-missing alleles found
-            -- logWithEnv LogA . logDebug $
-            --     "SNP " ++ show id_ ++ " appears to have no data (both ref and alt allele are blank"
-            return (EigenstratSnpEntry chrom pos genPos id_ 'N' 'N')
-        [r] -> do -- only one non-missing allele found
-            -- logWithEnv LogA . logDebug $
-            --     "SNP " ++ show id_ ++ " appears to be monomorphic (only one of ref and alt alleles are non-blank)"
-            return (EigenstratSnpEntry chrom pos genPos id_ 'N' r)
-        [ref, alt] ->
-            if strandcheck && [ref, alt] `elem` [['A', 'T'], ['T', 'A'], ['C', 'G'], ['G', 'C']] then
-                    liftIO . throwIO $ PoseidonGenotypeException ("Possible strand flip: " ++ show snpEntries)
-            else
-                return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
-        _ -> liftIO . throwIO $ PoseidonGenotypeException ("Incongruent alleles: " ++ show snpEntries)
+    (ref, alt) <- if strandCheck then getConsensusAllelesStrandCheck snpEntries else getConsensusAlleles snpEntries
+    return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
 
-recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
-recodeAlleles consensusSnpEntry snpEntry genoLine = do
+missingAlleles :: [Char]
+missingAlleles = ['N', '0', 'X']
+
+-- this algorithm simply collects two different non-Missing alleles and declares them to be the consensus alleles,
+-- filling up with Ns if need be.
+getConsensusAlleles :: [EigenstratSnpEntry] -> (Char, Char)
+getConsensusAlleles snpEntries =
+    let allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
+        uniqueAlleles = nub . filter (\a -> a `notElem` missingAlleles) $ allAlleles
+    in  case uniqueAlleles of
+            [] ->  ('N', 'N')
+            [r] -> ('N', r)
+            (ref : alt : _) -> (ref, alt) -- at this point we don't care if we have more than two alleles,
+                -- this will be checked in the Recoding step.
+
+-- this is a different algorithm: If strand flips are allowed, we need to have at least one non-missing allele-pair within
+-- one genotype source. In addition we cannot tolerate strand-ambiguous pairs (C/G and A/T).
+getConsensusAllelesStrandCheck :: (MonadIO m) => [EigenstratSnpEntry] -> m (Char, Char)
+getConsensusAllelesStrandCheck snpEntries = do
+    let allAllelePairs    = [(r, a) | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
+        case filter (\(a, b) -> a `notElem` missingAlleles && b `notElem` missingAlleles) $ allAllelePairs of
+            [] -> return ('N', 'N')
+            ((a, b):_) -> if (a, b) `elem` [('C', 'G'), ('G', 'C'), ('A', 'T'), ('T', 'A')]
+                then return ('N', 'N')
+                else return (a, b)
+
+recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> Bool -> GenoLine -> Either String GenoLine
+recodeAlleles consensusSnpEntry snpEntry strandCheck genoLine = do
     let (EigenstratSnpEntry _ _ _ _ consRefA consAltA) = consensusSnpEntry
     let (EigenstratSnpEntry _ _ _ _ refA altA) = snpEntry
-    let maybeRecodedGenoline = case (isMissing consRefA, isMissing consAltA) of
+    checkValidGenotypes strandCheck consRefA consAltA refA altA genoLine
+    shouldFlip <- checkAlleleFlipNeeded consRefA consAltA refA altA strandCheck
+    let maybeRecodedGenoline = case (consRefA `elem` missingAlleles, consAltA `elem` missingAlleles) of
             (False, False) -> maybeFlipGenoLine1 consRefA consAltA refA altA
             (False, True)  -> maybeFlipGenoLine2 consRefA          refA altA
             (True, False)  -> maybeFlipGenoLine3          consAltA refA altA
@@ -371,9 +384,6 @@ recodeAlleles consensusSnpEntry snpEntry genoLine = do
                            ". Error: " ++ err)
         Right recodedGenoLine -> return recodedGenoLine
   where
-    isMissing '0' = True
-    isMissing 'N' = True
-    isMissing _   = False
     maybeFlipGenoLine1 consRefA consAltA refA altA
         | (refA, altA) == (consRefA, consAltA) = return genoLine -- simple concordance
         | (refA, altA) == (consAltA, consRefA) = return (V.map flipGeno genoLine) -- alleles flipped
