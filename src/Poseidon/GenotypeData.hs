@@ -338,18 +338,21 @@ getConsensusSnpEntry logA strandCheck snpEntries = do
                 "Found inconsistent genetic positions in SNP " ++ show id_ ++ ": " ++
                 show uniqueGenPos ++ ". Choosing " ++ show selectedGenPos
             return selectedGenPos
-    (ref, alt) <- if strandCheck then getConsensusAllelesStrandCheck snpEntries else getConsensusAlleles snpEntries
+    (ref, alt) <- if strandCheck then getConsensusAllelesStrandCheck snpEntries else return (getConsensusAlleles snpEntries)
     return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
 
 missingAlleles :: [Char]
 missingAlleles = ['N', '0', 'X']
+
+isMissing :: Char -> Bool
+isMissing a = a `elem` missingAlleles
 
 -- this algorithm simply collects two different non-Missing alleles and declares them to be the consensus alleles,
 -- filling up with Ns if need be.
 getConsensusAlleles :: [EigenstratSnpEntry] -> (Char, Char)
 getConsensusAlleles snpEntries =
     let allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
-        uniqueAlleles = nub . filter (\a -> a `notElem` missingAlleles) $ allAlleles
+        uniqueAlleles = nub . filter (not . isMissing) $ allAlleles
     in  case uniqueAlleles of
             [] ->  ('N', 'N')
             [r] -> ('N', r)
@@ -358,14 +361,18 @@ getConsensusAlleles snpEntries =
 
 -- this is a different algorithm: If strand flips are allowed, we need to have at least one non-missing allele-pair within
 -- one genotype source. In addition we cannot tolerate strand-ambiguous pairs (C/G and A/T).
-getConsensusAllelesStrandCheck :: (MonadIO m) => [EigenstratSnpEntry] -> m (Char, Char)
+getConsensusAllelesStrandCheck :: (MonadThrow m) => [EigenstratSnpEntry] -> m (Char, Char)
 getConsensusAllelesStrandCheck snpEntries = do
     let allAllelePairs    = [(r, a) | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
-        case filter (\(a, b) -> a `notElem` missingAlleles && b `notElem` missingAlleles) $ allAllelePairs of
-            [] -> return ('N', 'N')
-            ((a, b):_) -> if (a, b) `elem` [('C', 'G'), ('G', 'C'), ('A', 'T'), ('T', 'A')]
-                then return ('N', 'N')
-                else return (a, b)
+    case filter (\(a, b) -> not (isMissing a) && not (isMissing b)) $ allAllelePairs of
+        [] -> throwM . PoseidonGenotypeException $
+            "When checking for strand flips, I require at least one non-missing allele \
+            \pair to determine the consensus alleles. However, all allele pairs are missing for SNP " ++
+            show (snpId . head $ snpEntries) ++ " at position " ++
+            show (snpChrom . head $ snpEntries) ++ ":" ++ show (snpPos . head $ snpEntries)
+        ((a, b):_) -> if (a, b) `elem` [('C', 'G'), ('G', 'C'), ('A', 'T'), ('T', 'A')]
+            then return ('N', 'N')
+            else return (a, b)
 
 needsFlip :: (Char, Char) -> (Char, Char) -> Bool -> Either String Bool
 needsFlip (consRefA, consAltA) (refA, altA) strandCheck =
