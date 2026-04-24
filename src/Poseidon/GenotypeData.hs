@@ -367,6 +367,21 @@ getConsensusAllelesStrandCheck snpEntries = do
                 then return ('N', 'N')
                 else return (a, b)
 
+needsFlip :: (Char, Char) -> (Char, Char) -> Bool -> Either String Bool
+needsFlip (consRefA, consAltA) (refA, altA) strandCheck =
+    if not $ any (`elem` missingAlleles) [consRefA, consAltA, refA, altA] then (
+             if (refA, altA) == (consRefA, consAltA) then return False -- simple concordance
+        else if (refA, altA) == (consAltA, consRefA) then return True  -- alleles flipped
+        else if strandCheck && (revComp refA, revComp altA) == (consRefA, consAltA) then return False -- simple concordance on reverse strand
+        else if strandCheck && (revComp refA, revComp altA) == (consAltA, consRefA) then return True
+        else Left $ "Inconsistent alleles " ++ show (refA, altA) ++ " with consensus alleles " ++ show (consRefA, consAltA)) -- alleles flipped on reverse strand
+  where
+    revComp 'A' = 'T'
+    revComp 'T' = 'A'
+    revComp 'C' = 'G'
+    revComp 'G' = 'C'
+    revComp x   = x
+
 recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> Bool -> GenoLine -> Either String GenoLine
 recodeAlleles consensusSnpEntry snpEntry strandCheck genoLine = do
     let (EigenstratSnpEntry _ _ _ _ consRefA consAltA) = consensusSnpEntry
