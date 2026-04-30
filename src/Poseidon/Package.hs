@@ -489,7 +489,7 @@ validateGeno pac checkFullGeno = do
         runSafeT $ do
             -- we're using getJointGenotypeData here on a single package to check for SNP consistency
             -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            eigenstratProd <- getJointGenotypeData logA False [pac] Nothing
+            eigenstratProd <- getJointGenotypeData logA False False [pac] Nothing
             -- check all or only the first 100 SNPs
             if checkFullGeno
             then do
@@ -689,7 +689,7 @@ getJointGenotypeData logA intersect strandcheck pacs maybeSnpFile = do
     let nrInds          = map (length . getJannoRows . posPacJanno) pacs
         pacNames        = map getPacName pacs
         prod            = orderedZipAll compFunc genotypeProducers >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds strandcheck pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -720,13 +720,11 @@ getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
-joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe logA nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries logA nrInds pacNames maybeEntries
-    case eitherJE of
-        Left (PoseidonGenotypeException err) ->
+joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> Bool -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logA nrInds strandCheck pacNames = for cat $ \maybeEntries -> do
+    case joinEntries nrInds pacNames strandCheck maybeEntries of
+        Left err ->
             logWithEnv logA . logDebug $ "Skipping SNP due to " ++ err
-        Left e -> liftIO . throwIO $ e
         Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()

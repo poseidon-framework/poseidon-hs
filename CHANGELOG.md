@@ -1,3 +1,6 @@
+- V 2.1.0.0:
+    - Added option `--strandCheck` to forge.
+    - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
 - V 1.7.0.0:
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.

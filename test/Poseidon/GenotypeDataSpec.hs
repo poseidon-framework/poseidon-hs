@@ -2,7 +2,7 @@
 module Poseidon.GenotypeDataSpec (spec) where
 
 import           Poseidon.GenotypeData
-import           Poseidon.Utils             (PoseidonException (..), noLog,
+import           Poseidon.Utils             (PoseidonException (..),
                                              testLog)
 
 import           Data.List                  (isPrefixOf)
@@ -56,7 +56,7 @@ testJoinGenoEntries =
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries noLog nrInds pacNames testEntriesTuplesList1 `shouldReturn` mergedTestEntries1
+            joinEntries nrInds pacNames False testEntriesTuplesList1 `shouldBe` Right mergedTestEntries1
 
 testLoadVCF :: Spec
 testLoadVCF = describe "loadIndividuals(VCF)" $ do

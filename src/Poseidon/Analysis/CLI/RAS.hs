@@ -140,7 +140,7 @@ runRAS rasOpts = do
     errLength <- envErrorLength
     blockData <- liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False False relevantPackages Nothing
             let eigenstratProdFiltered =
                     bedFilterFunc (eigenstratProd >->
                                     P.filter (chromFilter (_rasExcludeChroms rasOpts)) >->

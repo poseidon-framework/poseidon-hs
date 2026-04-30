@@ -139,7 +139,7 @@ runFstats opts = do
     errLength <- envErrorLength
     blocks <- liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False False relevantPackages Nothing
             let eigenstratProdFiltered =
                     eigenstratProd >->
                     P.filter chromFilter >->

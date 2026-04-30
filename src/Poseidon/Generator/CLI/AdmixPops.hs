@@ -126,7 +126,7 @@ runAdmixPops (
     errLength <- envErrorLength
     liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False False relevantPackages Nothing
             let newIndEntries = map (\x -> EigenstratIndEntry (B.pack $ _indName x) Unknown (B.pack $ _groupName x)) preparedInds
             outConsumer <- case genotypeFileData of
                     GenotypeEigenstrat outG _ outS _ outI _ ->
