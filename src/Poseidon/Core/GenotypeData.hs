@@ -9,9 +9,9 @@ import           Poseidon.Core.ColumnTypesUtils   (ListColumn (..))
 import           Poseidon.Core.Janno              (JannoRow (..))
 import           Poseidon.Core.Utils              (LogA, PoseidonException (..),
                                                    PoseidonIO,
-                                                   envInputPlinkMode,
-                                                   logInfo, logWarning,
-                                                   logWithEnv, padLeft)
+                                                   envInputPlinkMode, logInfo,
+                                                   logWarning, logWithEnv,
+                                                   padLeft)
 
 import           Control.Monad                    (forM, forM_, unless, when)
 import           Control.Monad.Catch              (MonadThrow, throwM)
@@ -325,9 +325,9 @@ getConsensusSnpEntry strandCheck snpEntries = do
                 (i:_) -> return i
                 _     -> return $ head uniqueIds
     genPos <- case uniqueGenPos of
-        [p] -> return p
+        [p]      -> return p
         [0.0, p] -> return p -- 0.0 is considered "no data" in genetic position column
-        _ -> return $ maximum uniqueGenPos -- multiple non-zero genetic positions. Choosing the largest one.
+        _        -> return $ maximum uniqueGenPos -- multiple non-zero genetic positions. Choosing the largest one.
     (ref, alt) <- if strandCheck then getConsensusAllelesStrandCheck snpEntries else return (getConsensusAlleles snpEntries)
     return (EigenstratSnpEntry chrom pos genPos id_ ref alt)
 
@@ -354,7 +354,7 @@ checkAlleleFlipNeeded
                 else if (refA', altA') == (consAltA', consRefA') then Right True  -- alleles flipped
                 else if strandCheck && (revComp refA', revComp altA') == (consRefA', consAltA') then
                     -- simple concordance on reverse strand
-                    Right False 
+                    Right False
                 else if strandCheck && (revComp refA', revComp altA') == (consAltA', consRefA') then
                     -- alleles flipped on reverse strand
                     Right True
@@ -366,7 +366,7 @@ checkAlleleFlipNeeded
             if refA' == consRefA' || (strandCheck && revComp refA' == consRefA') then do
                 validateAllRef
                 Right False
-            else if altA' == consAltA' || (strandCheck && revComp altA' == consAltA') then do                
+            else if altA' == consAltA' || (strandCheck && revComp altA' == consAltA') then do
                 validateAllAlt
                 Right False
             else if refA' == consAltA' || (strandCheck && revComp refA' == consAltA') then do
@@ -398,8 +398,8 @@ getConsensusAlleles snpEntries =
     let allAlleles    = concat $ [[r, a] | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
         uniqueAlleles = nub . filter (not . isMissing) $ allAlleles
     in  case uniqueAlleles of
-            [] ->  ('N', 'N')
-            [r] -> ('N', r)
+            []              ->  ('N', 'N')
+            [r]             -> ('N', r)
             (ref : alt : _) -> (ref, alt) -- at this point we don't care if we have more than two alleles,
                 -- this will be checked in the Recoding step.
 
