@@ -1,3 +1,5 @@
+- V 2.1.1.0:
+    - Activated Ploidy checks whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
 - V 2.1.0.0:
     - Added option `--strandCheck` to forge.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
