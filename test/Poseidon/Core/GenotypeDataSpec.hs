@@ -16,6 +16,7 @@ spec :: Spec
 spec = do
     testSNPSetMergeList
     testJoinGenoEntries
+    testJoinGenoEntriesWithStrandFlips
     testLoadVCF
 
 testSNPSetMergeList :: Spec
@@ -56,6 +57,31 @@ testJoinGenoEntries =
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
             joinEntries nrInds pacNames False testEntriesTuplesList1 `shouldBe` Right mergedTestEntries1
+
+testEntriesTuplesListWithStrandFlips :: [Maybe (EigenstratSnpEntry, GenoLine)]
+testEntriesTuplesListWithStrandFlips = [
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C', V.fromList [HomRef, Het, HomAlt]),
+    Nothing,
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'G' 'T', V.fromList [HomAlt, Missing, HomRef]),
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'C' 'N', V.fromList [HomRef, Missing, HomRef]),
+    Just (EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'N' 'T', V.fromList [HomAlt, HomAlt, HomAlt])]
+
+mergedTestEntriesWithStrandFlips :: (EigenstratSnpEntry, GenoLine)
+mergedTestEntriesWithStrandFlips = (
+    EigenstratSnpEntry (Chrom "1") 1 0.1 "id1" 'A' 'C',
+    V.fromList [HomRef, Het, HomAlt,
+                Missing, Missing, Missing,
+                HomRef, Missing, HomAlt,
+                HomAlt, Missing, HomAlt,
+                HomRef, HomRef, HomRef])
+
+testJoinGenoEntriesWithStrandFlips :: Spec
+testJoinGenoEntriesWithStrandFlips =
+    describe "Poseidon.Core.GenotypeData.joinEntries with strandflips" $
+        it "should just work" $ do
+            let nrInds = [3, 3, 3, 3, 3]
+                pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
+            joinEntries nrInds pacNames True testEntriesTuplesListWithStrandFlips `shouldBe` Right mergedTestEntriesWithStrandFlips
 
 testLoadVCF :: Spec
 testLoadVCF = describe "loadIndividuals(VCF)" $ do
