@@ -366,6 +366,12 @@ parseIntersect = OP.switch (
         \defined as missing in those packages which do not have a SNP that is present in another package. \
         \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
 
+parseStrandCheck :: OP.Parser Bool
+parseStrandCheck = OP.switch (
+    OP.long "strandCheck" <>
+    OP.help "Whether to allow strand flips in the genotype data. Note that this will remove \
+    \any A/T and G/C SNPs from the data, as for those we cannot determine the correct strand orientation.")
+
 parseRemoteDummy :: OP.Parser ()
 parseRemoteDummy = OP.flag' () (
     OP.long "remote" <>
