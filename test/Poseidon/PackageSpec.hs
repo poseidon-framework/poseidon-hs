@@ -330,14 +330,14 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
                 jointProd <- getJointGenotypeData noLog False False pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
-    it "should skip incongruent alleles" $ do
+    it "should skip incongruent alleles and allele flips" $ do
         let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                          "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False False pacs Nothing
+            jointProd <- getJointGenotypeData noLog True False pacs Nothing
             P.toListM jointProd
-        length jointDat `shouldBe` 7
+        length jointDat `shouldBe` 6
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
