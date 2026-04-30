@@ -36,6 +36,7 @@ import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
                                                  readBibTeXFile)
 import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..),
                                                  GroupName (..),
+                                                 JannoGenotypePloidy (..),
                                                  JannoLibraryBuilt (..),
                                                  JannoPublication (..),
                                                  JannoUDG (..), PoseidonID (..))
@@ -97,7 +98,6 @@ import           Data.Aeson                     (FromJSON, ToJSON, object,
                                                  (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString                as B
 import qualified Data.ByteString.Char8          as Bchs
-import qualified Data.ByteString.Char8          as BSC
 import           Data.Char                      (isSpace)
 import           Data.Csv                       (toNamedRecord)
 import           Data.Either                    (lefts, rights)
@@ -495,34 +495,32 @@ validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
     logA <- envLogAction
     errLength <- envErrorLength
-    --let jannoRows = getJannoRowsFromPac pac
-    --let ploidyList = map jGenotypePloidy jannoRows
-    --let indivNames = map jPoseidonID jannoRows
+    let jannoRows = getJannoRowsFromPac pac
+    let ploidyList = map jGenotypePloidy jannoRows
+    let indivNames = map (Bchs.unpack . unPoseidonID . jPoseidonID) jannoRows
     liftIO $ catch (
         runSafeT $ do
-            -- we're using getJointGenotypeData here on a single package to check for SNP consistency
-            -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            eigenstratProd <- getJointGenotypeData logA False False [pac] Nothing
+            eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
             -- check all or only the first 100 SNPs
             if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
-                --runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
-                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
+                runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
+                -- runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else
-                --runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
-                runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+                runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
+                -- runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
-  -- where
-  --   checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
-  --       let illegals =
-  --               map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
-  --               filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
-  --               zip3 ploidyList indivNames . V.toList $ genoLine
-  --       unless (null illegals) $ do
-  --           logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
-  --           mapM_ (logWithEnv logA . logDebug) illegals
-  --           liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
+  where
+    checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
+        let illegals =
+                map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
+                filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
+                zip3 ploidyList indivNames . V.toList $ genoLine
+        unless (null illegals) $ do
+            logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
+            mapM_ (logWithEnv logA . logDebug) illegals
+            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
 
 
 -- throws exception if any file is missing or checksum is incorrect
@@ -935,7 +933,7 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
             AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
             AddColList c -> c
-        additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+        additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
     return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
