@@ -18,6 +18,8 @@ genotypeData:
   indFile: ind.txt
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
+  referenceGenomeAssembly: GRCh37
+  referenceGenomeAssemblyURL: https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_000001405.14
 jannoFile: Schiffels_2016.janno
 jannoFileChkSum: 09e65688bbb0d315648ccc7de0bf03e8
 sequencingSourceFile: ena_table.ssf

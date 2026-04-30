@@ -1,6 +1,9 @@
 - V 2.1.0.0:
     - Added option `--strandCheck` to forge.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
+- V 2.0.0.0:
+    - Incorporated the poseidon-analysis-hs library with the xerxes CLI software tool executable into the poseidon-hs repository.
+    - Fixed two bugs in the handling of the new `referenceGenomeAssembly` POSEIDON.yml fields by `forge` and `genoconvert`.
 - V 1.7.0.0:
     - Changes to .janno columns according to Poseidon v3.0.0:
         - Replaced column `Source_Tissue`  with column `Source_Material`.

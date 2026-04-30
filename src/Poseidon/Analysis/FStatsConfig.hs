@@ -1,24 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Poseidon.Analysis.FStatsConfig where
 
-import           Poseidon.Analysis.Utils (GroupDef, XerxesException (..),
-                                          parseGroupDefsFromJSON)
+import           Poseidon.Analysis.Utils   (GroupDef, XerxesException (..),
+                                            parseGroupDefsFromJSON)
 
-import           Control.Applicative     ((<|>))
-import           Control.Exception       (throwIO)
-import           Control.Monad           (forM, when)
-import           Control.Monad.IO.Class  (MonadIO, liftIO)
-import           Data.Aeson              (FromJSON (..), withObject, withText,
-                                          (.:), (.:?))
-import qualified Data.ByteString         as B
-import           Data.Char               (isSpace)
-import           Data.Yaml               (decodeEither')
-import           Poseidon.EntityTypes    (PacNameAndVersion (..),
-                                          PoseidonEntity (..))
-import           Poseidon.Version        (parseVersion)
-import qualified Text.Parsec             as P
-import qualified Text.Parsec.String      as P
-import           Text.Read               (readMaybe)
+import           Control.Applicative       ((<|>))
+import           Control.Exception         (throwIO)
+import           Control.Monad             (forM, when)
+import           Control.Monad.IO.Class    (MonadIO, liftIO)
+import           Data.Aeson                (FromJSON (..), withObject, withText,
+                                            (.:), (.:?))
+import qualified Data.ByteString           as B
+import           Data.Char                 (isSpace)
+import           Data.Yaml                 (decodeEither')
+import           Poseidon.Core.EntityTypes (PacNameAndVersion (..),
+                                            PoseidonEntity (..))
+import           Poseidon.Core.Version     (parseVersion)
+import qualified Text.Parsec               as P
+import qualified Text.Parsec.String        as P
+import           Text.Read                 (readMaybe)
 
 
 -- import qualified Dhall as D
@@ -159,7 +159,7 @@ fStatSpecParser = do
     parseEntities = P.sepBy1 customEntitySpecParser (P.char ',' <* P.spaces)
     customEntitySpecParser = parsePac <|> parseGroup <|> parseInd
     -- annoyingly we have to use a custom parser here, because in this input
-    -- form we cannot allow brackets in entity-names. The code is 99% copies from Poseidon.EntityTypes.
+    -- form we cannot allow brackets in entity-names. The code is 99% copies from Poseidon.Core.EntityTypes.
     parsePac         = Pac   <$> P.between (P.char '*') (P.char '*') parseNameAndVer
     parseGroup       = Group <$> parseName
     parseInd         = P.try parseSimpleInd <|> parseSpecificInd

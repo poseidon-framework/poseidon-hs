@@ -2,33 +2,33 @@
 
 module Poseidon.Analysis.Utils where
 
-import           Control.Exception          (Exception, throw)
-import           Control.Monad              (forM)
-import           Data.Aeson                 ((.:))
-import           Data.Aeson.Key             (toString)
-import           Data.Aeson.KeyMap          (toList)
-import           Data.Aeson.Types           (Object, Parser)
-import qualified Data.ByteString.Char8      as B
-import qualified Data.Vector                as V
-import           Pipes                      (Pipe, cat)
-import qualified Pipes.Prelude              as P
-import           Poseidon.ColumnTypesJanno  (GroupName (..),
-                                             JannoGenotypePloidy (..),
-                                             PoseidonID (..))
-import           Poseidon.ColumnTypesUtils  (ListColumn (..))
-import           Poseidon.EntityTypes       (IndividualInfo (..),
-                                             SignedEntitiesList,
-                                             indInfoConformsToEntitySpecs,
-                                             isLatestInCollection,
-                                             makePacNameAndVersion)
-import           Poseidon.Janno             (JannoRow (..), JannoRows (..))
-import           Poseidon.Package           (PoseidonPackage (..),
-                                             getJannoRowsFromPac)
-import           Poseidon.Utils             (PoseidonException (..), PoseidonIO,
-                                             logWarning)
-import           SequenceFormats.Eigenstrat (EigenstratSnpEntry (..),
-                                             GenoEntry (..), GenoLine)
-import           SequenceFormats.Utils      (Chrom)
+import           Control.Exception              (Exception, throw)
+import           Control.Monad                  (forM)
+import           Data.Aeson                     ((.:))
+import           Data.Aeson.Key                 (toString)
+import           Data.Aeson.KeyMap              (toList)
+import           Data.Aeson.Types               (Object, Parser)
+import qualified Data.ByteString.Char8          as B
+import qualified Data.Vector                    as V
+import           Pipes                          (Pipe, cat)
+import qualified Pipes.Prelude                  as P
+import           Poseidon.Core.ColumnTypesJanno (GroupName (..),
+                                                 JannoGenotypePloidy (..),
+                                                 PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (ListColumn (..))
+import           Poseidon.Core.EntityTypes      (IndividualInfo (..),
+                                                 SignedEntitiesList,
+                                                 indInfoConformsToEntitySpecs,
+                                                 isLatestInCollection,
+                                                 makePacNameAndVersion)
+import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..))
+import           Poseidon.Core.Package          (PoseidonPackage (..),
+                                                 getJannoRowsFromPac)
+import           Poseidon.Core.Utils            (PoseidonException (..),
+                                                 PoseidonIO, logWarning)
+import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
+                                                 GenoEntry (..), GenoLine)
+import           SequenceFormats.Utils          (Chrom)
 
 -- | A datatype representing the two options for how to run the Block-Jackknife
 data JackknifeMode = JackknifePerN Int

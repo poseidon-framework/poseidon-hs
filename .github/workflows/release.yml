@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macOS-13, macOS-14, windows-latest]
+        os: [ubuntu-22.04, macOS-15-intel, macOS-15, windows-latest]
 
     steps:
       - name: Check out code
@@ -70,14 +70,6 @@ jobs:
              echo "TRIDENT_PATH=$TRIDENT" >> $GITHUB_OUTPUT
              echo "XERXES_PATH=$XERXES" >> $GITHUB_OUTPUT
         shell: bash
-
-      - name: Compress binary
-        if: ${{ runner.os != 'macOS' }} # upx is crashing for macOS Ventura or above!
-        uses: svenstaro/upx-action@v2
-        with:
-          files: |
-            ${{ steps.binarypath.outputs.TRIDENT_PATH }}
-            ${{ steps.binarypath.outputs.XERXES_PATH }}
 
       - name: Upload Release Asset
         id: upload-release-asset

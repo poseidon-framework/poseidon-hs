@@ -1,18 +1,20 @@
 module Poseidon.Analysis.UtilsSpec (spec) where
 
-import           Poseidon.Analysis.Utils    (addGroupDefs, computeAlleleCount)
+import           Poseidon.Analysis.Utils        (addGroupDefs,
+                                                 computeAlleleCount)
 
-import qualified Data.Vector                as V
-import           Poseidon.ColumnTypesJanno  (JannoGenotypePloidy (..))
-import           Poseidon.EntityTypes       (IndividualInfo (..),
-                                             PoseidonEntity (..),
-                                             SignedEntity (..))
-import           Poseidon.Package           (PackageReadOptions (..),
-                                             defaultPackageReadOptions,
-                                             getJointIndividualInfo,
-                                             readPoseidonPackageCollection)
-import           Poseidon.Utils             (PoseidonException (..), testLog)
-import           SequenceFormats.Eigenstrat (GenoEntry (..))
+import qualified Data.Vector                    as V
+import           Poseidon.Core.ColumnTypesJanno (JannoGenotypePloidy (..))
+import           Poseidon.Core.EntityTypes      (IndividualInfo (..),
+                                                 PoseidonEntity (..),
+                                                 SignedEntity (..))
+import           Poseidon.Core.Package          (PackageReadOptions (..),
+                                                 defaultPackageReadOptions,
+                                                 getJointIndividualInfo,
+                                                 readPoseidonPackageCollection)
+import           Poseidon.Core.Utils            (PoseidonException (..),
+                                                 testLog)
+import           SequenceFormats.Eigenstrat     (GenoEntry (..))
 import           Test.Hspec
 
 spec :: Spec

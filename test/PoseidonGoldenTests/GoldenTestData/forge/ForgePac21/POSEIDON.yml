@@ -7,6 +7,8 @@ genotypeData:
   format: VCF
   genoFile: ForgePac21.vcf
   snpSet: Other
+  referenceGenomeAssembly: GRCh37
+  referenceGenomeAssemblyURL: https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_000001405.14
 jannoFile: ForgePac21.janno
 sequencingSourceFile: ForgePac21.ssf
 bibFile: ForgePac21.bib

@@ -1,41 +1,45 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import           Poseidon.Analysis.CLI.FStats            (FstatsOptions (..),
-                                                          runFstats, runParser)
-import           Poseidon.Analysis.CLI.RAS               (FreqSpec (..),
-                                                          RASOptions (..),
-                                                          runRAS)
-import           Poseidon.Analysis.FStatsConfig          (FStatInput (..),
-                                                          fStatSpecParser)
-import           Poseidon.Analysis.Utils                 (JackknifeMode (..))
-import           Poseidon.Generator.CLI.AdmixPops        (AdmixPopsMethodSettings (..),
-                                                          AdmixPopsOptions (..),
-                                                          runAdmixPops)
-import           Poseidon.Generator.Parsers              (readIndWithAdmixtureSetString)
-import           Poseidon.Generator.Types                (RequestedInd)
+import           Poseidon.Analysis.FStatsConfig                  (FStatInput (..),
+                                                                  fStatSpecParser)
+import           Poseidon.Analysis.Generator.Parsers             (readIndWithAdmixtureSetString)
+import           Poseidon.Analysis.Generator.Types               (RequestedInd)
+import           Poseidon.Analysis.Utils                         (JackknifeMode (..))
+import           Poseidon.CLI.Xerxes.AdmixPops                   (AdmixPopsMethodSettings (..),
+                                                                  AdmixPopsOptions (..),
+                                                                  runAdmixPops)
+import           Poseidon.CLI.Xerxes.FStats                      (FstatsOptions (..),
+                                                                  runFstats,
+                                                                  runParser)
+import           Poseidon.CLI.Xerxes.RAS                         (FreqSpec (..),
+                                                                  RASOptions (..),
+                                                                  runRAS)
 
-import           Control.Applicative                     ((<|>))
-import           Control.Exception                       (catch)
-import           Data.ByteString.Char8                   (pack, splitWith)
-import           Data.List                               (intercalate)
-import           Data.Version                            (showVersion)
-import qualified Options.Applicative                     as OP
-import           Paths_poseidon_hs                       (version)
-import           Poseidon.CLI.OptparseApplicativeParsers
-import           Poseidon.PoseidonVersion                (showPoseidonVersion,
-                                                          validPoseidonVersions)
-import           Poseidon.Utils                          (ErrorLength (..),
-                                                          LogMode (..),
-                                                          PlinkPopNameMode (..),
-                                                          PoseidonException (..),
-                                                          PoseidonIO, TestMode,
-                                                          logError,
-                                                          renderPoseidonException,
-                                                          usePoseidonLogger)
-import           SequenceFormats.Utils                   (Chrom (..))
-import           System.Exit                             (exitFailure)
-import           System.IO                               (hPutStrLn, stderr)
-import           Text.Read                               (readEither)
+import           Control.Applicative                             ((<|>))
+import           Control.Exception                               (catch)
+import           Data.ByteString.Char8                           (pack,
+                                                                  splitWith)
+import           Data.List                                       (intercalate)
+import           Data.Version                                    (showVersion)
+import qualified Options.Applicative                             as OP
+import           Paths_poseidon_hs                               (version)
+import           Poseidon.CLI.Trident.OptparseApplicativeParsers
+import           Poseidon.Core.PoseidonVersion                   (showPoseidonVersion,
+                                                                  validPoseidonVersions)
+import           Poseidon.Core.Utils                             (ErrorLength (..),
+                                                                  LogMode (..),
+                                                                  PlinkPopNameMode (..),
+                                                                  PoseidonException (..),
+                                                                  PoseidonIO,
+                                                                  TestMode,
+                                                                  logError,
+                                                                  renderPoseidonException,
+                                                                  usePoseidonLogger)
+import           SequenceFormats.Utils                           (Chrom (..))
+import           System.Exit                                     (exitFailure)
+import           System.IO                                       (hPutStrLn,
+                                                                  stderr)
+import           Text.Read                                       (readEither)
 
 data Options = Options {
     _logMode    :: LogMode

@@ -1,0 +1,46 @@
+- 1.0.2.0: Added VCF writing support to admixpops. Updated to newest poseidon-hs.
+- 1.0.1.2: Fixed a bug in the FStatConfig parser.
+- 1.0.1.0: fixed a bug in the FST estimation, added more graceful errors in case of illegal input for fstats
+- 1.0.0.2: Switched to poseidon-hs v1.4.0.3 and a new compiler (GHC 9.4.7) and stackage snapshot version (LTS-21.17)
+- 1.0.0.1: Switched to poseidon-hs v1.4.0.2
+- 1.0.0.0: Some key updates:
+	- now uses newest poseidon-hs library (v1.4.0.0) with improved and clarified semantics for entity selectors
+	- Fstats now uses the information in the column "Genotype_Ploidy" from the Janno file to improve bias-correction. Specifically, haploid samples
+	  contribute only one chromosome to the count in the bias-correction formula.
+	- added a whitepaper to describe the mathematics of the statistics in "docs".
+- 0.3.5.0: Slightly different behaviour with outgroup-based ascertainment in RAS, now restricting to sites where the outgroup is homozygous
+- 0.3.4.0: Added an option to run admixpops on chunks, not just individual SNPs. Also some technical updates (GitHub actions, stack resolver version).
+- 0.3.3.0: Switched to poseidon-hs v1.2.1.0, which supports Poseidon v2.7.1.
+- 0.3.2.0: Added feature to output per-block statistics in Fstats.
+- 0.3.1.0: Switched to poseidon-hs v1.1.11.0, which includes better Plink input options.
+- 0.3.0.0: A number of changes when integrating paagen into xerxes: 
+	- Switched to GHC v8.10.7
+	- Ran stylish-haskell and enabled a GitHub action that checks if new code follows its default guidelines
+	- Added and endabled the subcommand admixpops (formerly part of the independent tool paagen)
+	- Added the infrastructure for direct genotype data handling for admixpops (not yet for fstats and ras, though)
+	- Added a normal code check GitHub Action to make sure the master branch compiles and the tests run through
+	- Updated the colog logging to the new setup in poseidon-hs v1.1.1.0
+	- Replaced some parsing code with a dependency to Poseidon.CLI.OptparseApplicativeParsers added in poseidon-hs v1.1.1.2
+	- Integrated some of the error handling innovations (e.g. --logMode/--errLength) from trident in xerxes
+- 0.2.2.0: Added a no-transitions-option to fstats.
+- 0.2.1.0: Big code refactoring, first tests, and optimization boost with allele-frequency lookup-tables.
+- 0.2.0.4: Fixed bug with ascertainment: Polymorphic sites in the ascertainment-outgroup now get filtered out.
+- 0.2.0.3: Fixed nr of arguments bug with F3vanilla
+- 0.2.0.2: Removed redundant log output after loading the config file.
+- 0.2.0.1: fixed spaceleak in the final table-printing in ras
+- 0.2.0.0: new config-file input for fstats, including ascertainment options.
+- 0.1.3.1: Fixed missing-table-out bug
+- 0.1.3.0: Added F4 output to ras.
+- 0.1.2.4: Rounded stdout value output in fstats to 4 digits.
+- 0.1.2.3: fixed table output bug in fstats
+- 0.1.2.2: bedfile now optional.
+- 0.1.2.1: added a --bedFile flag
+- 0.1.2.0: Added a --noTransitions flag
+- 0.1.1.1: Fixed a bug that caused the outgroup to be ignored in the main loop of RAS.
+- 0.1.1.0: Simplified and improved the CLI API for xerxes RAS
+- 0.1.0.0: Decided for first major version number 1, as FStats has received such major upgrades.
+- 0.0.1.1: Slighty modified error calculation with normalized F3.
+- 0.0.1.0: Major optimization of Fstats, added lots of new statistics, space leak fixed. Normalization of F3-statistics now similar to ADMIXTOOLS.
+- 0.0.0.4: Fixed Bug with parsing F-Statistics
+- 0.0.0.2: Bug fix with indexing in RAS. Added output of normalisation count to output table.
+- 0.0.0.1: Initial commit. Copied the fstats command from poseidon-hs.
