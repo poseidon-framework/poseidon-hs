@@ -338,6 +338,18 @@ testGetJointGenotypeData = describe "Poseidon.Package.getJointGenotypeData" $ do
             jointProd <- getJointGenotypeData noLog True False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 6
+    it "should detect strandflips" $ do
+        let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                         "test/testDat/testPackages/test_strandflips/POSEIDON.yml"]
+        pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
+        jointDat <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog True False pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 2
+        jointDat2 <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog True True pacs Nothing
+            P.toListM jointProd
+        length jointDat2 `shouldBe` 6
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
