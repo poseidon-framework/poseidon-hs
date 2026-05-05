@@ -297,7 +297,7 @@ testGetJointGenotypeData = describe "Poseidon.Core.Package.getJointGenotypeData"
     it "should correctly load genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            jointProd <- getJointGenotypeData noLog False False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -307,7 +307,7 @@ testGetJointGenotypeData = describe "Poseidon.Core.Package.getJointGenotypeData"
     it "should correctly load genotype data with intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog True pacs Nothing
+            jointProd <- getJointGenotypeData noLog True True pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 8
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 949654 0.025727 "1_949654" 'A' 'G',
@@ -317,29 +317,41 @@ testGetJointGenotypeData = describe "Poseidon.Core.Package.getJointGenotypeData"
     it "should correctly load the right nr of SNPs with snpFile and no intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile.snp")
+            jointProd <- getJointGenotypeData noLog False False pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 6
     it "should correctly load the right nr of SNPs with snpFile and intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog True pacs (Just "test/testDat/snpFile.snp")
+            jointProd <- getJointGenotypeData noLog True False pacs (Just "test/testDat/snpFile.snp")
             P.toListM jointProd
         length jointDat `shouldBe` 4
     it "should fail with unordered SNP input file" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         let makeJointDat = runSafeT $ do
-                jointProd <- getJointGenotypeData noLog False pacs (Just "test/testDat/snpFile_unordered.snp")
+                jointProd <- getJointGenotypeData noLog False False pacs (Just "test/testDat/snpFile_unordered.snp")
                 P.toListM jointProd
         makeJointDat `shouldThrow` isInputOrderException
-    it "should skip incongruent alleles" $ do
+    it "should skip incongruent alleles and allele flips" $ do
         let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
                          "test/testDat/testPackages/test_incongruent_snps/POSEIDON.yml"]
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            jointProd <- getJointGenotypeData noLog True False pacs Nothing
             P.toListM jointProd
-        length jointDat `shouldBe` 7
+        length jointDat `shouldBe` 6
+    it "should detect strandflips" $ do
+        let pacFiles2 = ["test/testDat/testPackages/ancient/Lamnidis_2018/POSEIDON.yml",
+                         "test/testDat/testPackages/test_strandflips/POSEIDON.yml"]
+        pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles2
+        jointDat <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog True False pacs Nothing
+            P.toListM jointProd
+        length jointDat `shouldBe` 2
+        jointDat2 <- runSafeT $ do
+            jointProd <- getJointGenotypeData noLog True True pacs Nothing
+            P.toListM jointProd
+        length jointDat2 `shouldBe` 6
   where
     isInputOrderException :: Selector WrongInputOrderException
     isInputOrderException (WrongInputOrderException _) = True
@@ -351,7 +363,7 @@ testGetJointGzippedGenotypeData = describe "Poseidon.Core.Package.getJointGenoty
     it "should correctly load gzipped and non-gzipped genotype data without intersect" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            jointProd <- getJointGenotypeData noLog False False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',
@@ -366,7 +378,7 @@ testGetVCFdata = describe "Poseidon.Core.Package.getJointGenotypeData" $ do
     it "should correctly load VCF and Eigenstrat genotype data" $ do
         pacs <- testLog $ mapM (readPoseidonPackage testPacReadOpts) pacFiles
         jointDat <- runSafeT $ do
-            jointProd <- getJointGenotypeData noLog False pacs Nothing
+            jointProd <- getJointGenotypeData noLog False False pacs Nothing
             P.toListM jointProd
         length jointDat `shouldBe` 10
         jointDat !! 3 `shouldBe` (EigenstratSnpEntry (Chrom "1") 903426 0.024457 "1_903426" 'C' 'T',

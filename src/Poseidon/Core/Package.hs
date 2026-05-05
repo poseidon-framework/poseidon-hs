@@ -291,6 +291,10 @@ data PackageReadOptions = PackageReadOptions
     -- ^ whether to check the SNPs of the genotypes
     , _readOptFullGeno           :: Bool
     -- ^ whether to check all SNPs or only the first 100
+    , _readOptStrandChecks       :: Bool
+    -- ^ whether to perform strand checks
+    , _readOptSkipIncongruentSnps       :: Bool
+    -- ^ whether to skip incongruent SNPs
     , _readOptIgnorePosVersion   :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
     , _readOptOnlyLatest         :: Bool
@@ -310,6 +314,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreGeno           = False
     , _readOptGenoCheck            = True
     , _readOptFullGeno             = False
+    , _readOptStrandChecks         = False
+    , _readOptSkipIncongruentSnps         = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
     , _readOptMandatoryJannoCols   = []
@@ -500,9 +506,7 @@ validateGeno pac checkFullGeno = do
     --let indivNames = map jPoseidonID jannoRows
     liftIO $ catch (
         runSafeT $ do
-            -- we're using getJointGenotypeData here on a single package to check for SNP consistency
-            -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            eigenstratProd <- getJointGenotypeData logA False [pac] Nothing
+            eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
             -- check all or only the first 100 SNPs
             if checkFullGeno
             then do
@@ -692,16 +696,18 @@ findAllPoseidonYmlFiles baseDir = do
 getJointGenotypeData :: MonadSafe m =>
                         LogA -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
+                     -> Bool -- ^ whether to check strand consistency
+                     -> Bool -- ^ whether to skip incongruent SNPs
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logA intersect pacs maybeSnpFile = do
+getJointGenotypeData logA intersect strandcheck skipIncongruentSnps pacs maybeSnpFile = do
     genotypeProducers <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let nrInds          = map (length . getJannoRows . posPacJanno) pacs
         pacNames        = map getPacName pacs
         prod            = orderedZipAll compFunc genotypeProducers >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds strandcheck skipIncongruentSnps pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -732,14 +738,20 @@ getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
-joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe logA nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries logA nrInds pacNames maybeEntries
-    case eitherJE of
-        Left (PoseidonGenotypeException err) ->
-            logWithEnv logA . logDebug $ "Skipping SNP due to " ++ err
-        Left e -> liftIO . throwIO $ e
-        Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
+joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> Bool -> Bool -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logA nrInds strandCheck skipIncongruentSnps pacNames = for cat $ \maybeEntries -> do
+    case joinEntries nrInds pacNames strandCheck maybeEntries of
+        Left err ->
+            if skipIncongruentSnps then do
+                logWithEnv logA . logDebug $ err
+                logWithEnv logA . logDebug $ "Skipping this SNP"
+                return ()
+            else
+                liftIO . throwIO . PoseidonGenotypeException $ "Incongruent SNP entries for SNP: " ++ err ++
+                    ". Could this be due to strand-flips? If so, consider using --strandcheck. \
+                    \You can also consider using --skip-incongruent-snps to skip such SNPs."
+        Right Nothing -> return ()
+        Right (Just (eigenstratSnpEntry, genoLine)) -> yield (eigenstratSnpEntry, genoLine)
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
