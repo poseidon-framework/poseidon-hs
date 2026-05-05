@@ -79,6 +79,7 @@ data ForgeOptions = ForgeOptions
     , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
     , _forgeSnpFile            :: Maybe FilePath
     , _forgeIntersect          :: Bool
+    , _forgeStrandCheck        :: Bool
     , _forgeOutFormat          :: GenotypeOutFormatSpec
     , _forgeOutMode            :: ForgeOutMode
     , _forgeOutZip             :: Bool
@@ -111,7 +112,7 @@ pacReadOpts = defaultPackageReadOptions {
 runForge :: ForgeOptions -> PoseidonIO ()
 runForge (
     ForgeOptions genoSources
-                 entityInputs maybeSnpFile intersect_
+                 entityInputs maybeSnpFile intersect_ strandcheck
                  outFormat outMode outZip outPathRaw maybeOutName
                  packageWise outPlinkPopMode
                  outputOrdered
@@ -284,7 +285,7 @@ runForge (
             errLength <- envErrorLength
             newNrSNPs <- liftIO $ catch (
                 runSafeT $ do
-                    eigenstratProd <- getJointGenotypeData logA intersect_ relevantPackages maybeSnpFile
+                    eigenstratProd <- getJointGenotypeData logA intersect_ strandcheck relevantPackages maybeSnpFile
                     let eigenstratIndEntries = jannoRows2EigenstratIndEntries . getJointJanno $ relevantPackages
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
                     let outConsumer = case gFileSpec of

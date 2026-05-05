@@ -212,6 +212,7 @@ forgeOptParser = ForgeOptions <$> parseGenoDataSources
                               <*> parseForgeEntityInputs
                               <*> parseMaybeSnpFile
                               <*> parseIntersect
+                              <*> parseStrandCheck
                               <*> parseOutGenotypeFormat True
                               <*> parseForgeOutMode
                               <*> parseZipOut
