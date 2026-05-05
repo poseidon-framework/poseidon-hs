@@ -1,4 +1,4 @@
-- V 2.1.0.0:
+- V 2.0.1.0:
     - Added option `--strandCheck` to forge.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
 - V 2.0.0.0:
