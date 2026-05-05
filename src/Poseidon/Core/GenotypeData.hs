@@ -409,11 +409,15 @@ getConsensusAllelesStrandCheck :: [EigenstratSnpEntry] -> Either String (Char, C
 getConsensusAllelesStrandCheck snpEntries = do
     let allAllelePairs    = [(r, a) | EigenstratSnpEntry _ _ _ _ r a <- snpEntries]
     case filter (\(a, b) -> not (isMissing a) && not (isMissing b)) $ allAllelePairs of
-        [] -> Left $
-            "When checking for strand flips, I require at least one non-missing allele \
-            \pair to determine the consensus alleles. However, all allele pairs are missing for SNP " ++
-            show (snpId . head $ snpEntries) ++ " at position " ++
-            show (snpChrom . head $ snpEntries) ++ ":" ++ show (snpPos . head $ snpEntries)
+        [] ->
+            let firstSnp = case snpEntries of
+                    [] -> error "getConsensusAllelesStrandCheck: This should never happen, as this function is only called with non-empty snpEntries"
+                    (s:_) -> s
+            in            
+                Left $ "When checking for strand flips, I require at least one non-missing allele \
+                \pair to determine the consensus alleles. However, all allele pairs are missing for SNP " ++
+                show (snpId firstSnp) ++ " at position " ++
+                show (snpChrom firstSnp) ++ ":" ++ show (snpPos firstSnp)
         ((a, b):_) -> if (a, b) `elem` [('C', 'G'), ('G', 'C'), ('A', 'T'), ('T', 'A')]
             then Left "strand-ambiguous allele pair (C/G or A/T)"
             else return (a, b)
@@ -462,7 +466,7 @@ writeVCF logA jannoRows vcfFile = do
         sex         = map jGeneticSex jannoRows
     forM_ jannoRows $ \jannoRow -> do
         when (jGenotypePloidy jannoRow == Nothing) . logWithEnv logA . logWarning $
-            "Missing GenotypePloidy for individual ++ " ++ show (jPoseidonID jannoRow) ++
+            "Missing GenotypePloidy for individual " ++ show (jPoseidonID jannoRow) ++
             ". For VCF output I will assume diploid genotypes. " ++
             "Please set the GenotypePloidy column explitly in the Janno File to haploid or diploid."
     let metaInfoLines = map B.pack [
