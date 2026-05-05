@@ -505,7 +505,7 @@ validateGeno pac checkFullGeno = do
             if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
-                runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> checkPloidy logA ploidyList indivNames >-> P.drain
                 -- runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else
                 runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
