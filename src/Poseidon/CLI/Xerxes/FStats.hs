@@ -75,17 +75,19 @@ import           Text.Printf                    (printf)
 
 -- | A datatype representing the command line options for the F-Statistics command
 data FstatsOptions = FstatsOptions
-    { _foBaseDirs      :: [FilePath] -- ^ the list of base directories to search for packages
+    { _foBaseDirs         :: [FilePath] -- ^ the list of base directories to search for packages
     -- ^ The way the Jackknife is performed
-    , _foJackknifeMode :: JackknifeMode -- ^ The way the Jackknife is performed
+    , _foJackknifeMode    :: JackknifeMode -- ^ The way the Jackknife is performed
     -- ^ a list of chromosome names to exclude from the computation
-    , _foExcludeChroms :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
+    , _foExcludeChroms    :: [Chrom] -- ^ a list of chromosome names to exclude from the computation
     -- ^ A list of F-statistics to compute
-    , _foStatInput     :: [FStatInput] -- ^ A list of F-statistics to compute, entered directly or via files
-    , _foMaxSnps       :: Maybe Int
-    , _foNoTransitions :: Bool
-    , _foTableOut      :: Maybe FilePath
-    , _foBlockTableOut :: Maybe FilePath
+    , _foStatInput        :: [FStatInput] -- ^ A list of F-statistics to compute, entered directly or via files
+    , _foMaxSnps          :: Maybe Int
+    , _foNoTransitions    :: Bool
+    , _foStrandCheck      :: Bool
+    , _foSkipAmbigousSNPs :: Bool
+    , _foTableOut         :: Maybe FilePath
+    , _foBlockTableOut    :: Maybe FilePath
     }
 
 data BlockData = BlockData
@@ -139,7 +141,7 @@ runFstats opts = do
     errLength <- envErrorLength
     blocks <- liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False (_foStrandCheck opts) (_foSkipAmbigousSNPs opts) relevantPackages Nothing
             let eigenstratProdFiltered =
                     eigenstratProd >->
                     P.filter chromFilter >->

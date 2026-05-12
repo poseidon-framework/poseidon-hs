@@ -46,6 +46,8 @@ data AdmixPopsOptions = AdmixPopsOptions {
     , _admixIndWithAdmixtureSet     :: [RequestedInd]
     , _admixIndWithAdmixtureSetFile :: Maybe FilePath
     , _admixMethodSettings          :: AdmixPopsMethodSettings
+    , _admixStrandCheck             :: Bool
+    , _admixStrandSkipAmbigousSNPs  :: Bool
     , _admixOutFormat               :: GenotypeOutFormatSpec
     , _admixOutZip                  :: Bool
     , _admixOutPath                 :: FilePath
@@ -61,6 +63,8 @@ runAdmixPops (
         popsWithFracsDirect
         popsWithFracsFile
         methodSetting
+        strandCheck
+        strandSkipAmbigousSNPs
         outFormat
         outZip
         outPath
@@ -127,7 +131,7 @@ runAdmixPops (
     errLength <- envErrorLength
     liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False strandCheck strandSkipAmbigousSNPs relevantPackages Nothing
             let newIndEntries = map (\x -> EigenstratIndEntry (B.pack $ _indName x) Unknown (B.pack $ _groupName x)) preparedInds
             outConsumer <- case genotypeFileData of
                     GenotypeEigenstrat outG _ outS _ outI _ ->

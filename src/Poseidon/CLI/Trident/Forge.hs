@@ -74,20 +74,21 @@ import           System.FilePath                (dropTrailingPathSeparator,
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions = ForgeOptions
-    { _forgeGenoSources        :: [GenoDataSource]
+    { _forgeGenoSources         :: [GenoDataSource]
     -- Empty list = forge all packages
-    , _forgeEntityInput        :: [EntityInput SignedEntity] -- Empty list = forge all packages
-    , _forgeSnpFile            :: Maybe FilePath
-    , _forgeIntersect          :: Bool
-    , _forgeStrandCheck        :: Bool
-    , _forgeOutFormat          :: GenotypeOutFormatSpec
-    , _forgeOutMode            :: ForgeOutMode
-    , _forgeOutZip             :: Bool
-    , _forgeOutPacPath         :: FilePath
-    , _forgeOutPacName         :: Maybe String
-    , _forgePackageWise        :: Bool
-    , _forgeOutputPlinkPopMode :: PlinkPopNameMode
-    , _forgeOutputOrdered      :: Bool
+    , _forgeEntityInput         :: [EntityInput SignedEntity] -- Empty list = forge all packages
+    , _forgeSnpFile             :: Maybe FilePath
+    , _forgeIntersect           :: Bool
+    , _forgeStrandCheck         :: Bool
+    , _forgeSkipIncongruentSNPs :: Bool
+    , _forgeOutFormat           :: GenotypeOutFormatSpec
+    , _forgeOutMode             :: ForgeOutMode
+    , _forgeOutZip              :: Bool
+    , _forgeOutPacPath          :: FilePath
+    , _forgeOutPacName          :: Maybe String
+    , _forgePackageWise         :: Bool
+    , _forgeOutputPlinkPopMode  :: PlinkPopNameMode
+    , _forgeOutputOrdered       :: Bool
     }
 
 -- | Different output modes ordered from more minimal to more complete
@@ -113,6 +114,7 @@ runForge :: ForgeOptions -> PoseidonIO ()
 runForge (
     ForgeOptions genoSources
                  entityInputs maybeSnpFile intersect_ strandcheck
+                 skipIncongruentSNPs
                  outFormat outMode outZip outPathRaw maybeOutName
                  packageWise outPlinkPopMode
                  outputOrdered
@@ -285,7 +287,7 @@ runForge (
             errLength <- envErrorLength
             newNrSNPs <- liftIO $ catch (
                 runSafeT $ do
-                    eigenstratProd <- getJointGenotypeData logA intersect_ strandcheck relevantPackages maybeSnpFile
+                    eigenstratProd <- getJointGenotypeData logA intersect_ strandcheck skipIncongruentSNPs relevantPackages maybeSnpFile
                     let eigenstratIndEntries = jannoRows2EigenstratIndEntries . getJointJanno $ relevantPackages
                     let newEigenstratIndEntries = map (eigenstratIndEntries !!) relevantIndices
                     let outConsumer = case gFileSpec of
