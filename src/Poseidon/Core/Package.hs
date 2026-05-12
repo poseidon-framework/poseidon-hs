@@ -283,25 +283,25 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums    :: Bool
+    { _readOptIgnoreChecksums     :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno         :: Bool
+    , _readOptIgnoreGeno          :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck          :: Bool
+    , _readOptGenoCheck           :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno           :: Bool
+    , _readOptFullGeno            :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptStrandChecks       :: Bool
+    , _readOptStrandChecks        :: Bool
     -- ^ whether to perform strand checks
-    , _readOptSkipIncongruentSnps       :: Bool
+    , _readOptSkipIncongruentSnps :: Bool
     -- ^ whether to skip incongruent SNPs
-    , _readOptIgnorePosVersion   :: Bool
+    , _readOptIgnorePosVersion    :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest         :: Bool
+    , _readOptOnlyLatest          :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
-    , _readOptMandatoryJannoCols :: [Bchs.ByteString]
+    , _readOptMandatoryJannoCols  :: [Bchs.ByteString]
     -- ^ .janno columns that should be treated as mandatory
-    , _readOptMandatorySSFCols   :: [Bchs.ByteString]
+    , _readOptMandatorySSFCols    :: [Bchs.ByteString]
     -- ^ .ssf columns that should be treated as mandatory
     }
 
