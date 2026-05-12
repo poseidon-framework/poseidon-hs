@@ -299,6 +299,7 @@ vcf2eigenstratPipe = for cat $ \vcfEntry -> do
     yield (eigenstratSnpEntry, genoLine)
 
 joinEntries :: [Int] -> [String] -> Bool -> [Maybe (EigenstratSnpEntry, GenoLine)] -> Either String (Maybe (EigenstratSnpEntry, GenoLine))
+joinEntries _      _        _           [onePac] = Right onePac -- if we only have one package, we can skip the whole consensus and recoding step.
 joinEntries nrInds pacNames strandCheck maybeTupleList = do
     let allSnpEntries = map fst . catMaybes $ maybeTupleList
     case getConsensusSnpEntry strandCheck allSnpEntries of
@@ -399,15 +400,22 @@ checkAlleleFlipNeeded
             else if not (isMissing altA') && (altA' == consRefA' || (strandCheck && revComp altA' == consRefA')) then do
                 validateAllAlt
                 Right True
+            else if isMissing refA' && isMissing altA' then do
+                validateAllMissing
+                Right False
             else
                 inconsistent
         )
   where
-    validateAllRef = unless (V.all (\a -> a == HomRef || a == Missing) genoLine) inconsistent
-    validateAllAlt = unless (V.all (\a -> a == HomAlt || a == Missing) genoLine) inconsistent
+    validateAllRef = unless (V.all (\a -> a == HomRef || a == Missing) genoLine) failValidate
+    validateAllAlt = unless (V.all (\a -> a == HomAlt || a == Missing) genoLine) failValidate
+    validateAllMissing = unless (V.all (== Missing) genoLine) failValidate
     inconsistent = Left $ "inconsistent alleles for SNP " ++ show snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
                 ". Consensus alleles inferred from all input packages are " ++ [consRefA] ++ ", " ++ [consAltA] ++
                 ", but package has alleles " ++ [refA] ++ ", " ++ [altA] ++ ". Could this be due to strand-flips? Consider using the --strandcheck option to check for strand flips and to automatically flip strands if needed."
+    failValidate = Left $ "inconsistent genotypes for SNP " ++ show snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
+                ". Consensus alleles inferred from all input packages are " ++ [consRefA] ++ ", " ++ [consAltA] ++
+                ", but the genotypes in this package are not consistent with these consensus alleles."
     revComp 'A' = 'T'
     revComp 'T' = 'A'
     revComp 'C' = 'G'
