@@ -56,7 +56,7 @@ testJoinGenoEntries =
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries nrInds pacNames False testEntriesTuplesList1 `shouldBe` Right mergedTestEntries1
+            joinEntries nrInds pacNames False testEntriesTuplesList1 `shouldBe` Right (Just mergedTestEntries1)
 
 testEntriesTuplesListWithStrandFlips :: [Maybe (EigenstratSnpEntry, GenoLine)]
 testEntriesTuplesListWithStrandFlips = [
@@ -81,7 +81,7 @@ testJoinGenoEntriesWithStrandFlips =
         it "should just work" $ do
             let nrInds = [3, 3, 3, 3, 3]
                 pacNames = ["Pac1", "Pac2", "Pac3", "Pac4", "Pac5"]
-            joinEntries nrInds pacNames True testEntriesTuplesListWithStrandFlips `shouldBe` Right mergedTestEntriesWithStrandFlips
+            joinEntries nrInds pacNames True testEntriesTuplesListWithStrandFlips `shouldBe` Right (Just mergedTestEntriesWithStrandFlips)
 
 testLoadVCF :: Spec
 testLoadVCF = describe "loadIndividuals(VCF)" $ do
