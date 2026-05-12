@@ -308,7 +308,7 @@ joinEntries nrInds pacNames strandCheck maybeTupleList = do
                 case maybeTuple of
                     Nothing -> return $ V.replicate n Missing
                     Just (snpEntry, genoLine) -> case checkAlleleFlipNeeded consensusSnpEntry snpEntry strandCheck genoLine of
-                        Left err -> Left $ "Encountered inconsistent alleles in package " ++ name ++ ": " ++ err
+                        Left err -> Left err
                         Right alleleFlipStatus -> return $ recodeAlleles alleleFlipStatus genoLine
             return $ Just (consensusSnpEntry, V.concat recodedGenotypes)
 
@@ -387,16 +387,16 @@ checkAlleleFlipNeeded
         else (
             -- We are OK with a partial match in case of missingness and as
             -- long as the genotypes are then all homRef or homAlt, or missing, respectively.
-            if refA' == consRefA' || (strandCheck && revComp refA' == consRefA') then do
+            if not (isMissing refA') && (refA' == consRefA' || (strandCheck && revComp refA' == consRefA')) then do
                 validateAllRef
                 Right False
-            else if altA' == consAltA' || (strandCheck && revComp altA' == consAltA') then do
+            else if not (isMissing altA') && (altA' == consAltA' || (strandCheck && revComp altA' == consAltA')) then do
                 validateAllAlt
                 Right False
-            else if refA' == consAltA' || (strandCheck && revComp refA' == consAltA') then do
+            else if not (isMissing refA') && (refA' == consAltA' || (strandCheck && revComp refA' == consAltA')) then do
                 validateAllRef
                 Right True
-            else if altA' == consRefA' || (strandCheck && revComp altA' == consRefA') then do
+            else if not (isMissing altA') && (altA' == consRefA' || (strandCheck && revComp altA' == consRefA')) then do
                 validateAllAlt
                 Right True
             else
@@ -406,8 +406,8 @@ checkAlleleFlipNeeded
     validateAllRef = unless (V.all (\a -> a == HomRef || a == Missing) genoLine) inconsistent
     validateAllAlt = unless (V.all (\a -> a == HomAlt || a == Missing) genoLine) inconsistent
     inconsistent = Left $ "inconsistent alleles for SNP " ++ show snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
-                ". Consensus alleles inferred from all input packages are " ++ [consRefA, consAltA] ++
-                ", but package has alleles " ++ [refA, altA] ++ ". Could this be due to strand-flips? Consider using the --strandcheck option to check for strand flips and to automatically flip strands if needed."
+                ". Consensus alleles inferred from all input packages are " ++ [consRefA] ++ ", " ++ [consAltA] ++
+                ", but package has alleles " ++ [refA] ++ ", " ++ [altA] ++ ". Could this be due to strand-flips? Consider using the --strandcheck option to check for strand flips and to automatically flip strands if needed."
     revComp 'A' = 'T'
     revComp 'T' = 'A'
     revComp 'C' = 'G'
