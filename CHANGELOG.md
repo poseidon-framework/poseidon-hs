@@ -1,3 +1,5 @@
+- V 2.0.0.1:
+    - Added an extra executable `poseidon-server` with slightly different compilation parameters to run poseidon webservers more independently and with specific runtime settings.
 - V 2.0.0.0:
     - Incorporated the poseidon-analysis-hs library with the xerxes CLI software tool executable into the poseidon-hs repository.
     - Fixed two bugs in the handling of the new `referenceGenomeAssembly` POSEIDON.yml fields by `forge` and `genoconvert`.
