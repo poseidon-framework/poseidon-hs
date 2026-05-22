@@ -77,6 +77,36 @@ onloadJS nrLoaded mapMarkers = [text|
       x = Number(x);
       return x < 0 ? `${Math.abs(x).toLocaleString()} BC` : `${x.toLocaleString()} AD`;
     }
+    
+    // inspired by ggpointgrid::geom_pointrect
+    function makeBoxOffsets(count, maxRows) {
+        var fact = Math.sqrt(count);
+        var ncols = Math.ceil(fact);
+        var nrows;
+        if (ncols * Math.floor(fact) >= count) {
+            nrows = Math.floor(fact);
+        } else {
+            nrows = Math.ceil(fact);
+        }
+        // cap rows if needed
+        if (nrows > maxRows) {
+            nrows = maxRows;
+            ncols = Math.ceil(count / nrows);
+        }
+        var gridCenterX = (ncols + 1) / 2;
+        var gridCenterY = (nrows + 1) / 2;
+        var offsets = [];
+        var col, row;
+        for (row = nrows; row >= 1; row--) {
+            for (col = 1; col <= ncols; col++) {
+                offsets.push({
+                    x: col - gridCenterX,
+                    y: row - gridCenterY
+                });
+            }
+        }
+        return offsets.slice(0, count);
+    }
 
     // timeline (implemented with leaflet)
     if (document.querySelector('#timelineid')) {
@@ -171,7 +201,21 @@ onloadJS nrLoaded mapMarkers = [text|
         timeline.on('moveend zoomend resize', drawBottomAxis);
         drawBottomAxis();
         // markers
-        var markers = L.markerClusterGroup();
+        var markers = L.markerClusterGroup({
+        	spiderfyShapePositions: function(count, centerPt) {
+                var scaleX = 12;
+                var scaleY = 12;
+        
+                var offsets = makeBoxOffsets(count, 5);
+        
+                return offsets.map(function(offset) {
+                    return new L.Point(
+                        centerPt.x + offset.x * scaleX,
+                        centerPt.y + 20 + offset.y * scaleY
+                    );
+                });
+            }
+        });
         for (var i = 0; i<mapMarkers.length; i++) {
           const s = mapMarkers[i];
           L.marker([50, s.mmAge])
