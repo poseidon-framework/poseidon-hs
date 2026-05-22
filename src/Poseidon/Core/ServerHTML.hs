@@ -84,28 +84,26 @@ onloadJS nrLoaded mapMarkers = [text|
         const timeline = L.map('timelineid', {
           crs: L.CRS.Simple,
           minZoom: -5,
-          maxZoom: 0,
+          maxZoom: 0, // must also be changed in disableClusteringAtZoom
           inertia: false,
           zoomControl: false,
           attributionControl: false
         });
         // plot bounds
-        const xMin = -50000;
+        const xMin = -150000;
         const xMax = 2100;
         const yMin = 0;
         const yMax = 100;
         const bounds = [[yMin, xMin], [yMax, xMax]];
         // only zoom to vertical center
-        timeline.setMaxBounds([[yMin, xMin - 1000], [yMax, xMax + 1000]]);
+        timeline.setMaxBounds([[yMin, xMin - 2000], [yMax, xMax + 2000]]);
         // set view to data
         const mapMarkers = $mapMarkers;
         function getMeanX(markers) {
           const valid = markers
             .map(s => Number(s.mmAge))
             .filter(Number.isFinite);
-        
           if (valid.length === 0) return (xMin + xMax) / 2;
-        
           return valid.reduce((sum, x) => sum + x, 0) / valid.length;
         }
         const meanX = getMeanX(mapMarkers);
@@ -119,10 +117,10 @@ onloadJS nrLoaded mapMarkers = [text|
         // layer group for dynamic bottom ticks
         const bottomAxisLayer = L.layerGroup().addTo(timeline);
         // fixed axis layout in map coordinates
-        const AXIS_Y = 14;
+        const AXIS_Y = 0;
         const SMALL_TICK_TOP = 40;
         const BIG_TICK_TOP = 50;
-        const LABEL_Y = 32;
+        const LABEL_Y = 50;
         function drawBottomAxis() {
           bottomAxisLayer.clearLayers();
           const bounds = timeline.getBounds();
@@ -130,7 +128,7 @@ onloadJS nrLoaded mapMarkers = [text|
           const easternBorder = bounds.getEast()
           // bottom line
           L.polyline([[AXIS_Y, westernBorder], [AXIS_Y, easternBorder]], {
-            color: '#333',
+            color: 'black',
             weight: 1
           }).addTo(bottomAxisLayer);
           const minorStep = 100;
@@ -143,7 +141,7 @@ onloadJS nrLoaded mapMarkers = [text|
             const tickTop = isMajor ? BIG_TICK_TOP : SMALL_TICK_TOP;
             const tickWeight = isMajor ? 2 : 1;
             L.polyline([[AXIS_Y, x], [tickTop, x]], {
-              color: '#333',
+              color: 'black',
               weight: tickWeight
             }).addTo(bottomAxisLayer);
             if (isMajor) {
@@ -155,7 +153,7 @@ onloadJS nrLoaded mapMarkers = [text|
                     <span style="
                       display:inline-block;
                       font-size: 10px;
-                      color:#333;
+                      color: black;
                       transform: rotate(25deg);
                       transform-origin: left top;
                       white-space: nowrap;
@@ -173,27 +171,19 @@ onloadJS nrLoaded mapMarkers = [text|
         timeline.on('moveend zoomend resize', drawBottomAxis);
         drawBottomAxis();
         // markers
-        function drawMarkers() {
-          const bounds = timeline.getBounds();
-          const visibleYMin = Math.max(yMin, bounds.getNorth());
-          const visibleYMax = Math.min(yMax, bounds.getSouth());
-          for (let i = 0; i < mapMarkers.length; i++) {
-              const s = mapMarkers[i];
-              L.polyline([[visibleYMin, s.mmAge], [visibleYMax, s.mmAge]], {
-                color: 'red',
-                weight: 1
-              })
-              .bindTooltip(s.mmPoseidonID, {
-                direction: 'right',
-                sticky: true,
-                opacity: 0.9,
-                className: 'poseidon-tooltip'
-              })
-             .addTo(timeline);
-          }
+        var markers = L.markerClusterGroup();
+        for (var i = 0; i<mapMarkers.length; i++) {
+          const s = mapMarkers[i];
+          L.marker([50, s.mmAge])
+          .bindTooltip(s.mmPoseidonID, {
+            direction: 'right',
+            sticky: true,
+            opacity: 1,
+            className: 'poseidon-tooltip'
+          })
+          .addTo(markers);
         }
-        timeline.on('moveend zoomend resize', drawMarkers);
-        drawMarkers();
+        timeline.addLayer(markers);
     }
 
     // leaflet map
@@ -241,6 +231,11 @@ onloadJS nrLoaded mapMarkers = [text|
 mapCSS :: T.Text
 mapCSS = [text|
   /* overwrite some pico styling for the charts */
+  #timelineid.leaflet-container {
+    background-color: white !important;
+    border: 1px solid black !important;
+    box-sizing: border-box;
+  }
   #timelineid,
   #timelineid * {
     margin-bottom: 10px;
@@ -250,6 +245,11 @@ mapCSS = [text|
   }
   .leaflet-container {
     background: white;
+  }
+  #mapid.leaflet-container {
+    background-color: white !important;
+    border: 1px solid black !important;
+    box-sizing: border-box;
   }
   #mapid,
   #mapid * {
