@@ -71,6 +71,130 @@ onloadJS nrLoaded mapMarkers = [text|
         };
         new simpleDatatables.DataTable('#currentTable', options);
     }
+    
+    function formatYear(x) {
+      if (x == null || Number.isNaN(Number(x))) { return 'unknown'; }
+      x = Number(x);
+      return x < 0 ? `${Math.abs(x).toLocaleString()} BC` : `${x.toLocaleString()} AD`;
+    }
+
+    // timeline (implemented with leaflet)
+    if (document.querySelector('#timelineid')) {
+        // pseudo-map as plotting canvas
+        const timeline = L.map('timelineid', {
+          crs: L.CRS.Simple,
+          minZoom: -5,
+          maxZoom: 0,
+          inertia: false,
+          zoomControl: false,
+          attributionControl: false
+        });
+        // plot bounds
+        const xMin = -50000;
+        const xMax = 2100;
+        const yMin = 0;
+        const yMax = 100;
+        const bounds = [[yMin, xMin], [yMax, xMax]];
+        // only zoom to vertical center
+        timeline.setMaxBounds([[yMin, xMin - 1000], [yMax, xMax + 1000]]);
+        // set view to data
+        const mapMarkers = $mapMarkers;
+        function getMeanX(markers) {
+          const valid = markers
+            .map(s => Number(s.mmAge))
+            .filter(Number.isFinite);
+        
+          if (valid.length === 0) return (xMin + xMax) / 2;
+        
+          return valid.reduce((sum, x) => sum + x, 0) / valid.length;
+        }
+        const meanX = getMeanX(mapMarkers);
+        const centerY = (yMin + yMax) / 2;
+        // first establish the zoom level from the full plot bounds
+        timeline.fitBounds(bounds);
+        // then pan/center horizontally on the mean x-value
+        timeline.setView([centerY, meanX], timeline.getZoom(), {
+          animate: false
+        });
+        // layer group for dynamic bottom ticks
+        const bottomAxisLayer = L.layerGroup().addTo(timeline);
+        // fixed axis layout in map coordinates
+        const AXIS_Y = 14;
+        const SMALL_TICK_TOP = 40;
+        const BIG_TICK_TOP = 50;
+        const LABEL_Y = 32;
+        function drawBottomAxis() {
+          bottomAxisLayer.clearLayers();
+          const bounds = timeline.getBounds();
+          const westernBorder = bounds.getWest()
+          const easternBorder = bounds.getEast()
+          // bottom line
+          L.polyline([[AXIS_Y, westernBorder], [AXIS_Y, easternBorder]], {
+            color: '#333',
+            weight: 1
+          }).addTo(bottomAxisLayer);
+          const minorStep = 100;
+          const majorStep = 1000;
+          const visibleXMin = Math.max(xMin, westernBorder);
+          const visibleXMax = Math.min(xMax, easternBorder);
+          const startTick = Math.floor(visibleXMin / minorStep) * minorStep;
+          for (let x = startTick; x <= visibleXMax; x += minorStep) {
+            const isMajor = (x % majorStep === 0);
+            const tickTop = isMajor ? BIG_TICK_TOP : SMALL_TICK_TOP;
+            const tickWeight = isMajor ? 2 : 1;
+            L.polyline([[AXIS_Y, x], [tickTop, x]], {
+              color: '#333',
+              weight: tickWeight
+            }).addTo(bottomAxisLayer);
+            if (isMajor) {
+              L.marker([LABEL_Y, x], {
+                interactive: false,
+                icon: L.divIcon({
+                  className: 'bottom-axis-label',
+                  html: `
+                    <span style="
+                      display:inline-block;
+                      font-size: 10px;
+                      color:#333;
+                      transform: rotate(25deg);
+                      transform-origin: left top;
+                      white-space: nowrap;
+                    ">
+                      ${formatYear(x)}
+                    </span>
+                  `,
+                  iconSize: [60, 20],
+                  iconAnchor: [0, 0]
+                })
+              }).addTo(bottomAxisLayer);
+            }
+          }
+        }
+        timeline.on('moveend zoomend resize', drawBottomAxis);
+        drawBottomAxis();
+        // markers
+        function drawMarkers() {
+          const bounds = timeline.getBounds();
+          const visibleYMin = Math.max(yMin, bounds.getNorth());
+          const visibleYMax = Math.min(yMax, bounds.getSouth());
+          for (let i = 0; i < mapMarkers.length; i++) {
+              const s = mapMarkers[i];
+              L.polyline([[visibleYMin, s.mmAge], [visibleYMax, s.mmAge]], {
+                color: 'red',
+                weight: 1
+              })
+              .bindTooltip(s.mmPoseidonID, {
+                direction: 'right',
+                sticky: true,
+                opacity: 0.9,
+                className: 'poseidon-tooltip'
+              })
+             .addTo(timeline);
+          }
+        }
+        timeline.on('moveend zoomend resize', drawMarkers);
+        drawMarkers();
+    }
 
     // leaflet map
     if (document.querySelector('#mapid')) {
@@ -101,7 +225,7 @@ onloadJS nrLoaded mapMarkers = [text|
             popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
             popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
             popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
-            popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
+            popupContentLines.push('<b>Age:</b> ' + formatYear(s.mmAge));
             popupContentLines.push('<b>' + packageLink + '</b>');
             const popupContent = popupContentLines.join("<br>");
             // create a marker with a popup
@@ -116,7 +240,17 @@ onloadJS nrLoaded mapMarkers = [text|
 
 mapCSS :: T.Text
 mapCSS = [text|
-  /* overwrite some pico styling for the map */
+  /* overwrite some pico styling for the charts */
+  #timelineid,
+  #timelineid * {
+    margin-bottom: 10px;
+    padding: 0;
+    --pico-border-width: 0rem !important;
+    --pico-background-color: transparent !important;
+  }
+  .leaflet-container {
+    background: white;
+  }
   #mapid,
   #mapid * {
     padding: 0;
@@ -252,6 +386,7 @@ archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap nrSamplesT
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesToMap - length mapMarkers)) (dataToJSON mapMarkers))
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
+    H.div ! A.id "timelineid" ! A.style "height: 100px;" $ ""
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     case excludeFromMap of
       [] -> do
@@ -308,6 +443,7 @@ packageVersionPage
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
+    H.div ! A.id "timelineid" ! A.style "height: 150px;" $ ""
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
     -- description
@@ -377,7 +513,9 @@ samplePage maybeMapMarker row = do
         Nothing -> pure ()
     H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
     case maybeMapMarker of
-      Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+      Just _  -> do
+          H.div ! A.id "timelineid" ! A.style "height: 150px;" $ ""
+          H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
       Nothing -> pure ()
     H.div $ H.table $ do
       H.tr $ do
