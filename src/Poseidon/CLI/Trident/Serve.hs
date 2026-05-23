@@ -3,6 +3,9 @@
 
 module Poseidon.CLI.Trident.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
+import           Paths_poseidon_hs              (version)
+import           Poseidon.Core.BibFile          (renderBibEntry)
+import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
                                                  PacNameAndVersion (PacNameAndVersion),
                                                  renderNameWithVersion)
@@ -34,10 +37,10 @@ import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                  (foldM, forM, when)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy           as B
-import           Data.List                      (foldl', groupBy, intercalate,
-                                                 sortOn)
+import           Data.Coerce                    (coerce)
+import           Data.List                      (groupBy, intercalate, sortOn)
 import           Data.List.Split                (splitOn)
-import           Data.Maybe                     (isJust, mapMaybe)
+import           Data.Maybe                     (isJust)
 import           Data.Ord                       (Down (..))
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
@@ -53,10 +56,6 @@ import           Network.Wai.Handler.Warp       (defaultSettings, runSettings,
 import           Network.Wai.Handler.WarpTLS    (runTLS, tlsSettings,
                                                  tlsSettingsChain)
 import           Network.Wai.Middleware.Cors    (simpleCors)
-import           Paths_poseidon_hs              (version)
-import           Poseidon.Core.BibFile          (renderBibEntry)
-import           Poseidon.Core.ColumnTypesJanno (JannoLatitude (..),
-                                                 JannoLongitude (..))
 import           System.Directory               (createDirectoryIfMissing,
                                                  doesFileExist,
                                                  getModificationTime)
@@ -343,9 +342,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             retiredPacs <- getRetiredPackages spec
             latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
-                nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
-                mapMarkers = concatMap (prepMappable archiveName) packagesToMap
-            archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap nrSamplesToMap mapMarkers latestPacs
+                plotSamples = concatMap (prepPlotSamples archiveName) packagesToMap
+            archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap plotSamples latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
             -- we do not filter by retired. A requested package is always shown, even if it is retired.
@@ -363,11 +361,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             allPacs     <- getArchiveContentByName archiveName archiveStore
             allVersions <- prepPacVersions pacName allPacs
             oneVersion  <- prepPacVersion pacVersionWL allVersions
-            let mapMarkers = prepMappable archiveName oneVersion
+            let plotSamples = prepPlotSamples archiveName oneVersion
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
                 pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
-            packageVersionPage archiveName pacName pacVersion archiveZip mapMarkers bib oneVersion allVersions samples
+            packageVersionPage archiveName pacName pacVersion archiveZip plotSamples bib oneVersion allVersions samples
         -- per sample pages
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
@@ -384,8 +382,8 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             samples <- prepSamples oneVersion
             sampleName <- captureParam "sample"
             sample <- prepSample sampleName samples
-            let maybeMapMarker = extractPosJannoRow archiveName pacName pacVersion sample
-            samplePage maybeMapMarker sample
+            let maybePlotSample = toPlotSample archiveName pacName pacVersion sample
+            samplePage maybePlotSample sample
 
         -- catch anything else
         notFound $ fail "Unknown request"
@@ -410,21 +408,20 @@ selectLatest =
     . groupBy (\a b -> getPacName a == getPacName b)
     . sortOn posPacNameAndVersion
 
-prepMappable :: String -> PoseidonPackage -> [MapMarker]
-prepMappable archiveName pac =
+prepPlotSamples :: String -> PoseidonPackage -> [PlotSample]
+prepPlotSamples archiveName pac =
     let packageName = getPacName pac
         packageVersion = showVersion <$> getPacVersion pac
         jannoRows = getJannoRows . posPacJanno $ pac
-    in mapMaybe (extractPosJannoRow archiveName packageName packageVersion) jannoRows
-
-extractPosJannoRow :: String -> String -> Maybe String -> JannoRow -> Maybe MapMarker
-extractPosJannoRow archiveName pacName pacVersion row = case (jLatitude row, jLongitude row) of
-    (Just (JannoLatitude lat), Just (JannoLongitude lon)) ->
+    in map (toPlotSample archiveName packageName packageVersion) jannoRows
+toPlotSample :: String -> String -> Maybe String -> JannoRow -> PlotSample
+toPlotSample archiveName pacName pacVersion row =
         let poseidonID = jPoseidonID row
+            lon = coerce $ jLongitude row
+            lat = coerce $ jLatitude row
             loc = show <$> jLocation row
-            age = show <$> jDateBCADMedian row
-        in Just $ MapMarker lat lon (show poseidonID) pacName pacVersion archiveName loc age
-    _                                                     -> Nothing
+            age = coerce $ jDateBCADMedian row
+        in PlotSample lat lon (show poseidonID) pacName pacVersion archiveName loc age
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do
