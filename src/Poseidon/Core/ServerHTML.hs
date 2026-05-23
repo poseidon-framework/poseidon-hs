@@ -72,12 +72,21 @@ onloadJS nrLoaded mapMarkers = [text|
         new simpleDatatables.DataTable('#currentTable', options);
     }
     
+    const mapMarkers = $mapMarkers;
+    
+    // helper functions
     function formatYear(x) {
       if (x == null || Number.isNaN(Number(x))) { return 'unknown'; }
       x = Number(x);
       return x < 0 ? `${Math.abs(x).toLocaleString()} BC` : `${x.toLocaleString()} AD`;
     }
-    
+    function getMeanAge(markers) {
+      const valid = markers
+        .map(s => Number(s.mmAge))
+        .filter(Number.isFinite);
+      if (valid.length === 0) return (xMin + xMax) / 2;
+      return valid.reduce((sum, x) => sum + x, 0) / valid.length;
+    }
     // inspired by ggpointgrid::geom_pointrect
     function makeBoxOffsets(count, maxRows) {
         var fact = Math.sqrt(count);
@@ -108,7 +117,7 @@ onloadJS nrLoaded mapMarkers = [text|
         return offsets.slice(0, count);
     }
 
-    // timeline (implemented with leaflet)
+    // timeline plot (implemented with leaflet)
     if (document.querySelector('#timelineid')) {
         // pseudo-map as plotting canvas
         const timeline = L.map('timelineid', {
@@ -125,28 +134,18 @@ onloadJS nrLoaded mapMarkers = [text|
         const yMin = 0;
         const yMax = 100;
         const bounds = [[yMin, xMin], [yMax, xMax]];
-        // only zoom to vertical center
+        // panning constraints
         timeline.setMaxBounds([[yMin, xMin - 2000], [yMax, xMax + 2000]]);
         // set view to data
-        const mapMarkers = $mapMarkers;
-        function getMeanX(markers) {
-          const valid = markers
-            .map(s => Number(s.mmAge))
-            .filter(Number.isFinite);
-          if (valid.length === 0) return (xMin + xMax) / 2;
-          return valid.reduce((sum, x) => sum + x, 0) / valid.length;
-        }
-        const meanX = getMeanX(mapMarkers);
+        const meanX = getMeanAge(mapMarkers);
         const centerY = (yMin + yMax) / 2;
         // first establish the zoom level from the full plot bounds
         timeline.fitBounds(bounds);
-        // then pan/center horizontally on the mean x-value
         timeline.setView([centerY, meanX], timeline.getZoom(), {
           animate: false
         });
-        // layer group for dynamic bottom ticks
+        // layer group for axis
         const bottomAxisLayer = L.layerGroup().addTo(timeline);
-        // fixed axis layout in map coordinates
         const AXIS_Y = 0;
         const SMALL_TICK_TOP = 40;
         const BIG_TICK_TOP = 50;
@@ -186,8 +185,7 @@ onloadJS nrLoaded mapMarkers = [text|
                       color: black;
                       transform: rotate(25deg);
                       transform-origin: left top;
-                      white-space: nowrap;
-                    ">
+                      white-space: nowrap;">
                       ${formatYear(x)}
                     </span>
                   `,
@@ -200,14 +198,12 @@ onloadJS nrLoaded mapMarkers = [text|
         }
         timeline.on('moveend zoomend resize', drawBottomAxis);
         drawBottomAxis();
-        // markers
+        // add markers
         var markers = L.markerClusterGroup({
         	spiderfyShapePositions: function(count, centerPt) {
                 var scaleX = 12;
                 var scaleY = 12;
-        
                 var offsets = makeBoxOffsets(count, 5);
-        
                 return offsets.map(function(offset) {
                     return new L.Point(
                         centerPt.x + offset.x * scaleX,
