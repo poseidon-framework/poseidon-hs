@@ -420,8 +420,10 @@ toPlotSample archiveName pacName pacVersion row =
             lon = coerce $ jLongitude row
             lat = coerce $ jLatitude row
             loc = show <$> jLocation row
-            age = coerce $ jDateBCADMedian row
-        in PlotSample lat lon (show poseidonID) pacName pacVersion archiveName loc age
+            ageStart = coerce $ jDateBCADStart row
+            ageMedian = coerce $ jDateBCADMedian row
+            ageStop = coerce $ jDateBCADStop row
+        in PlotSample lat lon (show poseidonID) pacName pacVersion archiveName loc ageStart ageMedian ageStop
 
 prepPacVersions :: String -> [PoseidonPackage] -> ActionM [PoseidonPackage]
 prepPacVersions pacName pacs = do

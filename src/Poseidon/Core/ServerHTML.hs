@@ -48,7 +48,9 @@ data PlotSample = PlotSample {
     , mmPackageVersion :: Maybe String
     , mmArchiveName    :: String
     , mmLocation       :: Maybe String
+    , mmAgeStart       :: Maybe Int
     , mmAge            :: Maybe Int
+    , mmAgeStop        :: Maybe Int
     } deriving (Generic, Show)
 
 instance ToJSON PlotSample where
@@ -72,8 +74,20 @@ onloadJS samples = [text|
         new simpleDatatables.DataTable('#currentTable', options);
     }
 
-    // prepare data for plotting
-    const samples = $samples;
+    // load samples and try to complete some mean age information
+    const samples = $samples.map(s => {
+      let mmAge = s.mmAge;
+      if (mmAge == null &&
+          s.mmAgeStart != null &&
+          s.mmAgeStop != null &&
+          Number.isFinite(s.mmAgeStart) &&
+          Number.isFinite(s.mmAgeStop)) {
+        mmAge = Math.round((s.mmAgeStart + s.mmAgeStop) / 2);
+      }
+      return {...s, mmAge: mmAge};
+    });
+
+    // prepare samples for plotting
     const initialLength = samples.length;
     const mapMarkers = samples.filter(s =>
       s.mmLat != null &&
@@ -269,7 +283,7 @@ onloadJS samples = [text|
             popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
             popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
             popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
-            popupContentLines.push('<b>Age:</b> ' + formatYear(s.mmAge));
+            popupContentLines.push('<b>Age:</b> ' + formatYear(s.mmAge) + " (" + formatYear(s.mmAgeStart) + " - " + formatYear(s.mmAgeStop) + ")");
             popupContentLines.push('<b>' + packageLink + '</b>');
             const popupContent = popupContentLines.join("<br>");
             // create a marker with a popup
