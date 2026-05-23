@@ -102,18 +102,10 @@ onloadJS samples = [text|
     const missingCoordinates = initialLength - mapMarkers.length;
     const missingAge = initialLength - timelineMarkers.length;
 
-    // helper functions
     function formatYear(x) {
       if (x == null || Number.isNaN(Number(x))) { return 'unknown'; }
       x = Number(x);
       return x < 0 ? `${Math.abs(x).toLocaleString()} BC` : `${x.toLocaleString()} AD`;
-    }
-    function getMeanAge(markers) {
-      const valid = markers
-        .map(s => Number(s.mmAge))
-        .filter(Number.isFinite);
-      if (valid.length === 0) return (xMin + xMax) / 2;
-      return valid.reduce((sum, x) => sum + x, 0) / valid.length;
     }
     // inspired by ggpointgrid::geom_pointrect
     function makeBoxOffsets(count, maxRows) {
@@ -165,6 +157,13 @@ onloadJS samples = [text|
         // panning constraints
         timeline.setMaxBounds([[yMin, xMin - 2000], [yMax, xMax + 2000]]);
         // set view to data
+        function getMeanAge(markers) {
+          const valid = markers
+            .map(s => Number(s.mmAge))
+            .filter(Number.isFinite);
+          if (valid.length === 0) return (xMin + xMax) / 2;
+          return valid.reduce((sum, x) => sum + x, 0) / valid.length;
+        }
         const meanX = getMeanAge(timelineMarkers);
         const centerY = (yMin + yMax) / 2;
         // first establish the zoom level from the full plot bounds
@@ -453,7 +452,7 @@ archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap plotSample
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS $ dataToJSON plotSamples)
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
-    H.div ! A.id "timelineid" ! A.style "height: 100px;" $ ""
+    H.div ! A.id "timelineid" ! A.style "height: 120px;" $ ""
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     case excludeFromMap of
       [] -> do
@@ -510,7 +509,7 @@ packageVersionPage
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
-    H.div ! A.id "timelineid" ! A.style "height: 150px;" $ ""
+    H.div ! A.id "timelineid" ! A.style "height: 120px;" $ ""
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.br
     -- description
@@ -577,7 +576,7 @@ samplePage plotSample row = do
     H.head $ do
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS $ dataToJSON [plotSample])
     H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
-    H.div ! A.id "timelineid" ! A.style "height: 150px;" $ ""
+    H.div ! A.id "timelineid" ! A.style "height: 120px;" $ ""
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
     H.div $ H.table $ do
       H.tr $ do
