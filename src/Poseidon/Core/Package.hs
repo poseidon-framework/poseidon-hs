@@ -137,6 +137,7 @@ import           System.FilePath                (takeBaseName, takeDirectory,
                                                  (</>))
 import           System.IO                      (IOMode (ReadMode),
                                                  hGetContents, withFile)
+import qualified Text.Layout.Table              as TLT
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -746,12 +747,31 @@ joinEntryPipe logA nrInds strandCheck skipIncongruentSnps pacNames = for cat $ \
                 logWithEnv logA . logDebug $ err
                 logWithEnv logA . logDebug $ "Skipping this SNP"
                 return ()
-            else
-                liftIO . throwIO . PoseidonGenotypeException $ "Incongruent SNP entries for SNP: " ++ err ++
-                    ". Could this be due to strand-flips? If so, consider using --strandcheck. \
-                    \You can also consider using --skip-incongruent-snps to skip such SNPs."
+            else do
+                let tableH = ["Package", "SNP ID", "Chrom", "Pos", "GenPos", "Ref", "Alt"]
+                    tableB = zipWith makeSnpTableRow pacNames maybeEntries
+                    colSpecs = replicate (length tableH) (TLT.column (TLT.expandUntil 60) TLT.def TLT.def TLT.def)
+                    refAltTable = TLT.tableString colSpecs TLT.asciiRoundS (TLT.titlesH tableH) [TLT.rowsG tableB]
+                liftIO . throwIO . PoseidonGenotypeException $
+                   "\n" ++
+                   refAltTable ++
+                   "\n" ++
+                   "Incongruent SNP entries: " ++ err ++ " " ++
+                   (if strandCheck then "" else "Could this be due to strand-flips? If so, consider using --strandCheck. ") ++
+                   "You can skip all offending SNPs with --skipIncongruentSNPs."
         Right Nothing -> return ()
         Right (Just (eigenstratSnpEntry, genoLine)) -> yield (eigenstratSnpEntry, genoLine)
+
+makeSnpTableRow :: String -> Maybe (EigenstratSnpEntry, GenoLine) -> [String]
+makeSnpTableRow p Nothing = [p, "", "", "", "", "", ""]
+makeSnpTableRow p (Just (x, _)) = [
+     p
+   , Bchs.unpack $ snpId x
+   , show $ snpChrom x
+   , show $ snpPos x
+   , show $ snpGeneticPos x
+   , [snpRef x], [snpAlt x]
+   ]
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn

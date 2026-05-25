@@ -305,7 +305,7 @@ joinEntries nrInds pacNames strandCheck maybeTupleList = do
     case getConsensusSnpEntry strandCheck allSnpEntries of
         Nothing -> Right Nothing -- No valid consensus SNP entry in the case of strandcheck, either due to strand-ambiguous alleles or if non non-missing allele pairs are present.
         Just consensusSnpEntry -> do
-            recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, name, maybeTuple) -> do
+            recodedGenotypes <- forM (zip3 nrInds pacNames maybeTupleList) $ \(n, _, maybeTuple) -> do
                 case maybeTuple of
                     Nothing -> return $ V.replicate n Missing
                     Just (snpEntry, genoLine) -> case checkAlleleFlipNeeded consensusSnpEntry snpEntry strandCheck genoLine of
@@ -410,9 +410,9 @@ checkAlleleFlipNeeded
     validateAllRef = unless (V.all (\a -> a == HomRef || a == Missing) genoLine) failValidate
     validateAllAlt = unless (V.all (\a -> a == HomAlt || a == Missing) genoLine) failValidate
     validateAllMissing = unless (V.all (== Missing) genoLine) failValidate
-    inconsistent = Left $ "inconsistent alleles for SNP " ++ show snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
+    inconsistent = Left $ "inconsistent alleles for SNP " ++ B.unpack snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
                 ". Consensus alleles inferred from all input packages are " ++ [consRefA] ++ ", " ++ [consAltA] ++
-                ", but package has alleles " ++ [refA] ++ ", " ++ [altA] ++ ". Could this be due to strand-flips? Consider using the --strandcheck option to check for strand flips and to automatically flip strands if needed."
+                ", but package has alleles " ++ [refA] ++ ", " ++ [altA] ++ "."
     failValidate = Left $ "inconsistent genotypes for SNP " ++ show snpId_ ++ " at position " ++ show chrom ++ ":" ++ show pos ++
                 ". Consensus alleles inferred from all input packages are " ++ [consRefA] ++ ", " ++ [consAltA] ++
                 ", but the genotypes in this package are not consistent with these consensus alleles."
