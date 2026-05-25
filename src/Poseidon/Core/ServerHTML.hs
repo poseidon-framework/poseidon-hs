@@ -227,7 +227,8 @@ onloadJS samples = [text|
         drawBottomAxis();
         // add markers
         var markers = L.markerClusterGroup({
-        	spiderfyShapePositions: function(count, centerPt) {
+            chunkedLoading: true,
+            spiderfyShapePositions: function(count, centerPt) {
                 var scaleX = 12;
                 var scaleY = 12;
                 var offsets = makeBoxOffsets(count, 5);
@@ -271,7 +272,9 @@ onloadJS samples = [text|
         };
         legend.addTo(mymap);
         // markers
-        var markers = L.markerClusterGroup();
+        var markers = L.markerClusterGroup({
+            chunkedLoading: true,
+        });
         for (var i = 0; i<mapMarkers.length; i++) {
             const s = mapMarkers[i];
             // prepare popup message
@@ -286,7 +289,15 @@ onloadJS samples = [text|
             popupContentLines.push('<b>' + packageLink + '</b>');
             const popupContent = popupContentLines.join("<br>");
             // create a marker with a popup
-            L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
+            L.marker([s.mmLat, s.mmLon])
+            .bindTooltip(s.mmPoseidonID, {
+              direction: 'right',
+              sticky: true,
+              opacity: 1,
+              className: 'poseidon-tooltip'
+            })
+            .bindPopup(popupContent)
+            .addTo(markers);
         }
         mymap.addLayer(markers);
     }
