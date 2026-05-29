@@ -28,6 +28,7 @@ module Poseidon.Core.Package (
     packagesToPackageInfos,
     getAllGroupInfo,
     validateGeno,
+    validateForge,
     filterToRelevantPackages,
     getBibliographyInfo
 ) where
@@ -529,6 +530,16 @@ validateGeno pac checkFullGeno = do
   --           mapM_ (logWithEnv logA . logDebug) illegals
   --           liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
 
+validateForge :: [PoseidonPackage] -> Bool -> PoseidonIO ()
+validateForge pacs strandcheck = do
+    logA <- envLogAction
+    errLength <- envErrorLength
+    liftIO $ catch (
+        runSafeT $ do
+            currentTime <- liftIO getCurrentTime
+            eigenstratProd <- getJointGenotypeData logA False strandcheck False pacs Nothing
+            runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
+        ) (throwIO . PoseidonGenotypeExceptionForward errLength)
 
 -- throws exception if any file is missing or checksum is incorrect
 checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
@@ -758,7 +769,7 @@ joinEntryPipe logA nrInds strandCheck skipIncongruentSnps pacNames = for cat $ \
                    "\n" ++
                    "Incongruent SNP entries: " ++ err ++ " " ++
                    (if strandCheck then "" else "Could this be due to strand-flips? If so, consider using --strandCheck. ") ++
-                   "You can skip all offending SNPs with --skipIncongruentSNPs."
+                   "In forge you can skip all offending SNPs with --skipIncongruentSNPs."
         Right Nothing -> return ()
         Right (Just (eigenstratSnpEntry, genoLine)) -> yield (eigenstratSnpEntry, genoLine)
 
