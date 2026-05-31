@@ -416,6 +416,8 @@ parseValidatePlan =
         (ValPlanBaseDirs <$> parseBasePaths
                          <*> parseIgnoreGeno
                          <*> parseFullGeno
+                         <*> parseForgeTest
+                         <*> parseStrandCheck
                          <*> parseIgnoreDuplicates
                          <*> parseIgnoreChecksums
                          <*> parseIgnorePoseidonVersion)
@@ -754,8 +756,15 @@ parseIgnoreGeno = OP.switch (
 parseFullGeno  :: OP.Parser Bool
 parseFullGeno = OP.switch (
     OP.long "fullGeno" <>
-    OP.help "Test parsing of all SNPs (by default only the first 100 SNPs are probed)."
+    OP.help "Test parsing of all SNPs in each package (by default only the first 100 SNPs are probed)."
     )
+
+parseForgeTest :: OP.Parser Bool
+parseForgeTest = OP.switch (
+    OP.long "forgeTest" <>
+    OP.help "Even more extensive than --fullGeno: Test forging the entire dataset. \
+            \This will detect incongruent SNPs between the packages. \
+            \Can be called with --strandCheck.")
 
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
