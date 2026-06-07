@@ -32,7 +32,7 @@ import           Codec.Archive.Zip              (Archive, addEntryToArchive,
 import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                  (foldM, forM)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import qualified Data.ByteString.Lazy           as B
+import qualified Data.ByteString.Lazy           as BL
 import           Data.List                      (foldl', groupBy, intercalate,
                                                  sortOn)
 import           Data.List.Split                (splitOn)
@@ -463,7 +463,7 @@ makeZipArchive pac =
     addFN :: FilePath -> Archive -> IO Archive
     addFN fn a = do
         let fullFN = posPacBaseDir pac </> fn
-        rawFN <- B.readFile fullFN
+        rawFN <- BL.readFile fullFN
         modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
         let zipEntry = toEntry fn modTime rawFN
         return (addEntryToArchive zipEntry a)
