@@ -76,7 +76,6 @@ serveOptParser :: OP.Parser ServeOptions
 serveOptParser =
     ServeOptions
         <$> parseArchiveConfig
-        <*> parseMaybeZipDir
         <*> parsePort
         <*> parseIgnoreChecksums
         <*> parseMaybeCertFiles

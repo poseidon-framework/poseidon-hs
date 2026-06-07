@@ -11,7 +11,6 @@ import           Poseidon.Core.Janno
 import           Poseidon.Core.Package
 
 import           Control.Monad                  (forM_)
-import qualified Control.Monad                  as OP
 import           Data.Aeson                     (defaultOptions, encode,
                                                  genericToEncoding)
 import           Data.Aeson.Types               (ToJSON (..))
@@ -240,13 +239,12 @@ mainPage pacsPerArchive = do
 archivePage ::
      String
   -> Maybe String
-  -> Bool
   -> [String]
   -> Int
   -> [MapMarker]
   -> [PoseidonPackage]
   -> S.ActionM ()
-archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap nrSamplesToMap mapMarkers pacs = do
+archivePage archiveName maybeArchiveSpecURL excludeFromMap nrSamplesToMap mapMarkers pacs = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
@@ -283,20 +281,16 @@ archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap nrSamplesT
           case maybeArchiveSpecURL of
             Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
             Nothing  -> H.td $ H.string "n/a"
-          if archiveZip
-          then H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?archive=" <> H.toValue archiveName) $ H.toMarkup ("Download" :: String)
-          else H.td $ H.string "n/a"
+          H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?archive=" <> H.toValue archiveName) $ H.toMarkup ("Download" :: String)
 
 packageVersionPage ::
      String -> String -> Maybe Version
-  -> Bool
   -> [MapMarker]
   -> String
   -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
   -> S.ActionM ()
 packageVersionPage
   archiveName pacName pacVersion
-  archiveZip
   mapMarkers
   bib
   oneVersion allVersions samples = do
@@ -332,23 +326,21 @@ packageVersionPage
             let v = getPacVersion pac
             H.a ! A.href ("/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion v)) $
               H.toMarkup $ renderMaybeVersion v
-            OP.when archiveZip $ do
-              H.toMarkup (" | " :: String)
-              H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v) <> "&archive=" <> H.toValue archiveName) $
-                H.toMarkup ("Download" :: String)
+            H.toMarkup (" | " :: String)
+            H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (renderMaybeVersion v) <> "&archive=" <> H.toValue archiveName) $
+                 H.toMarkup ("Download" :: String)
       H.details $ do
         H.summary "Bibliography (in bibtex format)"
         H.textarea ! A.rows "15" $ H.toMarkup bib
     -- download button
-    OP.when archiveZip $
-      H.div ! A.style "float: right; text-align: right;" $ do
-        case pacVersion of
-          Nothing -> do
-            H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?archive=" <> H.toValue archiveName) $
-              H.toMarkup ("Download" :: String)
-          Just v -> do
-            H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v) <> "&archive=" <> H.toValue archiveName) $
-              H.toMarkup ("Download" :: String)
+    H.div ! A.style "float: right; text-align: right;" $ do
+      case pacVersion of
+        Nothing -> do
+          H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?archive=" <> H.toValue archiveName) $
+            H.toMarkup ("Download" :: String)
+        Just v -> do
+          H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?package_version=" <> H.toValue (showVersion v) <> "&archive=" <> H.toValue archiveName) $
+            H.toMarkup ("Download" :: String)
     -- sample table
     H.div ! A.style "clear: both;" $ H.table ! A.id "currentTable" $ do
       H.thead $ do
