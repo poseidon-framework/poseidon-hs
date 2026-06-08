@@ -5,8 +5,6 @@ module Poseidon.CLI.Trident.Serve (runServer, runServerMainThread, ServeOptions(
 
 import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
                                                  PacNameAndVersion (PacNameAndVersion))
-import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
-                                                 GenotypeFileSpec (..))
 import           Poseidon.Core.Janno            (JannoRow (..), getJannoRows)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  PoseidonPackage (..),
@@ -23,23 +21,20 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  ServerApiReturnType (..))
 import           Poseidon.Core.ServerHTML
 import           Poseidon.Core.ServerStylesheet (stylesBS)
+import           Poseidon.Core.ServerZipStream  (collectPackageZipFiles,
+                                                 sendPackageArchive)
 import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
                                                  logDebug, logInfo, logWithEnv)
 
-import           Codec.Archive.Zip              (Archive, addEntryToArchive,
-                                                 emptyArchive, fromArchive,
-                                                 toEntry)
 import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                  (foldM, forM)
+import           Control.Monad                  (forM)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import qualified Data.ByteString.Lazy           as BL
 import           Data.List                      (foldl', groupBy, intercalate,
                                                  sortOn)
 import           Data.List.Split                (splitOn)
 import           Data.Maybe                     (isJust, mapMaybe)
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
-import           Data.Time.Clock.POSIX          (utcTimeToPOSIXSeconds)
 import           Data.Version                   (Version, parseVersion,
                                                  showVersion)
 import           Data.Yaml                      (FromJSON, decodeFileThrow,
@@ -55,14 +50,12 @@ import           Paths_poseidon_hs              (version)
 import           Poseidon.Core.BibFile          (renderBibEntry)
 import           Poseidon.Core.ColumnTypesJanno (JannoLatitude (..),
                                                  JannoLongitude (..))
-import           System.Directory               (getModificationTime)
-import           System.FilePath                ((</>))
 import           Text.ParserCombinators.ReadP   (readP_to_S)
 import           Web.Scotty                     (ActionM, ScottyM, captureParam,
                                                  get, json, middleware,
                                                  notFound, queryParamMaybe, raw,
                                                  redirect, request, scottyApp,
-                                                 setHeader, text)
+                                                 setHeader, stream, text)
 
 -- CLI options and routines
 data ServeOptions = ServeOptions
@@ -269,9 +262,9 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
             allPacs <- getItemFromArchiveStore archiveStore
             allVersions <- prepPacVersions pacName allPacs
             oneVersion  <- prepPacVersion pacVersionWL allVersions
-            lazyPackageZipBytestring <- liftIO $ fromArchive <$> makeZipArchive oneVersion
+            zipFiles <- liftIO $ collectPackageZipFiles oneVersion
             setHeader "Content-Type" "application/zip"
-            raw lazyPackageZipBytestring
+            stream (sendPackageArchive zipFiles)
 
         -- html API
 
@@ -445,28 +438,6 @@ conditionOnClientVersion contentAction = do
     else do
         ServerApiReturnType messages content <- contentAction
         json $ ServerApiReturnType (genericServerMessages ++ versionWarnings ++ messages) content
-
-makeZipArchive :: PoseidonPackage -> IO Archive
-makeZipArchive pac =
-    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addGenos >>= addSSF
-  where
-    addYaml      = addFN "POSEIDON.yml"
-    addJanno     = maybe return addFN (posPacJannoFile pac)
-    addBib       = maybe return addFN (posPacBibFile pac)
-    addReadme    = maybe return addFN (posPacReadmeFile pac)
-    addChangelog = maybe return addFN (posPacChangelogFile pac)
-    addSSF       = maybe return addFN (posPacSeqSourceFile pac)
-    addGenos archive = case genotypeFileSpec . posPacGenotypeData $ pac of
-        GenotypeEigenstrat gf _ sf _ i _ -> foldM (flip addFN) archive [gf, sf, i]
-        GenotypePlink gf _ sf _ i _      -> foldM (flip addFN) archive [gf, sf, i]
-        GenotypeVCF gf _                 -> addFN gf archive
-    addFN :: FilePath -> Archive -> IO Archive
-    addFN fn a = do
-        let fullFN = posPacBaseDir pac </> fn
-        rawFN <- BL.readFile fullFN
-        modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
-        let zipEntry = toEntry fn modTime rawFN
-        return (addEntryToArchive zipEntry a)
 
 scottyHTTPS :: MVar () -> Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonIO ()
 scottyHTTPS serverReady port cert chains key s = do
