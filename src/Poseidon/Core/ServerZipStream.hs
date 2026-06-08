@@ -7,6 +7,7 @@ import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
 import           Poseidon.Core.Package         (PoseidonPackage (..))
 
 import           Codec.Archive.Zip.Conduit.Zip (ZipData, ZipEntry (..),
+                                                ZipOptions (..),
                                                 defaultZipOptions, zipFileData,
                                                 zipStream)
 import           Control.Monad                 (void)
@@ -65,9 +66,12 @@ sendPackageArchive :: [PackageZipFile] -> StreamingBody
 sendPackageArchive zipFiles send flush = do
   C.runConduitRes $
          sourcePackageZipFiles zipFiles
-    C..| void (zipStream defaultZipOptions)
+    C..| void (zipStream zipOptions)
     C..| CC.mapM_ (liftIO . send . byteString)
   flush
+
+zipOptions :: ZipOptions
+zipOptions = defaultZipOptions { zipOptCompressLevel = 0 }
 
 sourcePackageZipFiles :: MonadResource m => [PackageZipFile] -> C.ConduitM () (ZipEntry, ZipData m) m ()
 sourcePackageZipFiles = mapM_ $ \PackageZipFile{..} -> do
