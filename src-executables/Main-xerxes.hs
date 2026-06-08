@@ -122,6 +122,8 @@ fstatsOptParser = FstatsOptions <$> parseBasePaths
                                 <*> parseFstatInput
                                 <*> parseMaxSnps
                                 <*> parseNoTransitions
+                                <*> parseStrandCheck
+                                <*> parseSkipIncongruentSNPs
                                 <*> parseTableOutFile
                                 <*> parseBlockTableFile
 
@@ -172,6 +174,8 @@ rasOptParser = RASOptions <$>
     parseMinFreq <*>
     parseMaxFreq <*>
     parseMaxMissingness <*>
+    parseStrandCheck <*>
+    parseSkipIncongruentSNPs <*>
     parseBlockTableFile <*>
     parseF4tableOutFile <*>
     parseMaxSnps <*>
@@ -238,6 +242,8 @@ admixPopsOptParser = AdmixPopsOptions <$> parseGenoDataSources
                                       <*> parseIndWithAdmixtureSetDirect
                                       <*> parseIndWithAdmixtureSetFromFile
                                       <*> parseAdmixPopsMethodSettings
+                                      <*> parseStrandCheck
+                                      <*> parseSkipIncongruentSNPs
                                       <*> parseOutGenotypeFormat True
                                       <*> parseZipOut
                                       <*> parseOutPackagePath

@@ -366,6 +366,17 @@ parseIntersect = OP.switch (
         \defined as missing in those packages which do not have a SNP that is present in another package. \
         \With this option set, the forged dataset will typically have fewer SNPs, but less missingness.")
 
+parseStrandCheck :: OP.Parser Bool
+parseStrandCheck = OP.switch (
+    OP.long "strandCheck" <>
+    OP.help "Whether to allow strand flips in the genotype data. Note that this will remove \
+    \any A/T and G/C SNPs from the data, as for those we cannot determine the correct strand orientation.")
+
+parseSkipIncongruentSNPs :: OP.Parser Bool
+parseSkipIncongruentSNPs = OP.switch (
+    OP.long "skipIncongruentSNPs" <>
+    OP.help "Whether to skip SNPs with incongruent alleles.")
+
 parseRemoteDummy :: OP.Parser ()
 parseRemoteDummy = OP.flag' () (
     OP.long "remote" <>
@@ -405,6 +416,8 @@ parseValidatePlan =
         (ValPlanBaseDirs <$> parseBasePaths
                          <*> parseIgnoreGeno
                          <*> parseFullGeno
+                         <*> parseForgeTest
+                         <*> parseStrandCheck
                          <*> parseIgnoreDuplicates
                          <*> parseIgnoreChecksums
                          <*> parseIgnorePoseidonVersion)
@@ -743,8 +756,15 @@ parseIgnoreGeno = OP.switch (
 parseFullGeno  :: OP.Parser Bool
 parseFullGeno = OP.switch (
     OP.long "fullGeno" <>
-    OP.help "Test parsing of all SNPs (by default only the first 100 SNPs are probed)."
+    OP.help "Test parsing of all SNPs in each package (by default only the first 100 SNPs are probed)."
     )
+
+parseForgeTest :: OP.Parser Bool
+parseForgeTest = OP.switch (
+    OP.long "forgeTest" <>
+    OP.help "Even more extensive than --fullGeno: Test forging the entire dataset. \
+            \This will detect incongruent SNPs between the packages. \
+            \Can be called with --strandCheck.")
 
 parseNoExitCode :: OP.Parser Bool
 parseNoExitCode = OP.switch (
