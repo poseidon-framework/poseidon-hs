@@ -820,16 +820,6 @@ readPlinkPopName s = case s of
     "asBoth"      -> Right PlinkPopNameAsBoth
     _             -> Left "must be asFamily, asPhenotype or asBoth"
 
-parseMaybeZipDir :: OP.Parser (Maybe FilePath)
-parseMaybeZipDir = OP.option (Just <$> OP.str) (
-    OP.long "zipDir" <>
-    OP.short 'z' <>
-    OP.metavar "DIR" <>
-    OP.help "A directory to store .zip files in. If not specified, do not generate .zip files." <>
-    OP.value Nothing <>
-    OP.showDefault
-    )
-
 parsePort :: OP.Parser Int
 parsePort = OP.option OP.auto (
     OP.long "port" <>
