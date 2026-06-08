@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.0.0.1
+@version 2.0.1.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -1438,9 +1438,14 @@ findGeneticSexInVCFheader :: [ByteString] -> Maybe (Either String [Sex])
 -- | A function to read the genotype data of a package
 loadGenotypeData :: MonadSafe m => FilePath -> GenotypeDataSpec -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
 vcf2eigenstratPipe :: MonadThrow m => Pipe VCFentry (EigenstratSnpEntry, GenoLine) m r
-joinEntries :: MonadIO m => LogA -> [Int] -> [String] -> [Maybe (EigenstratSnpEntry, GenoLine)] -> m (EigenstratSnpEntry, GenoLine)
-getConsensusSnpEntry :: MonadIO m => LogA -> [EigenstratSnpEntry] -> m EigenstratSnpEntry
-recodeAlleles :: EigenstratSnpEntry -> EigenstratSnpEntry -> GenoLine -> Either String GenoLine
+joinEntries :: [Int] -> [String] -> Bool -> [Maybe (EigenstratSnpEntry, GenoLine)] -> Either String (Maybe (EigenstratSnpEntry, GenoLine))
+getConsensusSnpEntry :: Bool -> [EigenstratSnpEntry] -> Maybe EigenstratSnpEntry
+missingAlleles :: [Char]
+isMissing :: Char -> Bool
+getConsensusAlleles :: [EigenstratSnpEntry] -> (Char, Char)
+getConsensusAllelesStrandCheck :: [EigenstratSnpEntry] -> Maybe (Char, Char)
+checkAlleleFlipNeeded :: EigenstratSnpEntry -> EigenstratSnpEntry -> Bool -> GenoLine -> Either String Bool
+recodeAlleles :: Bool -> GenoLine -> GenoLine
 printSNPCopyProgress :: MonadIO m => LogA -> UTCTime -> Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 writeVCF :: MonadSafe m => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
@@ -1920,7 +1925,7 @@ PoseidonGitException :: FilePath -> String -> PoseidonException
 -- | An exception for issues with --preservePyml
 PoseidonCantPreserveException :: PoseidonException
 data PackageReadOptions
-PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> [ByteString] -> [ByteString] -> PackageReadOptions
+PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> [ByteString] -> [ByteString] -> PackageReadOptions
 
 -- | whether to ignore all checksums
 [_readOptIgnoreChecksums] :: PackageReadOptions -> Bool
@@ -1934,6 +1939,12 @@ PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> [ByteStrin
 
 -- | whether to check all SNPs or only the first 100
 [_readOptFullGeno] :: PackageReadOptions -> Bool
+
+-- | whether to perform strand checks
+[_readOptStrandChecks] :: PackageReadOptions -> Bool
+
+-- | whether to skip incongruent SNPs
+[_readOptSkipIncongruentSnps] :: PackageReadOptions -> Bool
 
 -- | whether to ignore the Poseidon version of an input package.
 [_readOptIgnorePosVersion] :: PackageReadOptions -> Bool
@@ -1964,7 +1975,7 @@ readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO 
 readPoseidonPackageCollectionWithSkipIndicator :: PackageReadOptions -> [FilePath] -> PoseidonIO ([PoseidonPackage], Bool)
 
 -- | A function to read genotype data jointly from multiple packages
-getJointGenotypeData :: MonadSafe m => LogA -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
+getJointGenotypeData :: MonadSafe m => LogA -> Bool -> Bool -> Bool -> [PoseidonPackage] -> Maybe FilePath -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
 getJointJanno :: [PoseidonPackage] -> JannoRows
 getJointIndividualInfo :: MonadThrow m => [PoseidonPackage] -> m IndividualInfoCollection
 getExtendedIndividualInfo :: MonadThrow m => [PoseidonPackage] -> AddColSpec -> m [ExtendedIndividualInfo]
@@ -1990,6 +2001,7 @@ getJannoRowsFromPac :: PoseidonPackage -> [JannoRow]
 packagesToPackageInfos :: MonadThrow m => Bool -> [PoseidonPackage] -> m [PackageInfo]
 getAllGroupInfo :: MonadThrow m => [PoseidonPackage] -> m [GroupInfo]
 validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
+validateForge :: [PoseidonPackage] -> Bool -> PoseidonIO ()
 
 -- | Filter packages such that only packages with individuals covered by
 --   the given EntitySpec are returned
@@ -2140,11 +2152,13 @@ PerSNP :: Bool -> AdmixPopsMethodSettings
 InChunks :: Int -> AdmixPopsMethodSettings
 [_admixChunkSize] :: AdmixPopsMethodSettings -> Int
 data AdmixPopsOptions
-AdmixPopsOptions :: [GenoDataSource] -> [RequestedInd] -> Maybe FilePath -> AdmixPopsMethodSettings -> GenotypeOutFormatSpec -> Bool -> FilePath -> Maybe String -> PlinkPopNameMode -> Bool -> AdmixPopsOptions
+AdmixPopsOptions :: [GenoDataSource] -> [RequestedInd] -> Maybe FilePath -> AdmixPopsMethodSettings -> Bool -> Bool -> GenotypeOutFormatSpec -> Bool -> FilePath -> Maybe String -> PlinkPopNameMode -> Bool -> AdmixPopsOptions
 [_admixGenoSources] :: AdmixPopsOptions -> [GenoDataSource]
 [_admixIndWithAdmixtureSet] :: AdmixPopsOptions -> [RequestedInd]
 [_admixIndWithAdmixtureSetFile] :: AdmixPopsOptions -> Maybe FilePath
 [_admixMethodSettings] :: AdmixPopsOptions -> AdmixPopsMethodSettings
+[_admixStrandCheck] :: AdmixPopsOptions -> Bool
+[_admixStrandSkipAmbigousSNPs] :: AdmixPopsOptions -> Bool
 [_admixOutFormat] :: AdmixPopsOptions -> GenotypeOutFormatSpec
 [_admixOutZip] :: AdmixPopsOptions -> Bool
 [_admixOutPath] :: AdmixPopsOptions -> FilePath
@@ -2168,10 +2182,12 @@ ValidateOptions :: ValidatePlan -> [ByteString] -> [ByteString] -> Bool -> Bool 
 [_validateNoExitCode] :: ValidateOptions -> Bool
 [_validateOnlyLatest] :: ValidateOptions -> Bool
 data ValidatePlan
-ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> Bool -> Bool -> ValidatePlan
+ValPlanBaseDirs :: [FilePath] -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> ValidatePlan
 [_valPlanBaseDirs] :: ValidatePlan -> [FilePath]
 [_valPlanIgnoreGeno] :: ValidatePlan -> Bool
 [_valPlanFullGeno] :: ValidatePlan -> Bool
+[_valPlanForgeTest] :: ValidatePlan -> Bool
+[_valPlanStrandCheck] :: ValidatePlan -> Bool
 [_valPlanIgnoreDuplicates] :: ValidatePlan -> Bool
 [_valPlanIgnoreChecksums] :: ValidatePlan -> Bool
 [_valPlanIgnorePosVersion] :: ValidatePlan -> Bool
@@ -2266,11 +2282,13 @@ module Poseidon.CLI.Trident.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> GenotypeOutFormatSpec -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> Bool -> Bool -> GenotypeOutFormatSpec -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
 [_forgeIntersect] :: ForgeOptions -> Bool
+[_forgeStrandCheck] :: ForgeOptions -> Bool
+[_forgeSkipIncongruentSNPs] :: ForgeOptions -> Bool
 [_forgeOutFormat] :: ForgeOptions -> GenotypeOutFormatSpec
 [_forgeOutMode] :: ForgeOptions -> ForgeOutMode
 [_forgeOutZip] :: ForgeOptions -> Bool
@@ -2373,7 +2391,7 @@ FreqNone :: FreqSpec
 FreqK :: Int -> FreqSpec
 FreqX :: Double -> FreqSpec
 data RASOptions
-RASOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> FilePath -> FreqSpec -> FreqSpec -> Double -> Maybe FilePath -> Maybe FilePath -> Maybe Int -> Bool -> Maybe FilePath -> RASOptions
+RASOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> FilePath -> FreqSpec -> FreqSpec -> Double -> Bool -> Bool -> Maybe FilePath -> Maybe FilePath -> Maybe Int -> Bool -> Maybe FilePath -> RASOptions
 [_rasBaseDirs] :: RASOptions -> [FilePath]
 [_rasJackknifeMode] :: RASOptions -> JackknifeMode
 [_rasExcludeChroms] :: RASOptions -> [Chrom]
@@ -2381,6 +2399,8 @@ RASOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> FilePath -> FreqSpec -> 
 [_rasMinFreq] :: RASOptions -> FreqSpec
 [_rasMaxFreq] :: RASOptions -> FreqSpec
 [_rasMaxMissingness] :: RASOptions -> Double
+[_rasStrandCheck] :: RASOptions -> Bool
+[_rasSkipAmbigousSNPs] :: RASOptions -> Bool
 [_rasBlockTableFile] :: RASOptions -> Maybe FilePath
 [_rasF4tableOutFile] :: RASOptions -> Maybe FilePath
 [_rasMaxSnps] :: RASOptions -> Maybe Int
@@ -2528,6 +2548,8 @@ readEntities :: EntitySpec a => String -> Either String [a]
 parseForgeEntitiesFromFile :: Parser FilePath
 parseFetchEntitiesFromFile :: Parser FilePath
 parseIntersect :: Parser Bool
+parseStrandCheck :: Parser Bool
+parseSkipIncongruentSNPs :: Parser Bool
 parseRemoteDummy :: Parser ()
 parseOutGenotypeFormat :: Bool -> Parser GenotypeOutFormatSpec
 parseGenoDataSources :: Parser [GenoDataSource]
@@ -2568,6 +2590,7 @@ parseRawOutput :: Parser Bool
 parseOnlyLatest :: Parser Bool
 parseIgnoreGeno :: Parser Bool
 parseFullGeno :: Parser Bool
+parseForgeTest :: Parser Bool
 parseNoExitCode :: Parser Bool
 parseIgnoreDuplicates :: Parser Bool
 parseRemoteURL :: Parser String
@@ -2695,7 +2718,7 @@ runParser :: Stream s Identity t => Parsec s u a -> u -> SourceName -> s -> Eith
 -- | A datatype representing the command line options for the F-Statistics
 --   command
 data FstatsOptions
-FstatsOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> [FStatInput] -> Maybe Int -> Bool -> Maybe FilePath -> Maybe FilePath -> FstatsOptions
+FstatsOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> [FStatInput] -> Maybe Int -> Bool -> Bool -> Bool -> Maybe FilePath -> Maybe FilePath -> FstatsOptions
 
 -- | the list of base directories to search for packages ^ The way the
 --   Jackknife is performed
@@ -2713,6 +2736,8 @@ FstatsOptions :: [FilePath] -> JackknifeMode -> [Chrom] -> [FStatInput] -> Maybe
 [_foStatInput] :: FstatsOptions -> [FStatInput]
 [_foMaxSnps] :: FstatsOptions -> Maybe Int
 [_foNoTransitions] :: FstatsOptions -> Bool
+[_foStrandCheck] :: FstatsOptions -> Bool
+[_foSkipAmbigousSNPs] :: FstatsOptions -> Bool
 [_foTableOut] :: FstatsOptions -> Maybe FilePath
 [_foBlockTableOut] :: FstatsOptions -> Maybe FilePath
 
