@@ -36,7 +36,7 @@ import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception, throwIO)
+import           Control.Exception      (Exception (..), throwIO)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (when)
 import           Control.Monad.Catch    (throwM)
@@ -216,9 +216,12 @@ renderPoseidonException (PoseidonPackageMissingVersionException p) =
 renderPoseidonException (PoseidonIndSearchException s) =
     show s
 renderPoseidonException (PoseidonGenotypeException s) =
-    "Genotype data structurally inconsistent: " ++ show s
+    "Genotype data structurally inconsistent. " ++ s
 renderPoseidonException (PoseidonGenotypeExceptionForward errLength e) =
-    "Issues in genotype data parsing: " ++ truncateErr errLength (show e)
+    "Issues in genotype data parsing: " ++
+    case fromException e :: Maybe PoseidonException of
+        Just pe -> renderPoseidonException pe
+        Nothing -> truncateErr errLength $ show e
 renderPoseidonException (PoseidonHttpExceptionForward (HttpExceptionRequest _ content)) =
     "Issues in HTTP-communication with server:\n" ++
     show content

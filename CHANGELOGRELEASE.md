@@ -1,3 +1,17 @@
+### V 2.0.1.0
+
+This release adds some new intelligence in merging genotypes across packages. Previously, `trident forge` or any other command that would merge genotypes, also in `xerxes` would only merge sites with exactly two alleles in all packages. SNP with with strand-flip pairs, such as A/C in one package, but T/G in another, would be marked missing without warning.
+
+We now beefed this up substantially:
+
+First, by default, if incongruent pairs of SNPs are found, an actual error is thrown, with a helpful error message reporting the offending SNPs in all packages. 
+
+Second, a new option is available named `--strandCheck`, and this option is also mentioned in the error caused by incongruent SNPs. With this option, strand flips will be detected and automatically corrected. This comes at a price: SNPs with strand-ambiguous pairs of alleles, such as A/T or C/G will be skipped if `--strandCheck` is active, because in these cases the correct strand cannot be decided.
+
+Note that even with `--strandCheck` on, there may be cases of pairs that are still un-mergeable, such as A/T and A/G. For this case, a second option is offered `--skipIncongruentSNPs`. This option restores the original behaviour, i.e. it skips any such SNPs from the output.
+
+To test a set of package for incongruent SNPs among them, `trident validate` now has an option `--forgeTest` (+ `--strandCheck`). This attempts a full merge of the packages and yields the same informative error message as `trident forge` if it encounters any issues.
+
 ### V 2.0.0.0
 
 This release ushers in a new era in the development of poseidon-hs: We merged the poseidon-analysis-hs library into poseidon-hs, which was previously developed in a separate repository [here](https://github.com/poseidon-framework/poseidon-analysis-hs).

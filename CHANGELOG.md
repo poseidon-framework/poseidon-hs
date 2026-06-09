@@ -1,8 +1,11 @@
-- V 2.1.1.0:
+- V X.X.X.X:
     - Activated Ploidy checks whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
-- V 2.1.0.0:
-    - Added option `--strandCheck` to forge.
+- V 2.0.1.0:
+    - Added options `--strandCheck` and `--skipIncongruentSNPs` to `forge` and many other commands that consume genotype data from multiple packages.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
+    - Added an option `--forgeTest` (+ `--strandCheck`) to `validate`. This performs a full merge of all requested packages to uncover incongruent SNPs between them.
+- V 2.0.0.1:
+    - Added an extra executable `poseidon-server` with slightly different compilation parameters to run poseidon webservers more independently and with specific runtime settings.
 - V 2.0.0.0:
     - Incorporated the poseidon-analysis-hs library with the xerxes CLI software tool executable into the poseidon-hs repository.
     - Fixed two bugs in the handling of the new `referenceGenomeAssembly` POSEIDON.yml fields by `forge` and `genoconvert`.
