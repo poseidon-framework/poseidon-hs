@@ -27,11 +27,9 @@ import           Poseidon.Core.Utils        (LogA, PoseidonException (..),
                                              PoseidonIO, envLogAction, logDebug,
                                              logInfo, logWithEnv, padLeft)
 
-import           Codec.Archive.Zip          (ZipOption (..),
-                                             extractFilesFromArchive, toArchive)
 import           Conduit                    (ResourceT, await, runResourceT,
                                              sinkFile, yield)
-import           Control.Exception          (catch, throwIO)
+import           Control.Exception          (throwIO)
 import           Control.Monad              (filterM, forM_, unless, when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (eitherDecode')
@@ -46,6 +44,7 @@ import           Network.HTTP.Conduit       (http, newManager, parseRequest,
 import           System.Directory           (createDirectoryIfMissing,
                                              removeDirectory, removeFile)
 import           System.FilePath            ((</>))
+import Poseidon.Core.ServerZipStream (unzipPackage)
 
 data FetchOptions = FetchOptions
     { _jaBaseDirs  :: [FilePath]
@@ -168,12 +167,6 @@ downloadAndUnzipPackage baseDir tempDir archiveE pacNameAndVersion = do
     liftIO $ do
         unzipPackage (tempDir </> pnv) (baseDir </> pnv)
         removeFile (tempDir </> pnv)
-
-unzipPackage :: FilePath -> FilePath -> IO ()
-unzipPackage zip_ outDir = do
-    archiveBS <- LB.readFile zip_
-    let archive = toArchive archiveBS
-    catch (extractFilesFromArchive [OptRecursive, OptDestination outDir] archive) (throwIO . PoseidonUnzipException)
 
 downloadPackage :: FilePath -> ArchiveEndpoint -> PacNameAndVersion -> PoseidonIO ()
 downloadPackage outDir (ArchiveEndpoint remoteURL archive) pacNameAndVersion@(PacNameAndVersion pacName pacVersion) = do

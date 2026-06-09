@@ -1,16 +1,19 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 
-module Poseidon.Core.ServerZipStream (collectPackageZipFiles, sendPackageArchive) where
+module Poseidon.Core.ServerZipStream (collectPackageZipFiles, sendPackageArchive, unzipPackage) where
 
 import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
                                                 GenotypeFileSpec (..))
 import           Poseidon.Core.Package         (PoseidonPackage (..))
+import Poseidon.Core.Utils
 
 import           Codec.Archive.Zip.Conduit.Zip (ZipData, ZipEntry (..),
                                                 ZipOptions (..),
                                                 defaultZipOptions, zipFileData,
                                                 zipStream)
-import           Control.Monad                 (void)
+import           Control.Monad                 (void, unless)
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad.Trans.Resource  (MonadResource)
 import           Data.ByteString.Builder       (byteString)
@@ -22,8 +25,16 @@ import           Data.Time.LocalTime           (LocalTime, utc, utcToLocalTime)
 import           Data.Word                     (Word64)
 import           Network.Wai                   (StreamingBody)
 import           System.Directory              (getFileSize,
-                                                getModificationTime)
-import           System.FilePath               ((</>))
+                                                getModificationTime, createDirectoryIfMissing)
+import           System.FilePath               ((</>), takeDirectory)
+import Control.Exception (SomeException, catch, throwIO)
+import qualified Data.ByteString as BS
+import GHC.IORef
+import Codec.Archive.Zip.Conduit.UnZip (unZipStream)
+import System.IO (Handle, hClose, openBinaryFile, IOMode (..))
+import qualified Data.ByteString.Char8 as B8
+
+-- zipping
 
 data PackageZipFile = PackageZipFile {
     pzfZipName  :: !T.Text
@@ -83,3 +94,53 @@ sourcePackageZipFiles = mapM_ $ \PackageZipFile{..} -> do
     }
   C.yield (entry, zipFileData pzfDiskPath)
 
+-- unzipping
+
+unzipPackage :: FilePath -> FilePath -> IO ()
+unzipPackage zip_ outDir =
+    C.runConduitRes (
+           CC.sourceFile zip_
+      C..| void unZipStream
+      C..| sinkZipEntries outDir
+      ) `catch` \(e :: SomeException) -> throwIO (PoseidonUnzipException e)
+
+sinkZipEntries :: MonadResource m => FilePath -> C.ConduitT (Either ZipEntry BS.ByteString) C.Void m ()
+sinkZipEntries outDir = C.bracketP (newIORef Nothing) closeCurrent run
+  where
+    run currentHandle =
+      C.awaitForever $ \case
+        Left entry -> liftIO $ do
+          closeCurrent currentHandle
+          mh <- openEntry outDir entry
+          writeIORef currentHandle mh
+        Right chunk -> liftIO $ do
+          mh <- readIORef currentHandle
+          case mh of
+            Just h  -> BS.hPut h chunk
+            Nothing -> unless (BS.null chunk) $ throwIO $ PoseidonUnzipException $
+                          error "ZIP data chunk without current file entry"
+                  
+closeCurrent :: IORef (Maybe Handle) -> IO ()
+closeCurrent ref = do
+  mh <- readIORef ref
+  writeIORef ref Nothing
+  mapM_ hClose mh
+
+openEntry :: FilePath -> ZipEntry -> IO (Maybe Handle)
+openEntry outDir entry = do
+  let relPath = zipEntryNameToFilePath (zipEntryName entry)
+      dest    = outDir </> relPath
+  if isDirectoryPath relPath
+    then do
+      createDirectoryIfMissing True dest
+      pure Nothing
+    else do
+      createDirectoryIfMissing True (takeDirectory dest)
+      Just <$> openBinaryFile dest WriteMode
+
+zipEntryNameToFilePath :: Either T.Text BS.ByteString -> FilePath
+zipEntryNameToFilePath (Left t) = T.unpack t
+zipEntryNameToFilePath (Right bs) = B8.unpack bs
+
+isDirectoryPath :: FilePath -> Bool
+isDirectoryPath p = not (null p) && last p == '/'

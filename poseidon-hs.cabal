@@ -41,8 +41,7 @@ library
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
                         scotty, cassava, pureMD5, wai, githash, attoparsec, pipes-group,
-                        http-conduit, conduit, http-types, zip-stream, resourcet, zip-archive,
-                        MonadRandom, lens-family,
+                        http-conduit, conduit, http-types, zip-stream, resourcet, MonadRandom, lens-family,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop, containers, process, deepseq, template-haskell,
                         blaze-html, blaze-markup, neat-interpolation, file-embed, MissingH
