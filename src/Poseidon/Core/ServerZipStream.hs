@@ -1,38 +1,41 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Poseidon.Core.ServerZipStream (collectPackageZipFiles, sendPackageArchive, unzipPackage) where
 
-import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
-                                                GenotypeFileSpec (..))
-import           Poseidon.Core.Package         (PoseidonPackage (..))
-import Poseidon.Core.Utils
+import           Poseidon.Core.GenotypeData      (GenotypeDataSpec (..),
+                                                  GenotypeFileSpec (..))
+import           Poseidon.Core.Package           (PoseidonPackage (..))
+import           Poseidon.Core.Utils
 
-import           Codec.Archive.Zip.Conduit.Zip (ZipData, ZipEntry (..),
-                                                ZipOptions (..),
-                                                defaultZipOptions, zipFileData,
-                                                zipStream)
-import           Control.Monad                 (void, unless)
-import           Control.Monad.IO.Class        (liftIO)
-import           Control.Monad.Trans.Resource  (MonadResource)
-import           Data.ByteString.Builder       (byteString)
-import qualified Data.Conduit                  as C
-import qualified Data.Conduit.Combinators      as CC
-import           Data.Maybe                    (maybeToList)
-import qualified Data.Text                     as T
-import           Data.Time.LocalTime           (LocalTime, utc, utcToLocalTime)
-import           Data.Word                     (Word64)
-import           Network.Wai                   (StreamingBody)
-import           System.Directory              (getFileSize,
-                                                getModificationTime, createDirectoryIfMissing)
-import           System.FilePath               ((</>), takeDirectory)
-import Control.Exception (SomeException, catch, throwIO)
-import qualified Data.ByteString as BS
-import GHC.IORef
-import Codec.Archive.Zip.Conduit.UnZip (unZipStream)
-import System.IO (Handle, hClose, openBinaryFile, IOMode (..))
-import qualified Data.ByteString.Char8 as B8
+import           Codec.Archive.Zip.Conduit.UnZip (unZipStream)
+import           Codec.Archive.Zip.Conduit.Zip   (ZipData, ZipEntry (..),
+                                                  ZipOptions (..),
+                                                  defaultZipOptions,
+                                                  zipFileData, zipStream)
+import           Control.Exception               (SomeException, catch, throwIO)
+import           Control.Monad                   (unless, void)
+import           Control.Monad.IO.Class          (liftIO)
+import           Control.Monad.Trans.Resource    (MonadResource)
+import qualified Data.ByteString                 as BS
+import           Data.ByteString.Builder         (byteString)
+import qualified Data.ByteString.Char8           as B8
+import qualified Data.Conduit                    as C
+import qualified Data.Conduit.Combinators        as CC
+import           Data.Maybe                      (maybeToList)
+import qualified Data.Text                       as T
+import           Data.Time.LocalTime             (LocalTime, utc,
+                                                  utcToLocalTime)
+import           Data.Word                       (Word64)
+import           GHC.IORef
+import           Network.Wai                     (StreamingBody)
+import           System.Directory                (createDirectoryIfMissing,
+                                                  getFileSize,
+                                                  getModificationTime)
+import           System.FilePath                 (takeDirectory, (</>))
+import           System.IO                       (Handle, IOMode (..), hClose,
+                                                  openBinaryFile)
 
 -- zipping
 
@@ -120,7 +123,7 @@ sinkZipEntries outDir = C.bracketP (newIORef Nothing) closeCurrent run
             Just h  -> BS.hPut h chunk
             Nothing -> unless (BS.null chunk) $ throwIO $ PoseidonUnzipException $
                           error "ZIP data chunk without current file entry"
-                  
+
 closeCurrent :: IORef (Maybe Handle) -> IO ()
 closeCurrent ref = do
   mh <- readIORef ref
@@ -140,7 +143,7 @@ openEntry outDir entry = do
       Just <$> openBinaryFile dest WriteMode
 
 zipEntryNameToFilePath :: Either T.Text BS.ByteString -> FilePath
-zipEntryNameToFilePath (Left t) = T.unpack t
+zipEntryNameToFilePath (Left t)   = T.unpack t
 zipEntryNameToFilePath (Right bs) = B8.unpack bs
 
 isDirectoryPath :: FilePath -> Bool
