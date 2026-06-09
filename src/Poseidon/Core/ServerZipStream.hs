@@ -82,7 +82,8 @@ sendPackageArchive zipFiles send flush = do
   flush
 
 zipOptions :: ZipOptions
-zipOptions = defaultZipOptions { zipOptCompressLevel = 0 }
+zipOptions = defaultZipOptions { zipOptCompressLevel = 1 }
+-- zipOptCompressLevel can not be 0, because unZipStream can not handle uncompressed archives
 
 sourcePackageZipFiles :: MonadResource m => [PackageZipFile] -> C.ConduitM () (ZipEntry, ZipData m) m ()
 sourcePackageZipFiles = mapM_ $ \PackageZipFile{..} -> do
