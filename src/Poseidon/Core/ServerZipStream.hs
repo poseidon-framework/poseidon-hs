@@ -106,7 +106,7 @@ unzipPackage zip_ outDir =
            CC.sourceFile zip_
       C..| void unZipStream
       C..| sinkZipEntries outDir
-      ) `catch` \(e :: SomeException) -> throwIO (PoseidonUnzipException e)
+      ) `catch` \(e :: SomeException) -> throwIO (PoseidonUnzipException $ Right e)
 
 sinkZipEntries :: MonadResource m => FilePath -> C.ConduitT (Either ZipEntry BS.ByteString) C.Void m ()
 sinkZipEntries outDir = C.bracketP (newIORef Nothing) closeCurrent run
@@ -121,8 +121,9 @@ sinkZipEntries outDir = C.bracketP (newIORef Nothing) closeCurrent run
           mh <- readIORef currentHandle
           case mh of
             Just h  -> BS.hPut h chunk
-            Nothing -> unless (BS.null chunk) $ throwIO $ PoseidonUnzipException $
-                          error "ZIP data chunk without current file entry"
+            Nothing -> unless (BS.null chunk) $
+                       throwIO $ PoseidonUnzipException $
+                       Left "ZIP data chunk without current file entry"
 
 closeCurrent :: IORef (Maybe Handle) -> IO ()
 closeCurrent ref = do

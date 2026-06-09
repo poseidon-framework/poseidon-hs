@@ -166,6 +166,7 @@ downloadAndUnzipPackage baseDir tempDir archiveE pacNameAndVersion = do
     let pnv = renderNameWithVersion pacNameAndVersion
     logInfo $ "Downloading: " ++ pnv
     downloadPackage tempDir archiveE pacNameAndVersion
+    logInfo "Unzipping..."
     liftIO $ do
         unzipPackage (tempDir </> pnv) (baseDir </> pnv)
         removeFile (tempDir </> pnv)
@@ -200,6 +201,6 @@ printDownloadProgress logA = loop 0 reportEvery
                                      else nextReportB
                 when (newLoadedB >= nextReportB) $ do
                     let loadedMB = fromIntegral newLoadedB / (1024 * 1024) :: Double
-                    logWithEnv logA $ logInfo $ "Downloaded MB: " ++ padLeft 9 (roundToStr (-1) loadedMB)
+                    logWithEnv logA $ logInfo $ "Downloaded: " ++ padLeft 9 (roundToStr (-1) loadedMB) ++ "MB"
                 yield x
                 loop newLoadedB newNextReportB
