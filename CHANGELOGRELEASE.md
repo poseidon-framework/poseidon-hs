@@ -10,6 +10,7 @@ Second, a new option is available named `--strandCheck`, and this option is also
 
 Note that even with `--strandCheck` on, there may be cases of pairs that are still un-mergeable, such as A/T and A/G. For this case, a second option is offered `--skipIncongruentSNPs`. This option restores the original behaviour, i.e. it skips any such SNPs from the output.
 
+To test a set of package for incongruent SNPs among them, `trident validate` now has an option `--forgeTest` (+ `--strandCheck`). This attempts a full merge of the packages and yields the same informative error message as `trident forge` if it encounters any issues.
 
 ### V 2.0.0.0
 

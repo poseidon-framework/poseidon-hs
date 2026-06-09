@@ -1,6 +1,7 @@
 - V 2.0.1.0:
-    - Added options `--strandCheck` and `--skipIncongruentSNPs` to forge and many other commands that consume genotype data from multiple packages.
+    - Added options `--strandCheck` and `--skipIncongruentSNPs` to `forge` and many other commands that consume genotype data from multiple packages.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
+    - Added an option `--forgeTest` (+ `--strandCheck`) to `validate`. This performs a full merge of all requested packages to uncover incongruent SNPs between them.
 - V 2.0.0.1:
     - Added an extra executable `poseidon-server` with slightly different compilation parameters to run poseidon webservers more independently and with specific runtime settings.
 - V 2.0.0.0:
