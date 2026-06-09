@@ -12,7 +12,7 @@ import           Poseidon.Core.EntityTypes  (EntityInput,
                                              makePacNameAndVersion,
                                              readEntityInputs,
                                              renderNameWithVersion)
-import           Poseidon.Core.MathHelpers  (roundTo, roundToStr)
+import           Poseidon.Core.MathHelpers  (roundToStr)
 import           Poseidon.Core.Package      (PackageReadOptions (..),
                                              defaultPackageReadOptions,
                                              readPoseidonPackageCollection)
@@ -36,17 +36,13 @@ import           Control.Monad              (filterM, forM_, unless, when)
 import           Control.Monad.IO.Class     (liftIO)
 import           Data.Aeson                 (eitherDecode')
 import qualified Data.ByteString            as B
-import           Data.ByteString.Char8      as B8 (unpack)
 import qualified Data.ByteString.Lazy       as LB
 import           Data.Conduit               (ConduitT, sealConduitT, ($$+-),
                                              (.|))
 import           Data.List                  (intercalate)
-import           Data.Maybe                 (fromMaybe)
 import           Data.Version               (Version, showVersion)
 import           Network.HTTP.Conduit       (http, newManager, parseRequest,
-                                             responseBody, responseHeaders,
-                                             tlsManagerSettings)
-import           Network.HTTP.Types         (hContentLength)
+                                             responseBody, tlsManagerSettings)
 import           System.Directory           (createDirectoryIfMissing,
                                              removeDirectory, removeFile)
 import           System.FilePath            ((</>))
@@ -187,35 +183,28 @@ downloadPackage outDir (ArchiveEndpoint remoteURL archive) pacNameAndVersion@(Pa
     --logInfo $ show packageRequest
     liftIO $ runResourceT $ do
         response <- http packageRequest downloadManager
-        let fileSize = fromMaybe "0" $ lookup hContentLength (responseHeaders response)
-        let fileSizeKB = (read $ B8.unpack fileSize) :: Int
-        let fileSizeMB = roundTo 1 (fromIntegral fileSizeKB / 1000.0 / 1000.0)
-        logWithEnv logA $ logInfo $ "Package size: " ++ show (roundTo 1 fileSizeMB) ++ "MB"
         sealConduitT (responseBody response) $$+-
-            printDownloadProgress logA fileSizeMB .|
+            printDownloadProgress logA .|
             sinkFile (outDir </> renderNameWithVersion pacNameAndVersion)
     return ()
 
-printDownloadProgress :: LogA -> Double -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
-printDownloadProgress logA fileSizeMB = loop 0 0
-    where
-        loop loadedB loadedMB = do
-            x <- await
-            maybe (return ()) (showDownloaded fileSizeMB loadedB) x
-            where
-                showDownloaded fileSizeMB_ loadedB_ x = do
-                    let newLoadedB = loadedB_ + B.length x
-                    let curLoadedMB = roundTo 1 (fromIntegral newLoadedB / 1000 / 1000)
-                                          -- update progress counter every 5%
-                    let newLoadedMB = if (curLoadedMB/fileSizeMB_ - loadedMB/fileSizeMB_ >= 0.05 &&
-                                          -- but only at at least 200KB
-                                          curLoadedMB - loadedMB > 0.2) ||
-                                          -- and of course at the end of the sequence
-                                          curLoadedMB == fileSizeMB_
-                                      then curLoadedMB
-                                      else loadedMB
-                    when (loadedMB /= newLoadedMB) $ do
-                        let leadedPercent = roundTo 3 (newLoadedMB / fileSizeMB_) * 100
-                        logWithEnv logA $ logInfo ("MB:" ++ padLeft 9 (show curLoadedMB) ++ "    " ++ padLeft 5 (roundToStr 1 leadedPercent) ++ "% ")
-                    yield x
-                    loop newLoadedB newLoadedMB
+printDownloadProgress :: LogA -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+printDownloadProgress logA = loop 0 reportEvery
+  where
+    reportEvery :: Integer
+    reportEvery = 100 * 1024 * 1024 -- 1000 * 1000 for MB, or 1024 * 1024 for MiB
+    loop :: Integer -> Integer -> ConduitT B.ByteString B.ByteString (ResourceT IO) ()
+    loop loadedB nextReportB = do
+        mx <- await
+        case mx of
+            Nothing -> return ()
+            Just x -> do
+                let newLoadedB = loadedB + fromIntegral (B.length x)
+                let newNextReportB = if newLoadedB >= nextReportB
+                                     then ((newLoadedB `div` reportEvery) + 1) * reportEvery
+                                     else nextReportB
+                when (newLoadedB >= nextReportB) $ do
+                    let loadedMB = fromIntegral newLoadedB / (1024 * 1024) :: Double
+                    logWithEnv logA $ logInfo $ "Downloaded MB: " ++ padLeft 9 (roundToStr (-1) loadedMB)
+                yield x
+                loop newLoadedB newNextReportB
