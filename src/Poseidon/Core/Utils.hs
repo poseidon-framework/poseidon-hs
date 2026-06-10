@@ -83,7 +83,9 @@ envInputPlinkMode = asks _envInputPlinkMode
 envErrorLength :: PoseidonIO ErrorLength
 envErrorLength = asks _envErrorLength
 
-data LogMode = NoLog
+data LogMode =
+      NoLog
+    | NoWarnLog
     | SimpleLog
     | DefaultLog
     | ServerLog
@@ -92,6 +94,7 @@ data LogMode = NoLog
 
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
 usePoseidonLogger NoLog      testMode plinkMode errLength = flip runReaderT (Env noLog testMode plinkMode errLength)
+usePoseidonLogger NoWarnLog  testMode plinkMode errLength = flip runReaderT (Env noWarnLog testMode plinkMode errLength)
 usePoseidonLogger SimpleLog  testMode plinkMode errLength = flip runReaderT (Env simpleLog testMode plinkMode errLength)
 usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env defaultLog testMode plinkMode errLength)
 usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
@@ -105,6 +108,8 @@ testLogErr = usePoseidonLogger SimpleLog Testing PlinkPopNameAsFamily CharInf
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
+noWarnLog  :: LogA
+noWarnLog  = cfilter (\msg -> msgSeverity msg /= Warning && msgSeverity msg /= Debug) $ compileLogMsg True False
 simpleLog  :: LogA
 simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False
 defaultLog :: LogA

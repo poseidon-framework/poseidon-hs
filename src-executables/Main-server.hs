@@ -54,7 +54,7 @@ optParserInfo = OP.info
 optionsParser :: OP.Parser Options
 optionsParser =
     Options
-        <$> (parseLogMode <|> parseDebugMode)
+        <$> (parseLogMode <|> parseDebugMode <|> parseNoWarnMode)
         <*> parseTestMode
         <*> parseErrorLength
         <*> parseInputPlinkPopMode
