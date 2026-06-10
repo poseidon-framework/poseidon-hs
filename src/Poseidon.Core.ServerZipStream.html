@@ -1,0 +1,588 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase          #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards     #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Poseidon.Core.ServerZipStream</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#collectPackageZipFiles"><span class="hs-identifier">collectPackageZipFiles</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#sendPackageArchive"><span class="hs-identifier">sendPackageArchive</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#unzipPackage"><span class="hs-identifier">unzipPackage</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html"><span class="hs-identifier">Poseidon.Core.GenotypeData</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeDataSpec"><span class="hs-identifier">GenotypeDataSpec</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>                                                  </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeFileSpec"><span class="hs-identifier">GenotypeFileSpec</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Core.Package.html"><span class="hs-identifier">Poseidon.Core.Package</span></a></span><span>           </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.Package.html#PoseidonPackage"><span class="hs-identifier">PoseidonPackage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Poseidon.Core.Utils.html"><span class="hs-identifier">Poseidon.Core.Utils</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Codec.Archive.Zip.Conduit.UnZip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unZipStream</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Codec.Archive.Zip.Conduit.Zip</span></span><span>   </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ZipData</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ZipEntry</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">ZipOptions</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">defaultZipOptions</span></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">zipFileData</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">zipStream</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span>               </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">SomeException</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">catch</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unless</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.IO.Class</span></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">liftIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Resource</span></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadResource</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>                 </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BS</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.ByteString.Builder</span></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">byteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Char8</span></span><span>           </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">B8</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Conduit</span></span><span>                    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">C</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Conduit.Combinators</span></span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">CC</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>                      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">maybeToList</span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span>                       </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Time.LocalTime</span></span><span>             </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">LocalTime</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">utc</span></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">utcToLocalTime</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span>                       </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Word64</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">GHC.IORef</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Network.Wai</span></span><span>                     </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">StreamingBody</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.Directory</span></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">createDirectoryIfMissing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">getFileSize</span></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">getModificationTime</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.FilePath</span></span><span>                 </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">takeDirectory</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&lt;/&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>                       </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Handle</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">IOMode</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">hClose</span></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>                                                  </span><span class="annot"><span class="hs-identifier">openBinaryFile</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- zipping</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">data</span><span> </span><span id="PackageZipFile"><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-var">PackageZipFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PackageZipFile"><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-var">PackageZipFile</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-43"></span><span>    </span><span id="pzfZipName"><span class="annot"><span class="annottext">PackageZipFile -&gt; Text
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfZipName"><span class="hs-identifier hs-var hs-var">pzfZipName</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="pzfDiskPath"><span class="annot"><span class="annottext">PackageZipFile -&gt; FilePath
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfDiskPath"><span class="hs-identifier hs-var hs-var">pzfDiskPath</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="pzfModTime"><span class="annot"><span class="annottext">PackageZipFile -&gt; LocalTime
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfModTime"><span class="hs-identifier hs-var hs-var">pzfModTime</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">LocalTime</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="pzfSize"><span class="annot"><span class="annottext">PackageZipFile -&gt; Word64
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfSize"><span class="hs-identifier hs-var hs-var">pzfSize</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Word64</span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#collectPackageZipFiles"><span class="hs-identifier hs-type">collectPackageZipFiles</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-50"></span><span id="collectPackageZipFiles"><span class="annot"><span class="annottext">collectPackageZipFiles :: PoseidonPackage -&gt; IO [PackageZipFile]
+</span><a href="Poseidon.Core.ServerZipStream.html#collectPackageZipFiles"><span class="hs-identifier hs-var hs-var">collectPackageZipFiles</span></a></span></span><span> </span><span id="local-6989586621679748500"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748500"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO PackageZipFile)
+-&gt; [FilePath] -&gt; IO [PackageZipFile]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO PackageZipFile
+</span><a href="#local-6989586621679748502"><span class="hs-identifier hs-var">makePackageZipFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; [FilePath]
+</span><a href="Poseidon.Core.ServerZipStream.html#packageFileNames"><span class="hs-identifier hs-var">packageFileNames</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748500"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><a href="#local-6989586621679748502"><span class="hs-identifier hs-type">makePackageZipFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span>
+</span><span id="line-53"></span><span>    </span><span id="local-6989586621679748502"><span class="annot"><span class="annottext">makePackageZipFile :: FilePath -&gt; IO PackageZipFile
+</span><a href="#local-6989586621679748502"><span class="hs-identifier hs-var hs-var">makePackageZipFile</span></a></span></span><span> </span><span id="local-6989586621679748504"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748504"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-54"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679748505"><span class="annot"><span class="annottext">fullPath :: FilePath
+</span><a href="#local-6989586621679748505"><span class="hs-identifier hs-var hs-var">fullPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; FilePath
+</span><a href="Poseidon.Core.Package.html#posPacBaseDir"><span class="hs-identifier hs-var">posPacBaseDir</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748500"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748504"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-55"></span><span>      </span><span id="local-6989586621679748507"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679748507"><span class="hs-identifier hs-var">modTimeUtc</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO UTCTime
+</span><span class="hs-identifier hs-var">getModificationTime</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748505"><span class="hs-identifier hs-var">fullPath</span></a></span><span>
+</span><span id="line-56"></span><span>      </span><span id="local-6989586621679748508"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679748508"><span class="hs-identifier hs-var">sizeInteger</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO Integer
+</span><span class="hs-identifier hs-var">getFileSize</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748505"><span class="hs-identifier hs-var">fullPath</span></a></span><span>
+</span><span id="line-57"></span><span>      </span><span class="annot"><span class="annottext">PackageZipFile -&gt; IO PackageZipFile
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-58"></span><span>          </span><span class="annot"><span class="annottext">pzfZipName :: Text
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfZipName"><span class="hs-identifier hs-var">pzfZipName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748504"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-59"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">pzfDiskPath :: FilePath
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfDiskPath"><span class="hs-identifier hs-var">pzfDiskPath</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748505"><span class="hs-identifier hs-var">fullPath</span></a></span><span>
+</span><span id="line-60"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">pzfModTime :: LocalTime
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfModTime"><span class="hs-identifier hs-var">pzfModTime</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TimeZone -&gt; UTCTime -&gt; LocalTime
+</span><span class="hs-identifier hs-var">utcToLocalTime</span></span><span> </span><span class="annot"><span class="annottext">TimeZone
+</span><span class="hs-identifier hs-var">utc</span></span><span> </span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679748507"><span class="hs-identifier hs-var">modTimeUtc</span></a></span><span>
+</span><span id="line-61"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">pzfSize :: Word64
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfSize"><span class="hs-identifier hs-var">pzfSize</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Word64
+forall a. Num a =&gt; Integer -&gt; a
+</span><span class="hs-identifier hs-var">fromInteger</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679748508"><span class="hs-identifier hs-var">sizeInteger</span></a></span><span>
+</span><span id="line-62"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#packageFileNames"><span class="hs-identifier hs-type">packageFileNames</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#PoseidonPackage"><span class="hs-identifier hs-type">PoseidonPackage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">]</span><span>
+</span><span id="line-65"></span><span id="packageFileNames"><span class="annot"><span class="annottext">packageFileNames :: PoseidonPackage -&gt; [FilePath]
+</span><a href="Poseidon.Core.ServerZipStream.html#packageFileNames"><span class="hs-identifier hs-var hs-var">packageFileNames</span></a></span></span><span> </span><span id="local-6989586621679748510"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>       </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;POSEIDON.yml&quot;</span></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath -&gt; [FilePath]
+forall a. Maybe a -&gt; [a]
+</span><span class="hs-identifier hs-var">maybeToList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe FilePath
+</span><a href="Poseidon.Core.Package.html#posPacJannoFile"><span class="hs-identifier hs-var">posPacJannoFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath -&gt; [FilePath]
+forall a. Maybe a -&gt; [a]
+</span><span class="hs-identifier hs-var">maybeToList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe FilePath
+</span><a href="Poseidon.Core.Package.html#posPacSeqSourceFile"><span class="hs-identifier hs-var">posPacSeqSourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath -&gt; [FilePath]
+forall a. Maybe a -&gt; [a]
+</span><span class="hs-identifier hs-var">maybeToList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe FilePath
+</span><a href="Poseidon.Core.Package.html#posPacBibFile"><span class="hs-identifier hs-var">posPacBibFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath -&gt; [FilePath]
+forall a. Maybe a -&gt; [a]
+</span><span class="hs-identifier hs-var">maybeToList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe FilePath
+</span><a href="Poseidon.Core.Package.html#posPacReadmeFile"><span class="hs-identifier hs-var">posPacReadmeFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath -&gt; [FilePath]
+forall a. Maybe a -&gt; [a]
+</span><span class="hs-identifier hs-var">maybeToList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Maybe FilePath
+</span><a href="Poseidon.Core.Package.html#posPacChangelogFile"><span class="hs-identifier hs-var">posPacChangelogFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>    </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679748516"><span class="hs-identifier hs-var">genotypeFiles</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-74"></span><span>    </span><span id="local-6989586621679748516"><span class="annot"><span class="annottext">genotypeFiles :: [FilePath]
+</span><a href="#local-6989586621679748516"><span class="hs-identifier hs-var hs-var">genotypeFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
+</span><a href="Poseidon.Core.GenotypeData.html#genotypeFileSpec"><span class="hs-identifier hs-var">genotypeFileSpec</span></a></span><span> </span><span class="annot"><span class="annottext">(GenotypeDataSpec -&gt; GenotypeFileSpec)
+-&gt; (PoseidonPackage -&gt; GenotypeDataSpec)
+-&gt; PoseidonPackage
+-&gt; GenotypeFileSpec
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; GenotypeDataSpec
+</span><a href="Poseidon.Core.Package.html#posPacGenotypeData"><span class="hs-identifier hs-var">posPacGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonPackage -&gt; GenotypeFileSpec)
+-&gt; PoseidonPackage -&gt; GenotypeFileSpec
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679748510"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-75"></span><span>      </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeEigenstrat"><span class="hs-identifier hs-type">GenotypeEigenstrat</span></a></span><span> </span><span id="local-6989586621679748521"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748521"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679748522"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748522"><span class="hs-identifier hs-var">sf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679748523"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748523"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748521"><span class="hs-identifier hs-var">gf</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748522"><span class="hs-identifier hs-var">sf</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748523"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span>      </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypePlink"><span class="hs-identifier hs-type">GenotypePlink</span></a></span><span>      </span><span id="local-6989586621679748525"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748525"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679748526"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748526"><span class="hs-identifier hs-var">sf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679748527"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748527"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748525"><span class="hs-identifier hs-var">gf</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748526"><span class="hs-identifier hs-var">sf</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748527"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-77"></span><span>      </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeVCF"><span class="hs-identifier hs-type">GenotypeVCF</span></a></span><span>        </span><span id="local-6989586621679748529"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748529"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><span class="hs-identifier">_</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748529"><span class="hs-identifier hs-var">gf</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#sendPackageArchive"><span class="hs-identifier hs-type">sendPackageArchive</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">StreamingBody</span></span><span>
+</span><span id="line-80"></span><span id="sendPackageArchive"><span class="annot"><span class="annottext">sendPackageArchive :: [PackageZipFile] -&gt; StreamingBody
+</span><a href="Poseidon.Core.ServerZipStream.html#sendPackageArchive"><span class="hs-identifier hs-var hs-var">sendPackageArchive</span></a></span></span><span> </span><span id="local-6989586621679748530"><span class="annot"><span class="annottext">[PackageZipFile]
+</span><a href="#local-6989586621679748530"><span class="hs-identifier hs-var">zipFiles</span></a></span></span><span> </span><span id="local-6989586621679748531"><span class="annot"><span class="annottext">Builder -&gt; IO ()
+</span><a href="#local-6989586621679748531"><span class="hs-identifier hs-var">send</span></a></span></span><span> </span><span id="local-6989586621679748532"><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679748532"><span class="hs-identifier hs-var">flush</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="annottext">ConduitT () Void (ResourceT IO) () -&gt; IO ()
+forall (m :: * -&gt; *) r.
+MonadUnliftIO m =&gt;
+ConduitT () Void (ResourceT m) r -&gt; m r
+</span><span class="hs-identifier hs-var">C.runConduitRes</span></span><span> </span><span class="annot"><span class="annottext">(ConduitT () Void (ResourceT IO) () -&gt; IO ())
+-&gt; ConduitT () Void (ResourceT IO) () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-82"></span><span>         </span><span class="annot"><span class="annottext">[PackageZipFile]
+-&gt; ConduitM () (ZipEntry, ZipData (ResourceT IO)) (ResourceT IO) ()
+forall (m :: * -&gt; *).
+MonadResource m =&gt;
+[PackageZipFile] -&gt; ConduitM () (ZipEntry, ZipData m) m ()
+</span><a href="Poseidon.Core.ServerZipStream.html#sourcePackageZipFiles"><span class="hs-identifier hs-var">sourcePackageZipFiles</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageZipFile]
+</span><a href="#local-6989586621679748530"><span class="hs-identifier hs-var">zipFiles</span></a></span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><span class="annottext">ConduitM () (ZipEntry, ZipData (ResourceT IO)) (ResourceT IO) ()
+-&gt; ConduitT
+     (ZipEntry, ZipData (ResourceT IO)) Void (ResourceT IO) ()
+-&gt; ConduitT () Void (ResourceT IO) ()
+forall (m :: * -&gt; *) a b c r.
+Monad m =&gt;
+ConduitT a b m () -&gt; ConduitT b c m r -&gt; ConduitT a c m r
+</span><span class="hs-operator hs-var">C..|</span></span><span> </span><span class="annot"><span class="annottext">ConduitT
+  (ZipEntry, ZipData (ResourceT IO)) ByteString (ResourceT IO) Word64
+-&gt; ConduitT
+     (ZipEntry, ZipData (ResourceT IO)) ByteString (ResourceT IO) ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZipOptions
+-&gt; ConduitT
+     (ZipEntry, ZipData (ResourceT IO)) ByteString (ResourceT IO) Word64
+forall (m :: * -&gt; *).
+(MonadThrow m, PrimMonad m) =&gt;
+ZipOptions -&gt; ConduitM (ZipEntry, ZipData m) ByteString m Word64
+</span><span class="hs-identifier hs-var">zipStream</span></span><span> </span><span class="annot"><span class="annottext">ZipOptions
+</span><a href="Poseidon.Core.ServerZipStream.html#zipOptions"><span class="hs-identifier hs-var">zipOptions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><span class="annottext">ConduitT
+  (ZipEntry, ZipData (ResourceT IO)) ByteString (ResourceT IO) ()
+-&gt; ConduitT ByteString Void (ResourceT IO) ()
+-&gt; ConduitT
+     (ZipEntry, ZipData (ResourceT IO)) Void (ResourceT IO) ()
+forall (m :: * -&gt; *) a b c r.
+Monad m =&gt;
+ConduitT a b m () -&gt; ConduitT b c m r -&gt; ConduitT a c m r
+</span><span class="hs-operator hs-var">C..|</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ResourceT IO ())
+-&gt; ConduitT ByteString Void (ResourceT IO) ()
+forall (m :: * -&gt; *) a o.
+Monad m =&gt;
+(a -&gt; m ()) -&gt; ConduitT a o m ()
+</span><span class="hs-identifier hs-var">CC.mapM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO () -&gt; ResourceT IO ()
+forall a. IO a -&gt; ResourceT IO a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; ResourceT IO ())
+-&gt; (ByteString -&gt; IO ()) -&gt; ByteString -&gt; ResourceT IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; IO ()
+</span><a href="#local-6989586621679748531"><span class="hs-identifier hs-var">send</span></a></span><span> </span><span class="annot"><span class="annottext">(Builder -&gt; IO ())
+-&gt; (ByteString -&gt; Builder) -&gt; ByteString -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Builder
+</span><span class="hs-identifier hs-var">byteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679748532"><span class="hs-identifier hs-var">flush</span></a></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#zipOptions"><span class="hs-identifier hs-type">zipOptions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZipOptions</span></span><span>
+</span><span id="line-88"></span><span id="zipOptions"><span class="annot"><span class="annottext">zipOptions :: ZipOptions
+</span><a href="Poseidon.Core.ServerZipStream.html#zipOptions"><span class="hs-identifier hs-var hs-var">zipOptions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ZipOptions
+</span><span class="hs-identifier hs-var">defaultZipOptions</span></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-identifier hs-var">zipOptCompressLevel</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- zipOptCompressLevel can not be 0, because unZipStream can not handle uncompressed archives</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span id="local-6989586621679748340"><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#sourcePackageZipFiles"><span class="hs-identifier hs-type">sourcePackageZipFiles</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadResource</span></span><span> </span><span class="annot"><a href="#local-6989586621679748340"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">C.ConduitM</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ZipEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZipData</span></span><span> </span><span class="annot"><a href="#local-6989586621679748340"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679748340"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-92"></span><span id="sourcePackageZipFiles"><span class="annot"><span class="annottext">sourcePackageZipFiles :: forall (m :: * -&gt; *).
+MonadResource m =&gt;
+[PackageZipFile] -&gt; ConduitM () (ZipEntry, ZipData m) m ()
+</span><a href="Poseidon.Core.ServerZipStream.html#sourcePackageZipFiles"><span class="hs-identifier hs-var hs-var">sourcePackageZipFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PackageZipFile -&gt; ConduitT () (ZipEntry, ZipData m) m ())
+-&gt; [PackageZipFile] -&gt; ConduitT () (ZipEntry, ZipData m) m ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="annot"><span class="annottext">((PackageZipFile -&gt; ConduitT () (ZipEntry, ZipData m) m ())
+ -&gt; [PackageZipFile] -&gt; ConduitT () (ZipEntry, ZipData m) m ())
+-&gt; (PackageZipFile -&gt; ConduitT () (ZipEntry, ZipData m) m ())
+-&gt; [PackageZipFile]
+-&gt; ConduitT () (ZipEntry, ZipData m) m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#PackageZipFile"><span class="hs-identifier hs-type">PackageZipFile</span></a></span><span class="hs-special">{</span><span id="local-6989586621679748550"><span id="local-6989586621679748551"><span id="local-6989586621679748552"><span id="local-6989586621679748553"><span class="annot"><span class="annottext">FilePath
+Word64
+Text
+LocalTime
+pzfZipName :: PackageZipFile -&gt; Text
+pzfDiskPath :: PackageZipFile -&gt; FilePath
+pzfModTime :: PackageZipFile -&gt; LocalTime
+pzfSize :: PackageZipFile -&gt; Word64
+pzfZipName :: Text
+pzfDiskPath :: FilePath
+pzfModTime :: LocalTime
+pzfSize :: Word64
+</span><a href="Poseidon.Core.ServerZipStream.html#pzfZipName"><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">..</span></a></span></span></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679748554"><span class="annot"><span class="annottext">entry :: ZipEntry
+</span><a href="#local-6989586621679748554"><span class="hs-identifier hs-var hs-var">entry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZipEntry</span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-94"></span><span>      </span><span class="annot"><span class="annottext">zipEntryName :: Either Text ByteString
+</span><span class="hs-identifier hs-var">zipEntryName</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either Text ByteString
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679748550"><span class="hs-identifier hs-var">pzfZipName</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zipEntryTime :: LocalTime
+</span><span class="hs-identifier hs-var">zipEntryTime</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalTime
+</span><a href="#local-6989586621679748552"><span class="hs-identifier hs-var">pzfModTime</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zipEntrySize :: Maybe Word64
+</span><span class="hs-identifier hs-var">zipEntrySize</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Maybe Word64
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="#local-6989586621679748553"><span class="hs-identifier hs-var">pzfSize</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zipEntryExternalAttributes :: Maybe Word32
+</span><span class="hs-identifier hs-var">zipEntryExternalAttributes</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Word32
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><span class="annottext">(ZipEntry, ZipData m) -&gt; ConduitT () (ZipEntry, ZipData m) m ()
+forall (m :: * -&gt; *) o i. Monad m =&gt; o -&gt; ConduitT i o m ()
+</span><span class="hs-identifier hs-var">C.yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZipEntry
+</span><a href="#local-6989586621679748554"><span class="hs-identifier hs-var">entry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; ZipData m
+forall (m :: * -&gt; *). MonadResource m =&gt; FilePath -&gt; ZipData m
+</span><span class="hs-identifier hs-var">zipFileData</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748551"><span class="hs-identifier hs-var">pzfDiskPath</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- unzipping</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#unzipPackage"><span class="hs-identifier hs-type">unzipPackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span id="unzipPackage"><span class="annot"><span class="annottext">unzipPackage :: FilePath -&gt; FilePath -&gt; IO ()
+</span><a href="Poseidon.Core.ServerZipStream.html#unzipPackage"><span class="hs-identifier hs-var hs-var">unzipPackage</span></a></span></span><span> </span><span id="local-6989586621679748561"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748561"><span class="hs-identifier hs-var">zip_</span></a></span></span><span> </span><span id="local-6989586621679748562"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748562"><span class="hs-identifier hs-var">outDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><span class="annottext">ConduitT () Void (ResourceT IO) () -&gt; IO ()
+forall (m :: * -&gt; *) r.
+MonadUnliftIO m =&gt;
+ConduitT () Void (ResourceT m) r -&gt; m r
+</span><span class="hs-identifier hs-var">C.runConduitRes</span></span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-106"></span><span>           </span><span class="annot"><span class="annottext">FilePath -&gt; ConduitT () ByteString (ResourceT IO) ()
+forall (m :: * -&gt; *) i.
+MonadResource m =&gt;
+FilePath -&gt; ConduitT i ByteString m ()
+</span><span class="hs-identifier hs-var">CC.sourceFile</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748561"><span class="hs-identifier hs-var">zip_</span></a></span><span>
+</span><span id="line-107"></span><span>      </span><span class="annot"><span class="annottext">ConduitT () ByteString (ResourceT IO) ()
+-&gt; ConduitT ByteString Void (ResourceT IO) ()
+-&gt; ConduitT () Void (ResourceT IO) ()
+forall (m :: * -&gt; *) a b c r.
+Monad m =&gt;
+ConduitT a b m () -&gt; ConduitT b c m r -&gt; ConduitT a c m r
+</span><span class="hs-operator hs-var">C..|</span></span><span> </span><span class="annot"><span class="annottext">ConduitT
+  ByteString (Either ZipEntry ByteString) (ResourceT IO) ZipInfo
+-&gt; ConduitT
+     ByteString (Either ZipEntry ByteString) (ResourceT IO) ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">ConduitT
+  ByteString (Either ZipEntry ByteString) (ResourceT IO) ZipInfo
+forall (m :: * -&gt; *).
+(MonadThrow m, PrimMonad m) =&gt;
+ConduitM ByteString (Either ZipEntry ByteString) m ZipInfo
+</span><span class="hs-identifier hs-var">unZipStream</span></span><span>
+</span><span id="line-108"></span><span>      </span><span class="annot"><span class="annottext">ConduitT ByteString (Either ZipEntry ByteString) (ResourceT IO) ()
+-&gt; ConduitT (Either ZipEntry ByteString) Void (ResourceT IO) ()
+-&gt; ConduitT ByteString Void (ResourceT IO) ()
+forall (m :: * -&gt; *) a b c r.
+Monad m =&gt;
+ConduitT a b m () -&gt; ConduitT b c m r -&gt; ConduitT a c m r
+</span><span class="hs-operator hs-var">C..|</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+-&gt; ConduitT (Either ZipEntry ByteString) Void (ResourceT IO) ()
+forall (m :: * -&gt; *).
+MonadResource m =&gt;
+FilePath -&gt; ConduitT (Either ZipEntry ByteString) Void m ()
+</span><a href="Poseidon.Core.ServerZipStream.html#sinkZipEntries"><span class="hs-identifier hs-var">sinkZipEntries</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748562"><span class="hs-identifier hs-var">outDir</span></a></span><span>
+</span><span id="line-109"></span><span>      </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; (SomeException -&gt; IO ()) -&gt; IO ()
+forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679748565"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679748565"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO ()
+forall e a. Exception e =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Either FilePath SomeException -&gt; PoseidonException
+</span><a href="Poseidon.Core.Utils.html#PoseidonUnzipException"><span class="hs-identifier hs-var">PoseidonUnzipException</span></a></span><span> </span><span class="annot"><span class="annottext">(Either FilePath SomeException -&gt; PoseidonException)
+-&gt; Either FilePath SomeException -&gt; PoseidonException
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; Either FilePath SomeException
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679748565"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span id="local-6989586621679748375"><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#sinkZipEntries"><span class="hs-identifier hs-type">sinkZipEntries</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadResource</span></span><span> </span><span class="annot"><a href="#local-6989586621679748375"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">C.ConduitT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZipEntry</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BS.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">C.Void</span></span><span> </span><span class="annot"><a href="#local-6989586621679748375"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-112"></span><span id="sinkZipEntries"><span class="annot"><span class="annottext">sinkZipEntries :: forall (m :: * -&gt; *).
+MonadResource m =&gt;
+FilePath -&gt; ConduitT (Either ZipEntry ByteString) Void m ()
+</span><a href="Poseidon.Core.ServerZipStream.html#sinkZipEntries"><span class="hs-identifier hs-var hs-var">sinkZipEntries</span></a></span></span><span> </span><span id="local-6989586621679748571"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748571"><span class="hs-identifier hs-var">outDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO (IORef (Maybe Handle))
+-&gt; (IORef (Maybe Handle) -&gt; IO ())
+-&gt; (IORef (Maybe Handle)
+    -&gt; ConduitT (Either ZipEntry ByteString) Void m ())
+-&gt; ConduitT (Either ZipEntry ByteString) Void m ()
+forall (m :: * -&gt; *) a i o r.
+MonadResource m =&gt;
+IO a -&gt; (a -&gt; IO ()) -&gt; (a -&gt; ConduitT i o m r) -&gt; ConduitT i o m r
+</span><span class="hs-identifier hs-var">C.bracketP</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe Handle -&gt; IO (IORef (Maybe Handle))
+forall a. a -&gt; IO (IORef a)
+</span><span class="hs-identifier hs-var">newIORef</span></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; IO ()
+</span><a href="Poseidon.Core.ServerZipStream.html#closeCurrent"><span class="hs-identifier hs-var">closeCurrent</span></a></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+-&gt; ConduitT (Either ZipEntry ByteString) Void m ()
+forall {m :: * -&gt; *} {o}.
+MonadIO m =&gt;
+IORef (Maybe Handle)
+-&gt; ConduitT (Either ZipEntry ByteString) o m ()
+</span><a href="#local-6989586621679748575"><span class="hs-identifier hs-var">run</span></a></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679748575"><span class="annot"><span class="annottext">run :: IORef (Maybe Handle)
+-&gt; ConduitT (Either ZipEntry ByteString) o m ()
+</span><a href="#local-6989586621679748575"><span class="hs-identifier hs-var hs-var">run</span></a></span></span><span> </span><span id="local-6989586621679748597"><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748597"><span class="hs-identifier hs-var">currentHandle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-115"></span><span>      </span><span class="annot"><span class="annottext">(Either ZipEntry ByteString
+ -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+-&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall (m :: * -&gt; *) i o r.
+Monad m =&gt;
+(i -&gt; ConduitT i o m r) -&gt; ConduitT i o m ()
+</span><span class="hs-identifier hs-var">C.awaitForever</span></span><span> </span><span class="annot"><span class="annottext">((Either ZipEntry ByteString
+  -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+ -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+-&gt; (Either ZipEntry ByteString
+    -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+-&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-116"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679748599"><span class="annot"><span class="annottext">ZipEntry
+</span><a href="#local-6989586621679748599"><span class="hs-identifier hs-var">entry</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall a. IO a -&gt; ConduitT (Either ZipEntry ByteString) o m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+-&gt; IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-117"></span><span>          </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; IO ()
+</span><a href="Poseidon.Core.ServerZipStream.html#closeCurrent"><span class="hs-identifier hs-var">closeCurrent</span></a></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748597"><span class="hs-identifier hs-var">currentHandle</span></a></span><span>
+</span><span id="line-118"></span><span>          </span><span id="local-6989586621679748600"><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748600"><span class="hs-identifier hs-var">mh</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; ZipEntry -&gt; IO (Maybe Handle)
+</span><a href="Poseidon.Core.ServerZipStream.html#openEntry"><span class="hs-identifier hs-var">openEntry</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748571"><span class="hs-identifier hs-var">outDir</span></a></span><span> </span><span class="annot"><span class="annottext">ZipEntry
+</span><a href="#local-6989586621679748599"><span class="hs-identifier hs-var">entry</span></a></span><span>
+</span><span id="line-119"></span><span>          </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; Maybe Handle -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">writeIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748597"><span class="hs-identifier hs-var">currentHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748600"><span class="hs-identifier hs-var">mh</span></a></span><span>
+</span><span id="line-120"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679748603"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679748603"><span class="hs-identifier hs-var">chunk</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall a. IO a -&gt; ConduitT (Either ZipEntry ByteString) o m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ())
+-&gt; IO () -&gt; ConduitT (Either ZipEntry ByteString) o m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-121"></span><span>          </span><span id="local-6989586621679748604"><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748604"><span class="hs-identifier hs-var">mh</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; IO (Maybe Handle)
+forall a. IORef a -&gt; IO a
+</span><span class="hs-identifier hs-var">readIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748597"><span class="hs-identifier hs-var">currentHandle</span></a></span><span>
+</span><span id="line-122"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748604"><span class="hs-identifier hs-var">mh</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-123"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679748606"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679748606"><span class="hs-identifier hs-var">h</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; IO ()
+</span><span class="hs-identifier hs-var">BS.hPut</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679748606"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679748603"><span class="hs-identifier hs-var">chunk</span></a></span><span>
+</span><span id="line-124"></span><span>            </span><span class="annot"><span class="annottext">Maybe Handle
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; Bool
+</span><span class="hs-identifier hs-var">BS.null</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679748603"><span class="hs-identifier hs-var">chunk</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-125"></span><span>                       </span><span class="annot"><span class="annottext">PoseidonException -&gt; IO ()
+forall e a. Exception e =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(PoseidonException -&gt; IO ()) -&gt; PoseidonException -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Either FilePath SomeException -&gt; PoseidonException
+</span><a href="Poseidon.Core.Utils.html#PoseidonUnzipException"><span class="hs-identifier hs-var">PoseidonUnzipException</span></a></span><span> </span><span class="annot"><span class="annottext">(Either FilePath SomeException -&gt; PoseidonException)
+-&gt; Either FilePath SomeException -&gt; PoseidonException
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-126"></span><span>                       </span><span class="annot"><span class="annottext">FilePath -&gt; Either FilePath SomeException
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;ZIP data chunk without current file entry&quot;</span></span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#closeCurrent"><span class="hs-identifier hs-type">closeCurrent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span id="closeCurrent"><span class="annot"><span class="annottext">closeCurrent :: IORef (Maybe Handle) -&gt; IO ()
+</span><a href="Poseidon.Core.ServerZipStream.html#closeCurrent"><span class="hs-identifier hs-var hs-var">closeCurrent</span></a></span></span><span> </span><span id="local-6989586621679748609"><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748609"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-130"></span><span>  </span><span id="local-6989586621679748610"><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748610"><span class="hs-identifier hs-var">mh</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; IO (Maybe Handle)
+forall a. IORef a -&gt; IO a
+</span><span class="hs-identifier hs-var">readIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748609"><span class="hs-identifier hs-var">ref</span></a></span><span>
+</span><span id="line-131"></span><span>  </span><span class="annot"><span class="annottext">IORef (Maybe Handle) -&gt; Maybe Handle -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">writeIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef (Maybe Handle)
+</span><a href="#local-6989586621679748609"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-132"></span><span>  </span><span class="annot"><span class="annottext">(Handle -&gt; IO ()) -&gt; Maybe Handle -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">hClose</span></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+</span><a href="#local-6989586621679748610"><span class="hs-identifier hs-var">mh</span></a></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#openEntry"><span class="hs-identifier hs-type">openEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZipEntry</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span class="hs-special">)</span><span>
+</span><span id="line-135"></span><span id="openEntry"><span class="annot"><span class="annottext">openEntry :: FilePath -&gt; ZipEntry -&gt; IO (Maybe Handle)
+</span><a href="Poseidon.Core.ServerZipStream.html#openEntry"><span class="hs-identifier hs-var hs-var">openEntry</span></a></span></span><span> </span><span id="local-6989586621679748611"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748611"><span class="hs-identifier hs-var">outDir</span></a></span></span><span> </span><span id="local-6989586621679748612"><span class="annot"><span class="annottext">ZipEntry
+</span><a href="#local-6989586621679748612"><span class="hs-identifier hs-var">entry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679748613"><span class="annot"><span class="annottext">relPath :: FilePath
+</span><a href="#local-6989586621679748613"><span class="hs-identifier hs-var hs-var">relPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either Text ByteString -&gt; FilePath
+</span><a href="Poseidon.Core.ServerZipStream.html#zipEntryNameToFilePath"><span class="hs-identifier hs-var">zipEntryNameToFilePath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZipEntry -&gt; Either Text ByteString
+</span><span class="hs-identifier hs-var">zipEntryName</span></span><span> </span><span class="annot"><span class="annottext">ZipEntry
+</span><a href="#local-6989586621679748612"><span class="hs-identifier hs-var">entry</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>      </span><span id="local-6989586621679748615"><span class="annot"><span class="annottext">dest :: FilePath
+</span><a href="#local-6989586621679748615"><span class="hs-identifier hs-var hs-var">dest</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748611"><span class="hs-identifier hs-var">outDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748613"><span class="hs-identifier hs-var">relPath</span></a></span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Bool
+</span><a href="Poseidon.Core.ServerZipStream.html#isDirectoryPath"><span class="hs-identifier hs-var">isDirectoryPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748613"><span class="hs-identifier hs-var">relPath</span></a></span><span>
+</span><span id="line-139"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-140"></span><span>      </span><span class="annot"><span class="annottext">Bool -&gt; FilePath -&gt; IO ()
+</span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748615"><span class="hs-identifier hs-var">dest</span></a></span><span>
+</span><span id="line-141"></span><span>      </span><span class="annot"><span class="annottext">Maybe Handle -&gt; IO (Maybe Handle)
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-143"></span><span>      </span><span class="annot"><span class="annottext">Bool -&gt; FilePath -&gt; IO ()
+</span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748615"><span class="hs-identifier hs-var">dest</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>      </span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Handle -&gt; Maybe Handle) -&gt; IO Handle -&gt; IO (Maybe Handle)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IOMode -&gt; IO Handle
+</span><span class="hs-identifier hs-var">openBinaryFile</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748615"><span class="hs-identifier hs-var">dest</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><span class="hs-identifier hs-var">WriteMode</span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#zipEntryNameToFilePath"><span class="hs-identifier hs-type">zipEntryNameToFilePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BS.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-147"></span><span id="zipEntryNameToFilePath"><span class="annot"><span class="annottext">zipEntryNameToFilePath :: Either Text ByteString -&gt; FilePath
+</span><a href="Poseidon.Core.ServerZipStream.html#zipEntryNameToFilePath"><span class="hs-identifier hs-var hs-var">zipEntryNameToFilePath</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679748619"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679748619"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; FilePath
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679748619"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-148"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#zipEntryNameToFilePath"><span class="hs-identifier hs-var">zipEntryNameToFilePath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679748621"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679748621"><span class="hs-identifier hs-var">bs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; FilePath
+</span><span class="hs-identifier hs-var">B8.unpack</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679748621"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="annot"><a href="Poseidon.Core.ServerZipStream.html#isDirectoryPath"><span class="hs-identifier hs-type">isDirectoryPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-151"></span><span id="isDirectoryPath"><span class="annot"><span class="annottext">isDirectoryPath :: FilePath -&gt; Bool
+</span><a href="Poseidon.Core.ServerZipStream.html#isDirectoryPath"><span class="hs-identifier hs-var hs-var">isDirectoryPath</span></a></span></span><span> </span><span id="local-6989586621679748623"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748623"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748623"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Char
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">last</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679748623"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'/'</span></span><span>
+</span><span id="line-152"></span></pre></body></html>
