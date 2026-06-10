@@ -1174,6 +1174,7 @@ envInputPlinkMode :: PoseidonIO PlinkPopNameMode
 envErrorLength :: PoseidonIO ErrorLength
 data LogMode
 NoLog :: LogMode
+NoWarnLog :: LogMode
 SimpleLog :: LogMode
 DefaultLog :: LogMode
 ServerLog :: LogMode
@@ -2527,6 +2528,7 @@ parseChronOutPath :: Parser FilePath
 parseChronUpdatePath :: Parser FilePath
 parseMaybePoseidonVersion :: Parser (Maybe Version)
 parseDebugMode :: Parser LogMode
+parseNoWarnMode :: Parser LogMode
 parseLogMode :: Parser LogMode
 parseTestMode :: Parser TestMode
 parseErrorLength :: Parser ErrorLength
