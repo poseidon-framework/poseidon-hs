@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             2.0.1.0
+version:             2.1.0.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -20,8 +20,8 @@ library
                         Poseidon.Core.ColumnTypesUtils, Poseidon.Core.MathHelpers, Poseidon.Core.AccessionIDs,
                         Poseidon.Core.PoseidonVersion, Poseidon.Core.SequencingSource,
                         Poseidon.Core.Chronicle, Poseidon.Core.EntityTypes, Poseidon.Core.ServerClient,
-                        Poseidon.Core.ServerHTML, Poseidon.Core.ServerStylesheet, Poseidon.Core.Contributor,
-                        Poseidon.Core.Version, Poseidon.Core.Utils
+                        Poseidon.Core.ServerHTML, Poseidon.Core.ServerZipStream, Poseidon.Core.ServerStylesheet,
+                        Poseidon.Core.Contributor, Poseidon.Core.Version, Poseidon.Core.Utils
                         -- trident CLI
                         Poseidon.CLI.Trident.List, Poseidon.CLI.Trident.Chronicle, Poseidon.CLI.Trident.Serve,
                         Poseidon.CLI.Trident.Summarise, Poseidon.CLI.Trident.Validate,
@@ -41,7 +41,7 @@ library
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
                         scotty, cassava, pureMD5, wai, githash, attoparsec, pipes-group,
-                        http-conduit, conduit, http-types, zip-archive, MonadRandom, lens-family,
+                        http-conduit, conduit, http-types, zip-stream, resourcet, MonadRandom, lens-family,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop, containers, process, deepseq, template-haskell,
                         blaze-html, blaze-markup, neat-interpolation, file-embed, MissingH

@@ -1,3 +1,6 @@
+- V 2.1.0.0:
+    - Changed the mechanism by which `serve` provides packages for download: Instead of preparing zip archives for all packages upon server startup, the zipping is now done on-the-fly in a continous stream when a specific package is requested for download. `-z`/`--zipDir` is therefore obsolete. That makes this a breaking change.
+    - Adjusted the unzipping in `fetch` accordingly. It can now handle archives >4GB, but it has to load them into memory.
 - V 2.0.1.0:
     - Added options `--strandCheck` and `--skipIncongruentSNPs` to `forge` and many other commands that consume genotype data from multiple packages.
     - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.

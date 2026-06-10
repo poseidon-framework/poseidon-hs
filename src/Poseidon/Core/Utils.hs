@@ -192,7 +192,7 @@ data PoseidonException =
     | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
     | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
     | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
-    | PoseidonUnzipException SomeException -- ^ An exception for unzipping issues in fetch
+    | PoseidonUnzipException (Either String SomeException) -- ^ An exception for unzipping issues in fetch
     | PoseidonChronicleException String -- ^ An exception for issues in chronicle
     | PoseidonGitException FilePath String -- ^ An exception for issues with git
     | PoseidonCantPreserveException -- ^ An exception for issues with --preservePyml
@@ -262,7 +262,9 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
 renderPoseidonException (PoseidonServerCommunicationException e) = e
-renderPoseidonException (PoseidonUnzipException e) =
+renderPoseidonException (PoseidonUnzipException (Left s)) =
+    "Error during unzipping: " ++ s
+renderPoseidonException (PoseidonUnzipException (Right e)) =
     "Error during unzipping: " ++ show e
 renderPoseidonException (PoseidonChronicleException s) =
     "Error when preparing the chronicle file: "  ++ s
