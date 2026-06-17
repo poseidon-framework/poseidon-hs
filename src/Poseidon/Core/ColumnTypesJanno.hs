@@ -10,7 +10,7 @@ import           Poseidon.Core.ColumnTypesUtils
 import           Country                        (Country, alphaTwoUpper,
                                                  decodeAlphaTwo)
 import qualified Data.ByteString.Char8          as B
-import qualified Data.Char                      as C
+-- import qualified Data.Char                      as C
 import qualified Data.Csv                       as Csv
 import           Data.String                    (IsString (..))
 import qualified Data.Text                      as T
