@@ -107,7 +107,7 @@ runCmd o = case o of
 optParserInfo :: OP.ParserInfo Options
 optParserInfo = OP.info (
     OP.helper <*> versionOption <*>
-        (Options <$> (parseLogMode <|> parseDebugMode)
+        (Options <$> (parseLogMode <|> parseDebugMode <|> parseNoWarnMode)
                  <*> parseTestMode
                  <*> parseErrorLength
                  <*> parseInputPlinkPopMode
@@ -269,7 +269,6 @@ timetravelOptParser = TimetravelOptions <$> parseBasePaths
 
 serveOptParser :: OP.Parser ServeOptions
 serveOptParser = ServeOptions <$> parseArchiveConfig
-                              <*> parseMaybeZipDir
                               <*> parsePort
                               <*> parseIgnoreChecksums
                               <*> parseMaybeCertFiles

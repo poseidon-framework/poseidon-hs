@@ -83,7 +83,9 @@ envInputPlinkMode = asks _envInputPlinkMode
 envErrorLength :: PoseidonIO ErrorLength
 envErrorLength = asks _envErrorLength
 
-data LogMode = NoLog
+data LogMode =
+      NoLog
+    | NoWarnLog
     | SimpleLog
     | DefaultLog
     | ServerLog
@@ -92,6 +94,7 @@ data LogMode = NoLog
 
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
 usePoseidonLogger NoLog      testMode plinkMode errLength = flip runReaderT (Env noLog testMode plinkMode errLength)
+usePoseidonLogger NoWarnLog  testMode plinkMode errLength = flip runReaderT (Env noWarnLog testMode plinkMode errLength)
 usePoseidonLogger SimpleLog  testMode plinkMode errLength = flip runReaderT (Env simpleLog testMode plinkMode errLength)
 usePoseidonLogger DefaultLog testMode plinkMode errLength = flip runReaderT (Env defaultLog testMode plinkMode errLength)
 usePoseidonLogger ServerLog  testMode plinkMode errLength = flip runReaderT (Env serverLog testMode plinkMode errLength)
@@ -105,6 +108,8 @@ testLogErr = usePoseidonLogger SimpleLog Testing PlinkPopNameAsFamily CharInf
 
 noLog      :: LogA
 noLog      = cfilter (const False) simpleLog
+noWarnLog  :: LogA
+noWarnLog  = cfilter (\msg -> msgSeverity msg /= Warning && msgSeverity msg /= Debug) $ compileLogMsg True False
 simpleLog  :: LogA
 simpleLog  = cfilter (\msg -> msgSeverity msg /= Debug) $ compileLogMsg False False
 defaultLog :: LogA
@@ -192,7 +197,7 @@ data PoseidonException =
     | PoseidonEmptyOutPacNameException -- ^ An exception to throw if the output package lacks a name
     | PoseidonUnequalBaseDirException FilePath FilePath FilePath -- ^ An exception to throw if genotype data files don't share a common base directory
     | PoseidonServerCommunicationException String -- ^ An exception to mark server communication errors
-    | PoseidonUnzipException SomeException -- ^ An exception for unzipping issues in fetch
+    | PoseidonUnzipException (Either String SomeException) -- ^ An exception for unzipping issues in fetch
     | PoseidonChronicleException String -- ^ An exception for issues in chronicle
     | PoseidonGitException FilePath String -- ^ An exception for issues with git
     | PoseidonCantPreserveException -- ^ An exception for issues with --preservePyml
@@ -262,7 +267,9 @@ renderPoseidonException (PoseidonUnequalBaseDirException g s i) =
     ++ " --snpFile: "  ++ s
     ++ " --indFile: "  ++ i
 renderPoseidonException (PoseidonServerCommunicationException e) = e
-renderPoseidonException (PoseidonUnzipException e) =
+renderPoseidonException (PoseidonUnzipException (Left s)) =
+    "Error during unzipping: " ++ s
+renderPoseidonException (PoseidonUnzipException (Right e)) =
     "Error during unzipping: " ++ show e
 renderPoseidonException (PoseidonChronicleException s) =
     "Error when preparing the chronicle file: "  ++ s

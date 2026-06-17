@@ -105,6 +105,12 @@ parseDebugMode = OP.flag' VerboseLog (
     OP.help "Short for --logMode VerboseLog."
     )
 
+parseNoWarnMode :: OP.Parser LogMode
+parseNoWarnMode = OP.flag' NoWarnLog (
+    OP.long "noWarn" <>
+    OP.help "Short for --logMode NoWarnLog."
+    )
+
 parseLogMode :: OP.Parser LogMode
 parseLogMode = OP.option (OP.eitherReader readLogMode) (
     OP.long "logMode" <>
@@ -118,11 +124,12 @@ parseLogMode = OP.option (OP.eitherReader readLogMode) (
         readLogMode :: String -> Either String LogMode
         readLogMode s = case s of
             "NoLog"      -> Right NoLog
+            "NoWarnLog"  -> Right NoWarnLog
             "SimpleLog"  -> Right SimpleLog
             "DefaultLog" -> Right DefaultLog
             "ServerLog"  -> Right ServerLog
             "VerboseLog" -> Right VerboseLog
-            _            -> Left "must be NoLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
+            _            -> Left "must be NoLog, NoWarnLog, SimpleLog, DefaultLog, ServerLog or VerboseLog"
 
 parseTestMode :: OP.Parser TestMode
 parseTestMode = OP.option (OP.eitherReader readTestMode) (
@@ -819,16 +826,6 @@ readPlinkPopName s = case s of
     "asPhenotype" -> Right PlinkPopNameAsPhenotype
     "asBoth"      -> Right PlinkPopNameAsBoth
     _             -> Left "must be asFamily, asPhenotype or asBoth"
-
-parseMaybeZipDir :: OP.Parser (Maybe FilePath)
-parseMaybeZipDir = OP.option (Just <$> OP.str) (
-    OP.long "zipDir" <>
-    OP.short 'z' <>
-    OP.metavar "DIR" <>
-    OP.help "A directory to store .zip files in. If not specified, do not generate .zip files." <>
-    OP.value Nothing <>
-    OP.showDefault
-    )
 
 parsePort :: OP.Parser Int
 parsePort = OP.option OP.auto (
