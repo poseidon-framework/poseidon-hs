@@ -1,0 +1,13 @@
+Validating: some/path
+Checking base directories... 
+Searching POSEIDON.yml files... 
+1 found
+Checking Poseidon versions... 
+Initializing packages... 
+Trying to parse genotype data for package: Schmid_2028
+SNPs:         0    0s
+Some packages were skipped due to issues:
+In the package described in test/testDat/testPackages/other_test_packages/Schmid_2028_wrong_ploidy/POSEIDON.yml:
+Issues in genotype data parsing: Genotype data structurally inconsistent. Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more
+Packages loaded: 0
+Validation failed

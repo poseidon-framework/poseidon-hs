@@ -177,7 +177,7 @@ runServer :: ServeOptions -> MVar () -> PoseidonIO ()
 runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady = do
     let pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
-            , _readOptGenoCheck        = True
+            , _readOptGenoCheck        = False
         }
 
     logInfo "Server starting up. Loading packages..."
