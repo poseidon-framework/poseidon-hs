@@ -1,3 +1,6 @@
+- V 2.1.1.0:
+    - Activated Ploidy checks for packages with PoseidonVersion 3.0.0 or greater, whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
+    - Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.
 - V 2.1.0.1: 
     Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
 - V 2.1.0.0:
