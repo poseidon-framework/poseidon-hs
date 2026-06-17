@@ -504,8 +504,13 @@ validateGeno pac checkFullGeno = do
     logA <- envLogAction
     errLength <- envErrorLength
     let jannoRows = getJannoRowsFromPac pac
-    let ploidyList = map jGenotypePloidy jannoRows
-    let indivNames = map (Bchs.unpack . unPoseidonID . jPoseidonID) jannoRows
+    let maybeCheckPloidyPipe =
+            if posPacPoseidonVersion pac >= PoseidonVersion (makeVersion [3, 0, 0]) then
+                let ploidyList = map jGenotypePloidy jannoRows
+                    indivNames = map (Bchs.unpack . unPoseidonID . jPoseidonID) jannoRows
+                in  checkPloidy logA ploidyList indivNames
+            else
+                cat
     liftIO $ catch (
         runSafeT $ do
             eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
@@ -513,10 +518,10 @@ validateGeno pac checkFullGeno = do
             if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
-                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> checkPloidy logA ploidyList indivNames >-> P.drain
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> maybeCheckPloidyPipe >-> P.drain
                 -- runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else
-                runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
+                runEffect $ eigenstratProd >-> P.take 100 >-> maybeCheckPloidyPipe >-> P.drain
                 -- runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
   where
