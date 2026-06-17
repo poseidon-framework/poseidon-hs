@@ -1,3 +1,5 @@
+- V 2.1.0.1: 
+    Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
 - V 2.1.0.0:
     - Changed the mechanism by which `serve` provides packages for download: Instead of preparing zip archives for all packages upon server startup, the zipping is now done on-the-fly in a continous stream when a specific package is requested for download. `-z`/`--zipDir` is therefore obsolete. That makes this a breaking change.
     - Adjusted the unzipping in `fetch` accordingly. It can now handle archives >4GB, but it has to load them into memory.

@@ -4,6 +4,8 @@ packages:
 - .
 extra-deps:
 - table-layout-0.9.1.0 # not available any more in lts-22.43
-- sequence-formats-1.11.0.2 # not available yet in lts-22.43
+# - sequence-formats-1.11.0.2 # not available yet in lts-22.43
+- git: https://github.com/stschiff/sequence-formats
+  commit: 974eb9ce3fcc0ac2efc1ddbe5aea790fe9af6f41
 - scotty-0.22 # not available yet in lts-22.43
 allow-newer: true
