@@ -384,6 +384,11 @@ testPipelineValidate testDir checkFilePath = do
           _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"] }
         , _validateMandatorySSF = ["Kaesebrot", "Hutschnur"]
     } & run 13
+    -- wrong ploidy information
+    let validatePlan2 = validatePlan1 { _valPlanBaseDirs = [testPacsDirOther </> "Schmid_2028_wrong_ploidy"] }
+    validateOpts1 { _validatePlan = validatePlan2 } & run 14
+    validateOpts1 { _validatePlan = validatePlan2 { _valPlanIgnoreGeno = True }} & run 15
+    validateOpts1 { _validatePlan = validatePlan2 { _valPlanFullGeno = True }} & run 16
     where
         run :: Integer -> ValidateOptions -> IO ()
         run nr opts = do
