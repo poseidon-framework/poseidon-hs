@@ -112,6 +112,15 @@ testReadPoseidonEntitiesString =
             , Exclude $ Pac (PacNameAndVersion "c1" (Just $ makeVersion [1,0,0]))
             , Include $ Pac (PacNameAndVersion "c2" Nothing)
             ]
+    it "should accept usually forbidden expressions when they are quoted" $ do
+        parse "\"a*a\"" `shouldBe` [Include $ Group "a*a"]
+        parse "'a*a'"   `shouldBe` [Include $ Group "a*a"]
+        parse "\"<a>a\"" `shouldBe` [Include $ Group "<a>a"]
+        parse "\"<a>,-a\"" `shouldBe` [Include $ Group "<a>,-a"]
+        parse "\"<a>*\",\"-a\"" `shouldBe` [Include $ Group "<a>*", Exclude $ Group "a"]
+        parse "*\"<*a>\"*" `shouldBe` [Include $ Pac (PacNameAndVersion "<*a>" Nothing)]
+        parse "-<\"*a>*\">" `shouldBe` [Exclude $ Ind "*a>*"]
+        parse "-\"-<*a*>\"" `shouldBe` [Exclude $ Group "-<*a*>"]
     it "should fail with any other setting" $ do
         -- the following type annotations - annoyingly - are required because readEntitiesFromString is polymorphic,
         -- and even though it all returns Left, the compiler complains about ambiguous types.
@@ -132,7 +141,8 @@ testReadPoseidonEntitiesString =
         (readEntitiesFromString "<c: b:a>"         :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "<c-1.0.0 :b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "<c- 1.0.0:b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
-
+        (readEntitiesFromString "<\"a> ,b,*c*"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<'a> ,b,*c*"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
 
 testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile =
