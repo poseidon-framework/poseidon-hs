@@ -117,7 +117,7 @@ testReadPoseidonEntitiesString =
         parse "'a*a'"   `shouldBe` [Include $ Group "a*a"]
         parse "\"<a>a\"" `shouldBe` [Include $ Group "<a>a"]
         parse "\"<a>,-a\"" `shouldBe` [Include $ Group "<a>,-a"]
-        parse "\"<a>*\",\"-a\"" `shouldBe` [Include $ Group "<a>*", Exclude $ Group "a"]
+        parse "\"<a>*\",-\"(a\"" `shouldBe` [Include $ Group "<a>*", Exclude $ Group "(a"]
         parse "*\"<*a>\"*" `shouldBe` [Include $ Pac (PacNameAndVersion "<*a>" Nothing)]
         parse "-<\"*a>*\">" `shouldBe` [Exclude $ Ind "*a>*"]
         parse "-\"-<*a*>\"" `shouldBe` [Exclude $ Group "-<*a*>"]
