@@ -121,6 +121,9 @@ testReadPoseidonEntitiesString =
         parse "*\"<*a>\"*" `shouldBe` [Include $ Pac (PacNameAndVersion "<*a>" Nothing)]
         parse "-<\"*a>*\">" `shouldBe` [Exclude $ Ind "*a>*"]
         parse "-\"-<*a*>\"" `shouldBe` [Exclude $ Group "-<*a*>"]
+        parse "*\")*+c\"-1.0.0*" `shouldBe` [Include $ Pac (PacNameAndVersion ")*+c" (Just $ makeVersion [1,0,0]))]
+        parse "<'<*a>*'-1.0.0:\"<*b>*\":'<*c>*'>" `shouldBe`
+            [SpecificInd "<*c>*" "<*b>*" (PacNameAndVersion "<*a>*" (Just $ makeVersion [1,0,0]))]
     it "should fail with any other setting" $ do
         -- the following type annotations - annoyingly - are required because readEntitiesFromString is polymorphic,
         -- and even though it all returns Left, the compiler complains about ambiguous types.

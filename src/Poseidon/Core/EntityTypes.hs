@@ -197,6 +197,7 @@ instance EntitySpec PoseidonEntity where
         parseInd         = P.try parseSimpleInd <|> parseSpecificInd
         parseNameAndVer  = do
             namePart <- parseQuoted <|> parseNamePart ""
+            P.skipMany (P.char '-') -- for quoted case, where - is not yet handled
             versionPart <- P.optionMaybe parseVersion
             return $ PacNameAndVersion namePart versionPart
         parseNamePart prevPart = do
