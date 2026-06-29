@@ -1,0 +1,41 @@
+/* overwrite some pico styling */
+
+/* vega timeline plot */
+#timelineid {
+    background-color: white !important;
+    border: 1px solid black !important;
+    box-sizing: border-box;
+}
+
+/* leaflet map */
+.leaflet-container {
+    background: white;
+}
+#mapid.leaflet-container {
+    background-color: white !important;
+    border: 1px solid black !important;
+    box-sizing: border-box;
+}
+#mapid,
+#mapid * {
+    padding: 0;
+    --pico-border-width: 0rem !important;
+    --pico-background-color: transparent !important;
+}
+/* legend */
+.legend {
+    padding: 6px 8px !important;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    color: #777;
+}
+.leaflet-popup-content-wrapper {
+    padding: 6px 8px !important;
+}
+
+/* sortable table */
+.datatable-active button {
+    color: #13171F !important;
+}
