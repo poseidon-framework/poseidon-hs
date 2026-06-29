@@ -1,3 +1,5 @@
+- V 2.1.2.0:
+    - Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
 - V 2.1.1.0:
     - Activated Ploidy checks for packages with PoseidonVersion 3.0.0 or greater, whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
     - Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.

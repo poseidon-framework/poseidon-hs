@@ -2,143 +2,75 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
-module Poseidon.Core.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, MapMarker(..)) where
+module Poseidon.Core.ServerHTML (mainPage, archivePage, packageVersionPage, samplePage, PlotSample(..)) where
 
 import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.ColumnTypesUtils (getListColumn)
 import           Poseidon.Core.EntityTypes
 import           Poseidon.Core.Janno
 import           Poseidon.Core.Package
+import           Poseidon.Core.ServerStylesheet
 
 import           Control.Monad                  (forM_)
 import           Data.Aeson                     (defaultOptions, encode,
                                                  genericToEncoding)
 import           Data.Aeson.Types               (ToJSON (..))
 import qualified Data.ByteString.Char8          as BS
-import qualified Data.ByteString.Lazy.Char8     as C
 import           Data.Csv                       (ToNamedRecord (..))
 import qualified Data.HashMap.Strict            as HM
 import           Data.List                      (intercalate, sortBy)
 import           Data.Maybe                     (fromMaybe)
 import qualified Data.Text                      as T
 import qualified Data.Text.Encoding             as T
+import qualified Data.Text.Lazy                 as TL
+import qualified Data.Text.Lazy.Encoding        as TLE
 import           Data.Version                   (Version, showVersion)
 import           GHC.Generics
-import           NeatInterpolation
 import           Network.Wai                    (Request (..))
 import           Paths_poseidon_hs              (version)
 import qualified Text.Blaze.Html5               as H
-import           Text.Blaze.Html5               ((!))
 import qualified Text.Blaze.Html5.Attributes    as A
+import           Text.Blaze.Internal            as HI
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                     as S
 
 -- helper functions and types
 
 renderMaybeVersion :: Maybe Version -> String
-renderMaybeVersion Nothing  = ("" :: String)
+renderMaybeVersion Nothing  = "" :: String
 renderMaybeVersion (Just v) = showVersion v
 
-data MapMarker = MapMarker {
-      mmLat            :: Double
-    , mmLon            :: Double
+data PlotSample = PlotSample {
+      mmLat            :: Maybe Double
+    , mmLon            :: Maybe Double
     , mmPoseidonID     :: String
     , mmPackageName    :: String
     , mmPackageVersion :: Maybe String
     , mmArchiveName    :: String
-    , mmLocation       :: Maybe String
-    , mmAge            :: Maybe String
+    , mmLocation       :: Maybe T.Text
+    , mmAgeStart       :: Maybe Int
+    , mmAge            :: Maybe Int
+    , mmAgeStop        :: Maybe Int
     } deriving (Generic, Show)
 
-instance ToJSON MapMarker where
+instance ToJSON PlotSample where
     toEncoding = genericToEncoding defaultOptions
 
 dataToJSON :: ToJSON a => a -> T.Text
-dataToJSON = T.pack . C.unpack . encode
+dataToJSON = TL.toStrict . TLE.decodeUtf8 . encode
 
--- javascript (leaflet map)
+samplesJsonScript :: T.Text -> H.Html
+samplesJsonScript samples =
+  H.script
+    ! A.id "samples-json"
+    ! A.type_ "application/json"
+    $ H.preEscapedToHtml (escapeJsonForScript samples)
 
-onloadJS :: T.Text -> T.Text -> T.Text
-onloadJS nrLoaded mapMarkers = [text|
-  window.onload = function() {
-
-    // transform table to sortable version
-    if (document.querySelector('#currentTable')) {
-        let options = {
-            searchable: true,
-            perPage: 10
-        };
-        new simpleDatatables.DataTable('#currentTable', options);
-    }
-
-    // leaflet map
-    if (document.querySelector('#mapid')) {
-        var mymap = L.map('mapid').setView([35, 10], 1);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: 'Map data <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        }).addTo(mymap);
-        // add legend
-        const nrLoaded = $nrLoaded;
-        var legend = L.control({position: 'bottomright'});
-        legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'info legend');
-            div.innerHTML = nrLoaded[0] + ' samples loaded<br>' + nrLoaded[1] + ' lat/lon missing<br>';
-            return div;
-        };
-        legend.addTo(mymap);
-        // markers
-        var markers = L.markerClusterGroup();
-        const mapMarkers = $mapMarkers;
-        for (var i = 0; i<mapMarkers.length; i++) {
-            const s = mapMarkers[i];
-            // prepare popup message
-            const packageLink = '<a href="/explorer/' + s.mmArchiveName + '/' + s.mmPackageName + '/' + s.mmPackageVersion + '/' + s.mmPoseidonID + '" style="text-decoration: underline; cursor: pointer;">Open sample</a>';
-            const popupContentLines = [];
-            popupContentLines.push('<b>Poseidon ID:</b> ' + s.mmPoseidonID);
-            popupContentLines.push('<b>Package:</b> ' + s.mmPackageName);
-            popupContentLines.push('<b>Package version:</b> ' + s.mmPackageVersion);
-            popupContentLines.push('<b>Archive:</b> ' + s.mmArchiveName);
-            popupContentLines.push('<b>Location:</b> ' + s.mmLocation);
-            popupContentLines.push('<b>Age BC/AD:</b> ' + s.mmAge);
-            popupContentLines.push('<b>' + packageLink + '</b>');
-            const popupContent = popupContentLines.join("<br>");
-            // create a marker with a popup
-            L.marker([s.mmLat, s.mmLon]).bindPopup(popupContent).addTo(markers);
-        }
-        mymap.addLayer(markers);
-    }
-  }
-|]
-
--- css (specific additions to the stylesheet)
-
-mapCSS :: T.Text
-mapCSS = [text|
-  /* overwrite some pico styling for the map */
-  #mapid,
-  #mapid * {
-    padding: 0;
-    --pico-border-width: 0rem !important;
-    --pico-background-color: transparent !important;
-  }
-  /* legend */
-  .legend {
-    padding: 6px 8px !important;
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    color: #777;
-  }
-  .leaflet-popup-content-wrapper {
-    padding: 6px 8px !important;
-  }
-  /* overwrite some styling for the sortable table */
-  .datatable-active button {
-    color: #13171F !important;
-  }
-|]
+escapeJsonForScript :: T.Text -> T.Text
+escapeJsonForScript =
+    T.replace "&" "\\u0026"
+  . T.replace ">" "\\u003e"
+  . T.replace "<" "\\u003c"
 
 -- html template
 
@@ -156,9 +88,10 @@ explorerPage urlPath content = do
 
 header :: H.Markup
 header = H.head $ do
+    H.meta ! A.charset "utf-8"
     -- load classless pico CSS
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
-    H.style ! A.type_ "text/css" $ H.preEscapedToHtml mapCSS
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/pico.css"
+    H.style ! A.type_ "text/css" $ H.preEscapedToHtml cssText
     -- leaflet (js must be after css)
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"
@@ -170,12 +103,43 @@ header = H.head $ do
              ! H.customAttribute "crossorigin" ""
              $ ""
     -- leaflet markercluster
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+           ! H.customAttribute "integrity" "sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc="
+           ! H.customAttribute "crossorigin" ""
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+           ! H.customAttribute "integrity" "sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA="
+           ! H.customAttribute "crossorigin" ""
+    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+             ! H.customAttribute "integrity" "sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
     -- DataTables
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
-    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0" $ ""
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
+           ! H.customAttribute "integrity" "sha256-8URSbDdnZAN5R2+1U5VKQ+xD8I1krfrjf1ChUjbguEk="
+           ! H.customAttribute "crossorigin" ""
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0"
+             ! H.customAttribute "integrity" "sha256-x6Cva2xkJFDOJblsizzuGX3Y+ucjav8yEx3sRFmgDYk="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    -- vega-lite
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega@6.2.0"
+             ! H.customAttribute "integrity" "sha256-6mpZNjgdBvkSRmNU4raiDrZsTUHxyp3/HgI23+5u45I="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-lite@6.4.3"
+             ! H.customAttribute "integrity" "sha256-NamCHfg4glsFpqc+lBS1h0ehsYMhWDhY7ZA8Zjk6XH4="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-embed@7.1.0"
+             ! H.customAttribute "integrity" "sha256-w2JUJwIZ7uWPubHZVN7K2VT7B7/Jq3gMXUQBvURc1Qw="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -236,21 +200,28 @@ mainPage pacsPerArchive = do
               H.toMarkup ("Source archive" :: String)
           _ -> return ()
 
+plots :: HI.MarkupM ()
+plots = do
+    H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
+    H.div ! A.style "font-size: 12px; margin-bottom: 10px;" $ do
+      H.toMarkup $ H.string "Only considers one median age per sample, binned in 100 year bins."
+    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+
 archivePage ::
      String
   -> Maybe String
   -> [String]
-  -> Int
-  -> [MapMarker]
+  -> [PlotSample]
   -> [PoseidonPackage]
   -> S.ActionM ()
-archivePage archiveName maybeArchiveSpecURL excludeFromMap nrSamplesToMap mapMarkers pacs = do
+archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamplesToMap - length mapMarkers)) (dataToJSON mapMarkers))
+      samplesJsonScript (dataToJSON plotSamples)
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    plots
     case excludeFromMap of
       [] -> do
         H.div ! A.style "font-size: 12px;" $ do
@@ -285,24 +256,25 @@ archivePage archiveName maybeArchiveSpecURL excludeFromMap nrSamplesToMap mapMar
 
 packageVersionPage ::
      String -> String -> Maybe Version
-  -> [MapMarker]
+  -> [PlotSample]
   -> String
   -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
   -> S.ActionM ()
 packageVersionPage
   archiveName pacName pacVersion
-  mapMarkers
+  plotSamples
   bib
   oneVersion allVersions samples = do
   urlPath <- pathInfo <$> S.request
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON (length mapMarkers, nrSamples - length mapMarkers)) (dataToJSON mapMarkers))
+      samplesJsonScript (dataToJSON plotSamples)
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    plots
     H.br
     -- description
     H.article $ do
@@ -356,21 +328,18 @@ packageVersionPage
           H.td . H.toMarkup . T.intercalate ", " . map (T.pack . BS.unpack . unGroupName) . getListColumn . jGroupName $ jannoRow
 
 samplePage ::
-     Maybe MapMarker
+     PlotSample
   -> JannoRow
   -> S.ActionM ()
-samplePage maybeMapMarker row = do
+samplePage plotSample row = do
   urlPath <- pathInfo <$> S.request
   let hashMap = toNamedRecord row
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
-      case maybeMapMarker of
-        Just mapMarker -> H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml (onloadJS (dataToJSON ((1,0) :: (Int,Int))) (dataToJSON [mapMarker]))
-        Nothing -> pure ()
+      samplesJsonScript (dataToJSON [plotSample])
+      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
     H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
-    case maybeMapMarker of
-      Just _  -> H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
-      Nothing -> pure ()
+    plots
     H.div $ H.table $ do
       H.tr $ do
         H.th $ H.b "Property"
