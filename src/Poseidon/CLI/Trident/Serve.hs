@@ -4,7 +4,6 @@
 module Poseidon.CLI.Trident.Serve (runServer, runServerMainThread, ServeOptions(..), ArchiveConfig (..), ArchiveSpec (..)) where
 
 import           Paths_poseidon_hs              (version)
-import           Poseidon.Core.BibFile          (renderBibEntry)
 import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
                                                  PacNameAndVersion (PacNameAndVersion))
@@ -32,19 +31,10 @@ import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
 import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
 import           Control.Monad                  (forM)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-<<<<<<< HEAD
-import qualified Data.ByteString.Lazy           as B
 import           Data.Coerce                    (coerce)
 import           Data.List                      (groupBy, intercalate, sortOn)
 import           Data.List.Split                (splitOn)
 import           Data.Maybe                     (isJust)
-import           Data.Ord                       (Down (..))
-=======
-import           Data.List                      (foldl', groupBy, intercalate,
-                                                 sortOn)
-import           Data.List.Split                (splitOn)
-import           Data.Maybe                     (isJust, mapMaybe)
->>>>>>> master
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
 import           Data.Version                   (Version, parseVersion,
@@ -58,17 +48,7 @@ import           Network.Wai.Handler.Warp       (defaultSettings, runSettings,
 import           Network.Wai.Handler.WarpTLS    (runTLS, tlsSettings,
                                                  tlsSettingsChain)
 import           Network.Wai.Middleware.Cors    (simpleCors)
-<<<<<<< HEAD
-import           System.Directory               (createDirectoryIfMissing,
-                                                 doesFileExist,
-                                                 getModificationTime)
-import           System.FilePath                ((<.>), (</>))
-=======
-import           Paths_poseidon_hs              (version)
 import           Poseidon.Core.BibFile          (renderBibEntry)
-import           Poseidon.Core.ColumnTypesJanno (JannoLatitude (..),
-                                                 JannoLongitude (..))
->>>>>>> master
 import           Text.ParserCombinators.ReadP   (readP_to_S)
 import           Web.Scotty                     (ActionM, ScottyM, captureParam,
                                                  get, json, middleware,
@@ -314,14 +294,8 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
             retiredPacs <- getRetiredPackages spec
             latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
-<<<<<<< HEAD
                 plotSamples = concatMap (prepPlotSamples archiveName) packagesToMap
-            archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap plotSamples latestPacs
-=======
-                nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
-                mapMarkers = concatMap (prepMappable archiveName) packagesToMap
-            archivePage archiveName maybeArchiveDataURL excludeFromMap nrSamplesToMap mapMarkers latestPacs
->>>>>>> master
+            archivePage archiveName maybeArchiveDataURL excludeFromMap plotSamples latestPacs
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
             -- we do not filter by retired. A requested package is always shown, even if it is retired.
@@ -343,11 +317,7 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
                 pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
-<<<<<<< HEAD
-            packageVersionPage archiveName pacName pacVersion archiveZip plotSamples bib oneVersion allVersions samples
-=======
-            packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
->>>>>>> master
+            packageVersionPage archiveName pacName pacVersion plotSamples bib oneVersion allVersions samples
         -- per sample pages
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA

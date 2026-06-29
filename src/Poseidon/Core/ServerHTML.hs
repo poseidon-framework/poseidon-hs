@@ -369,8 +369,11 @@ explorerPage urlPath content = do
 header :: H.Markup
 header = H.head $ do
     -- load classless pico CSS
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/styles.css"
-    H.style ! A.type_ "text/css" $ H.preEscapedToHtml mapCSS
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "/styles.css"
+    H.style ! A.type_ "text/css"
+            $ H.preEscapedToHtml mapCSS
     -- leaflet (js must be after css)
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"
@@ -382,12 +385,27 @@ header = H.head $ do
              ! H.customAttribute "crossorigin" ""
              $ ""
     -- leaflet markercluster
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" $ ""
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+           ! H.customAttribute "integrity" "sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc="
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+           ! H.customAttribute "integrity" "sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA="
+    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+             ! H.customAttribute "integrity" "sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
     -- DataTables
-    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
-    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0" $ ""
+    H.link ! A.rel "stylesheet"
+           ! A.type_ "text/css"
+           ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
+           ! H.customAttribute "integrity" "sha256-8URSbDdnZAN5R2+1U5VKQ+xD8I1krfrjf1ChUjbguEk="
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0"
+             ! H.customAttribute "integrity" "sha256-x6Cva2xkJFDOJblsizzuGX3Y+ucjav8yEx3sRFmgDYk="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -455,11 +473,7 @@ archivePage ::
   -> [PlotSample]
   -> [PoseidonPackage]
   -> S.ActionM ()
-<<<<<<< HEAD
-archivePage archiveName maybeArchiveSpecURL archiveZip excludeFromMap plotSamples pacs = do
-=======
-archivePage archiveName maybeArchiveSpecURL excludeFromMap nrSamplesToMap mapMarkers pacs = do
->>>>>>> master
+archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
   urlPath <- pathInfo <$> S.request
   S.html $ renderMarkup $ explorerPage urlPath $ do
     H.head $ do
@@ -501,23 +515,13 @@ archivePage archiveName maybeArchiveSpecURL excludeFromMap nrSamplesToMap mapMar
 
 packageVersionPage ::
      String -> String -> Maybe Version
-<<<<<<< HEAD
-  -> Bool
   -> [PlotSample]
-=======
-  -> [MapMarker]
->>>>>>> master
   -> String
   -> PoseidonPackage -> [PoseidonPackage] -> [JannoRow]
   -> S.ActionM ()
 packageVersionPage
   archiveName pacName pacVersion
-<<<<<<< HEAD
-  archiveZip
   plotSamples
-=======
-  mapMarkers
->>>>>>> master
   bib
   oneVersion allVersions samples = do
   urlPath <- pathInfo <$> S.request
