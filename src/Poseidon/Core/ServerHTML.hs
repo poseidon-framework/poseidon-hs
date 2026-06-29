@@ -106,151 +106,131 @@ onloadJS samples = [text|
       x = Number(x);
       return x < 0 ? `${Math.abs(x).toLocaleString()} BC` : `${x.toLocaleString()} AD`;
     }
-    // inspired by ggpointgrid::geom_pointrect
-    function makeBoxOffsets(count, maxRows) {
-        var fact = Math.sqrt(count);
-        var ncols = Math.ceil(fact);
-        var nrows;
-        if (ncols * Math.floor(fact) >= count) {
-            nrows = Math.floor(fact);
-        } else {
-            nrows = Math.ceil(fact);
-        }
-        // cap rows if needed
-        if (nrows > maxRows) {
-            nrows = maxRows;
-            ncols = Math.ceil(count / nrows);
-        }
-        var gridCenterX = (ncols + 1) / 2;
-        var gridCenterY = (nrows + 1) / 2;
-        var offsets = [];
-        var col, row;
-        for (row = nrows; row >= 1; row--) {
-            for (col = 1; col <= ncols; col++) {
-                offsets.push({
-                    x: col - gridCenterX,
-                    y: row - gridCenterY
-                });
-            }
-        }
-        return offsets.slice(0, count);
-    }
 
-    // timeline plot (implemented with leaflet)
+    // timeline plot with Vega-Lite
     if (document.querySelector('#timelineid')) {
-        // pseudo-map as plotting canvas
-        const timeline = L.map('timelineid', {
-          crs: L.CRS.Simple,
-          minZoom: -5,
-          maxZoom: 0, // must also be changed in disableClusteringAtZoom
-          inertia: false,
-          zoomControl: false,
-          attributionControl: false
-        });
-        // plot bounds
-        const xMin = -150000;
-        const xMax = 2100;
-        const yMin = 0;
-        const yMax = 100;
-        const bounds = [[yMin, xMin], [yMax, xMax]];
-        // panning constraints
-        timeline.setMaxBounds([[yMin, xMin - 2000], [yMax, xMax + 2000]]);
-        // set view to data
-        function getMeanAge(markers) {
-          const valid = markers
-            .map(s => Number(s.mmAge))
-            .filter(Number.isFinite);
-          if (valid.length === 0) return (xMin + xMax) / 2;
-          return valid.reduce((sum, x) => sum + x, 0) / valid.length;
-        }
-        const meanX = getMeanAge(timelineMarkers);
-        const centerY = (yMin + yMax) / 2;
-        // first establish the zoom level from the full plot bounds
-        timeline.fitBounds(bounds);
-        timeline.setView([centerY, meanX], timeline.getZoom(), {
-          animate: false
-        });
-        // layer group for axis
-        const bottomAxisLayer = L.layerGroup().addTo(timeline);
-        const AXIS_Y = 0;
-        const SMALL_TICK_TOP = 40;
-        const BIG_TICK_TOP = 50;
-        const LABEL_Y = 50;
-        function drawBottomAxis() {
-          bottomAxisLayer.clearLayers();
-          const bounds = timeline.getBounds();
-          const westernBorder = bounds.getWest()
-          const easternBorder = bounds.getEast()
-          // bottom line
-          L.polyline([[AXIS_Y, westernBorder], [AXIS_Y, easternBorder]], {
-            color: 'black',
-            weight: 1
-          }).addTo(bottomAxisLayer);
-          const minorStep = 100;
-          const majorStep = 1000;
-          const visibleXMin = Math.max(xMin, westernBorder);
-          const visibleXMax = Math.min(xMax, easternBorder);
-          const startTick = Math.floor(visibleXMin / minorStep) * minorStep;
-          for (let x = startTick; x <= visibleXMax; x += minorStep) {
-            const isMajor = (x % majorStep === 0);
-            const tickTop = isMajor ? BIG_TICK_TOP : SMALL_TICK_TOP;
-            const tickWeight = isMajor ? 2 : 1;
-            L.polyline([[AXIS_Y, x], [tickTop, x]], {
-              color: 'black',
-              weight: tickWeight
-            }).addTo(bottomAxisLayer);
-            if (isMajor) {
-              L.marker([LABEL_Y, x], {
-                interactive: false,
-                icon: L.divIcon({
-                  className: 'bottom-axis-label',
-                  html: `
-                    <span style="
-                      display:inline-block;
-                      font-size: 10px;
-                      color: black;
-                      transform: rotate(25deg);
-                      transform-origin: left top;
-                      white-space: nowrap;">
-                      ${formatYear(x)}
-                    </span>
-                  `,
-                  iconSize: [60, 20],
-                  iconAnchor: [0, 0]
-                })
-              }).addTo(bottomAxisLayer);
+        const timelineEl = document.querySelector('#timelineid');
+        if (timelineMarkers.length === 0) {
+            timelineEl.innerHTML = '<p>No samples with usable age information.</p>';
+        } else {
+            const binWidth = 1000;
+            // bin data
+            const bins = new Map();
+            for (const s of timelineMarkers) {
+                const age = Number(s.mmAge);
+                if (!Number.isFinite(age)) continue;
+                const binStart = Math.floor(age / binWidth) * binWidth;
+                const binEnd = binStart + binWidth;
+                const key = `${binStart}:${binEnd}`;
+                if (!bins.has(key)) {
+                    bins.set(key, {
+                        binStart,
+                        binEnd,
+                        count: 0,
+                        ids: []
+                    });
+                }
+                const entry = bins.get(key);
+                entry.count += 1;
+                entry.ids.push(s.mmPoseidonID);
             }
-          }
-        }
-        timeline.on('moveend zoomend resize', drawBottomAxis);
-        drawBottomAxis();
-        // add markers
-        var markers = L.markerClusterGroup({
-            chunkedLoading: true,
-            spiderfyShapePositions: function(count, centerPt) {
-                var scaleX = 12;
-                var scaleY = 12;
-                var offsets = makeBoxOffsets(count, 5);
-                return offsets.map(function(offset) {
-                    return new L.Point(
-                        centerPt.x + offset.x * scaleX,
-                        centerPt.y + 20 + offset.y * scaleY
-                    );
+            const timelineBins = Array.from(bins.values())
+                .sort((a, b) => a.binStart - b.binStart)
+                .map(d => {
+                    const idsPreview = d.ids.length > 20
+                        ? d.ids.slice(0, 20).join(', ') + `, … ${d.ids.length - 20} more`
+                        : d.ids.join(', ');
+                    return {
+                        binStart: d.binStart,
+                        binEnd: d.binEnd,
+                        count: d.count,
+                        binLabel: `${formatYear(d.binStart)} – ${formatYear(d.binEnd)}`,
+                        idsPreview
+                    };
                 });
-            }
-        });
-        for (var i = 0; i<timelineMarkers.length; i++) {
-          const s = timelineMarkers[i];
-          L.marker([50, s.mmAge])
-          .bindTooltip(s.mmPoseidonID, {
-            direction: 'right',
-            sticky: true,
-            opacity: 1,
-            className: 'poseidon-tooltip'
-          })
-          .addTo(markers);
+            const ages = timelineMarkers
+                .map(s => Number(s.mmAge))
+                .filter(Number.isFinite);
+            const dataMin = Math.min(...ages);
+            const dataMax = Math.max(...ages);
+            const domainStart = Math.floor(dataMin / binWidth) * binWidth;
+            const domainEnd = Math.ceil(dataMax / binWidth) * binWidth;
+            const timelineSpec = {
+                $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+                width: 'container',
+                height: 260,
+                autosize: { type: 'fit', contains: 'padding' },
+                data: { values: timelineBins },
+                params: [
+                    {
+                        name: 'x_zoom',
+                        select: {
+                            type: 'interval',
+                            encodings: ['x']
+                        },
+                        bind: 'scales'
+                    }
+                ],
+                mark: { type: 'bar', color: '#4C78A8' },
+                encoding: {
+                    x: {
+                        field: 'binStart',
+                        type: 'quantitative',
+                        title: 'Age',
+                        scale: {
+                            domain: [domainStart, domainEnd],
+                            nice: false
+                        },
+                        axis: {
+                            grid: true,
+                            tickCount: 12,
+                            labelExpr: `
+                                datum.value < 0
+                                  ? format(abs(datum.value), ',') + ' BC'
+                                  : format(datum.value, ',') + ' AD'
+                            `
+                        }
+                    },
+                    x2: { field: 'binEnd' },
+                    y: {
+                        field: 'count',
+                        type: 'quantitative',
+                        title: 'Samples',
+                        axis: { tickMinStep: 1 }
+                    },
+                    tooltip: [
+                        {
+                            field: 'binLabel',
+                            type: 'nominal',
+                            title: 'Interval'
+                        },
+                        {
+                            field: 'count',
+                            type: 'quantitative',
+                            title: 'Samples'
+                        },
+                        {
+                            field: 'idsPreview',
+                            type: 'nominal',
+                            title: 'Poseidon IDs'
+                        }
+                    ]
+                },
+                config: {
+                    view: {
+                        stroke: null
+                    },
+                    axis: {
+                        labelFontSize: 11,
+                        titleFontSize: 12
+                    }
+                }
+            };
+            vegaEmbed('#timelineid', timelineSpec, {
+                actions: false,
+                renderer: 'canvas'
+            });
         }
-        timeline.addLayer(markers);
     }
 
     // leaflet map
@@ -389,10 +369,12 @@ header = H.head $ do
            ! A.type_ "text/css"
            ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
            ! H.customAttribute "integrity" "sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc="
+           ! H.customAttribute "crossorigin" ""
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"
            ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
            ! H.customAttribute "integrity" "sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA="
+           ! H.customAttribute "crossorigin" ""
     H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
              ! H.customAttribute "integrity" "sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg="
              ! H.customAttribute "crossorigin" ""
@@ -402,8 +384,22 @@ header = H.head $ do
            ! A.type_ "text/css"
            ! A.href "https://cdn.jsdelivr.net/npm/simple-datatables@10.0/dist/style.css"
            ! H.customAttribute "integrity" "sha256-8URSbDdnZAN5R2+1U5VKQ+xD8I1krfrjf1ChUjbguEk="
+           ! H.customAttribute "crossorigin" ""
     H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0"
              ! H.customAttribute "integrity" "sha256-x6Cva2xkJFDOJblsizzuGX3Y+ucjav8yEx3sRFmgDYk="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    -- vega-lite
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega@6.2.0"
+             ! H.customAttribute "integrity" "sha256-6mpZNjgdBvkSRmNU4raiDrZsTUHxyp3/HgI23+5u45I="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-lite@6.4.3"
+             ! H.customAttribute "integrity" "sha256-NamCHfg4glsFpqc+lBS1h0ehsYMhWDhY7ZA8Zjk6XH4="
+             ! H.customAttribute "crossorigin" ""
+             $ ""
+    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-embed@7.1.0"
+             ! H.customAttribute "integrity" "sha256-w2JUJwIZ7uWPubHZVN7K2VT7B7/Jq3gMXUQBvURc1Qw="
              ! H.customAttribute "crossorigin" ""
              $ ""
 
