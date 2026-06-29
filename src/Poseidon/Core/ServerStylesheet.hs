@@ -4,8 +4,8 @@ module Poseidon.Core.ServerStylesheet where
 
 import           Data.ByteString.Lazy as BL
 import qualified Data.FileEmbed       as FE
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
+import qualified Data.Text            as T
+import qualified Data.Text.Encoding   as TE
 
 picocssBS :: BL.ByteString
 picocssBS = BL.fromStrict $(FE.embedFile "data/pico.classless.blue.min.css")

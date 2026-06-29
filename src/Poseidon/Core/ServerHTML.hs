@@ -9,35 +9,35 @@ import           Poseidon.Core.ColumnTypesUtils (getListColumn)
 import           Poseidon.Core.EntityTypes
 import           Poseidon.Core.Janno
 import           Poseidon.Core.Package
-import Poseidon.Core.ServerStylesheet
+import           Poseidon.Core.ServerStylesheet
 
 import           Control.Monad                  (forM_)
 import           Data.Aeson                     (defaultOptions, encode,
                                                  genericToEncoding)
 import           Data.Aeson.Types               (ToJSON (..))
 import qualified Data.ByteString.Char8          as BS
-import qualified Data.ByteString.Lazy.Char8     as C
 import           Data.Csv                       (ToNamedRecord (..))
 import qualified Data.HashMap.Strict            as HM
 import           Data.List                      (intercalate, sortBy)
 import           Data.Maybe                     (fromMaybe)
 import qualified Data.Text                      as T
 import qualified Data.Text.Encoding             as T
+import qualified Data.Text.Lazy                 as TL
+import qualified Data.Text.Lazy.Encoding        as TLE
 import           Data.Version                   (Version, showVersion)
 import           GHC.Generics
-import           NeatInterpolation
 import           Network.Wai                    (Request (..))
 import           Paths_poseidon_hs              (version)
 import qualified Text.Blaze.Html5               as H
-import           Text.Blaze.Html5               ((!))
 import qualified Text.Blaze.Html5.Attributes    as A
+import           Text.Blaze.Internal            as HI
 import           Text.Blaze.Renderer.Text
 import qualified Web.Scotty                     as S
 
 -- helper functions and types
 
 renderMaybeVersion :: Maybe Version -> String
-renderMaybeVersion Nothing  = ("" :: String)
+renderMaybeVersion Nothing  = "" :: String
 renderMaybeVersion (Just v) = showVersion v
 
 data PlotSample = PlotSample {
@@ -47,7 +47,7 @@ data PlotSample = PlotSample {
     , mmPackageName    :: String
     , mmPackageVersion :: Maybe String
     , mmArchiveName    :: String
-    , mmLocation       :: Maybe String
+    , mmLocation       :: Maybe T.Text
     , mmAgeStart       :: Maybe Int
     , mmAge            :: Maybe Int
     , mmAgeStop        :: Maybe Int
@@ -57,7 +57,20 @@ instance ToJSON PlotSample where
     toEncoding = genericToEncoding defaultOptions
 
 dataToJSON :: ToJSON a => a -> T.Text
-dataToJSON = T.pack . C.unpack . encode
+dataToJSON = TL.toStrict . TLE.decodeUtf8 . encode
+
+samplesJsonScript :: T.Text -> H.Html
+samplesJsonScript samples =
+  H.script
+    ! A.id "samples-json"
+    ! A.type_ "application/json"
+    $ H.preEscapedToHtml (escapeJsonForScript samples)
+
+escapeJsonForScript :: T.Text -> T.Text
+escapeJsonForScript =
+    T.replace "&" "\\u0026"
+  . T.replace ">" "\\u003e"
+  . T.replace "<" "\\u003c"
 
 -- html template
 
@@ -75,6 +88,7 @@ explorerPage urlPath content = do
 
 header :: H.Markup
 header = H.head $ do
+    H.meta ! A.charset "utf-8"
     -- load classless pico CSS
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/pico.css"
     H.style ! A.type_ "text/css" $ H.preEscapedToHtml cssText
@@ -186,19 +200,7 @@ mainPage pacsPerArchive = do
               H.toMarkup ("Source archive" :: String)
           _ -> return ()
 
-samplesJsonScript :: T.Text -> H.Html
-samplesJsonScript samples =
-  H.script
-    ! A.id "samples-json"
-    ! A.type_ "application/json"
-    $ H.preEscapedToHtml (escapeJsonForScript samples)
-
-escapeJsonForScript :: T.Text -> T.Text
-escapeJsonForScript =
-    T.replace "&" "\\u0026"
-  . T.replace ">" "\\u003e"
-  . T.replace "<" "\\u003c"
-
+plots :: HI.MarkupM ()
 plots = do
     H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
     H.div ! A.style "font-size: 12px; margin-bottom: 10px;" $ do
