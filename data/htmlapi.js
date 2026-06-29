@@ -77,6 +77,7 @@ if (document.querySelector('#timelineid')) {
             return {
                 binStart: d.binStart,
                 binEnd: d.binEnd,
+                binMid: (d.binStart + d.binEnd) / 2,
                 count: d.count
             };
         });
@@ -93,43 +94,71 @@ if (document.querySelector('#timelineid')) {
         height: 115, // less than the surrounding div, to show 1px border
         autosize: { type: 'fit', contains: 'padding' },
         data: { values: timelineBins },
-        params: [
-            {
-                name: 'x_zoom',
-                select: { type: 'interval', encodings: ['x'] },
-                bind: 'scales'
-            }
-        ],
-        mark: { type: 'bar', orient: 'vertical', color: '#13171f' },
-        encoding: {
-            x: {
-                field: 'binStart',
-                type: 'quantitative',
-                bin: 'binned',
-                title: null,
-                scale: {
-                    domain: [domainStart, domainEnd],
-                    nice: false
-                },
-                axis: {
-                    grid: true,
-                    tickCount: 12,
-                    labelExpr: `
-                        datum.value < 0
-                          ? format(abs(datum.value), ',') + ' BC'
-                          : format(datum.value, ',') + ' AD'
-                    `
+        layer: [{
+            // main histogram bars
+            params: [
+                {
+                    name: 'x_zoom',
+                    select: { type: 'interval', encodings: ['x'] },
+                    bind: 'scales'
                 }
-            },
-            x2: { field: 'binEnd' },
-            y: {
-                field: 'count',
-                type: 'quantitative',
-                title: 'Samples',
-                axis: { tickMinStep: 1 }
-            },
-            y2: { datum: 0 } // force bars to extend down to zero
+            ],
+            mark: { type: 'bar', orient: 'vertical', color: '#13171f' },
+            encoding: {
+                x: {
+                    field: 'binStart',
+                    type: 'quantitative',
+                    bin: 'binned',
+                    title: null,
+                    scale: {
+                        domain: [domainStart, domainEnd],
+                        nice: false
+                    },
+                    axis: {
+                        grid: true,
+                        tickCount: 12,
+                        labelExpr: `
+                            datum.value < 0
+                              ? format(abs(datum.value), ',') + ' BC'
+                              : format(datum.value, ',') + ' AD'
+                        `
+                    }
+                },
+                x2: { field: 'binEnd' },
+                y: {
+                    field: 'count',
+                    type: 'quantitative',
+                    title: 'Samples',
+                    axis: { tickMinStep: 1 }
+                },
+                y2: { datum: 0 } // force bars to extend down to zero
+            }
         },
+        {
+            // rug/presence ticks
+            mark: {
+                type: 'tick',
+                color: '#d94801',
+                thickness: 5,
+                size: 5,
+                opacity: 1
+            },
+            encoding: {
+                x: {
+                    field: 'binMid',
+                    type: 'quantitative',
+                    scale: {
+                        domain: [domainStart, domainEnd],
+                        nice: false
+                    }
+                },
+                y: {
+                    field: 'count',
+                    type: 'quantitative'
+                }
+            }
+        }],
+        resolve: { scale: { x: 'shared' } },
         config: {
             view: {
                 stroke: null
