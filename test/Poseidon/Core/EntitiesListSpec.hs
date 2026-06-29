@@ -25,39 +25,40 @@ spec = do
     testShow
     testJSON
 
+parse :: EntitySpec a => String -> [a]
+parse x = fromRight [] (readEntitiesFromString x)
 
 testReadPoseidonEntitiesString :: Spec
 testReadPoseidonEntitiesString =
     describe "Poseidon.EntitiesList.readPoseidonEntitiesString" $ do
     it "should parse single entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>") `shouldBe`
-            [Include $ Ind "a"]
-        fromRight [] (readEntitiesFromString "<c:b:a>") `shouldBe`
+        parse "<a>" `shouldBe` [Include $ Ind "a"]
+        parse "<c:b:a>" `shouldBe`
             [Include $ SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)]
-        fromRight [] (readEntitiesFromString "<c-2.0.2:b:a>") `shouldBe`
+        parse "<c-2.0.2:b:a>" `shouldBe`
             [Include $ SpecificInd "a" "b" (PacNameAndVersion "c" (Just $ makeVersion [2,0,2]))]
-        fromRight [] (readEntitiesFromString "b") `shouldBe`
+        parse "b" `shouldBe`
             [Include $ Group "b"]
-        fromRight [] (readEntitiesFromString "*c*") `shouldBe`
+        parse "*c*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "c" Nothing)]
-        fromRight [] (readEntitiesFromString "*c-1.2.3*") `shouldBe`
+        parse "*c-1.2.3*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "c" (Just $ makeVersion [1,2,3]))]
-        fromRight [] (readEntitiesFromString "*2023-07*") `shouldBe`
+        parse "*2023-07*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "2023-07" Nothing)]
-        fromRight [] (readEntitiesFromString "*2023-07-24-duerrnberg*") `shouldBe`
+        parse "*2023-07-24-duerrnberg*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "2023-07-24-duerrnberg" Nothing)]
-        fromRight [] (readEntitiesFromString "*2023-07-24-duerrnberg-1.2.3*") `shouldBe`
+        parse "*2023-07-24-duerrnberg-1.2.3*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "2023-07-24-duerrnberg" (Just $ makeVersion [1,2,3]))]
-        fromRight [] (readEntitiesFromString "*my-package-with-hyphons-1.2.3*") `shouldBe`
+        parse "*my-package-with-hyphons-1.2.3*" `shouldBe`
             [Include $ Pac (PacNameAndVersion "my-package-with-hyphons" (Just $ makeVersion [1,2,3]))]
     it "should parse longer entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c*") `shouldBe`
+        parse "<a>,<c:b:a>,b,*c*" `shouldBe`
             map Include [
               Ind "a"
             , SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)
             , Group "b", Pac (PacNameAndVersion "c" Nothing)
             ]
-        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>") `shouldBe`
+        parse "<a1>,b1,<a2>,*c*,b2,<c:b2:a3>" `shouldBe`
             map Include [
               Ind "a1"
             , Group "b1"
@@ -66,20 +67,20 @@ testReadPoseidonEntitiesString =
             , Group "b2"
             , SpecificInd "a3" "b2" (PacNameAndVersion "c" Nothing)
             ]
-        fromRight [] (readEntitiesFromString "<a1>,*c-4.3.2*,<c-3.3.3:b2:a3>") `shouldBe`
+        parse "<a1>,*c-4.3.2*,<c-3.3.3:b2:a3>" `shouldBe`
             map Include [
               Ind "a1"
             , Pac (PacNameAndVersion "c" (Just $ makeVersion [4,3,2]))
             , SpecificInd"a3" "b2" (PacNameAndVersion "c" (Just $ makeVersion [3,3,3]))
             ]
     it "should parse unsigned entity lists correctly" $ do
-        fromRight [] (readEntitiesFromString "<a>,<c:b:a>,b,*c-1.0.0*") `shouldBe`
+        parse "<a>,<c:b:a>,b,*c-1.0.0*" `shouldBe`
             [ Ind "a"
             , SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)
             , Group "b"
             , Pac (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             ]
-        fromRight [] (readEntitiesFromString "<a1>,b1,<a2>,*c*,b2,<c-1.0.0:b2:a3>") `shouldBe`
+        parse "<a1>,b1,<a2>,*c*,b2,<c-1.0.0:b2:a3>" `shouldBe`
             [ Ind "a1"
             , Group "b1"
             , Ind "a2"
@@ -88,22 +89,22 @@ testReadPoseidonEntitiesString =
             , SpecificInd "a3" "b2" (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             ]
     it "should ignore spaces after commas" $ do
-        fromRight [] (readEntitiesFromString "<a>, <c-1.0.0:b:a>, b, *c*") `shouldBe`
+        parse "<a>, <c-1.0.0:b:a>, b, *c*" `shouldBe`
             map Include [
               Ind "a"
             , SpecificInd "a" "b" (PacNameAndVersion "c" (Just $ makeVersion [1,0,0]))
             , Group "b"
             , Pac (PacNameAndVersion "c" Nothing)
             ]
-        fromRight [] (readEntitiesFromString "*c*,  b") `shouldBe`
+        parse "*c*,  b" `shouldBe`
             map Include [
               Pac (PacNameAndVersion "c" Nothing)
             , Group "b"
             ]
     it "should parse exclusion entities correctly" $ do
-        fromRight [] (readEntitiesFromString "-<a>") `shouldBe`
+        parse "-<a>" `shouldBe`
             [Exclude $ Ind "a"]
-        fromRight [] (readEntitiesFromString "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1-1.0.0*, *c2*") `shouldBe`
+        parse "-<a1>, -<c:b:a>, <a2>, -b1,b2,-*c1-1.0.0*, *c2*" `shouldBe`
             [ Exclude $ Ind "a1"
             , Exclude $ SpecificInd "a" "b" (PacNameAndVersion "c" Nothing)
             , Include $ Ind "a2"
@@ -111,6 +112,18 @@ testReadPoseidonEntitiesString =
             , Exclude $ Pac (PacNameAndVersion "c1" (Just $ makeVersion [1,0,0]))
             , Include $ Pac (PacNameAndVersion "c2" Nothing)
             ]
+    it "should accept usually forbidden expressions when they are quoted" $ do
+        parse "\"a*a\"" `shouldBe` [Include $ Group "a*a"]
+        parse "'a*a'"   `shouldBe` [Include $ Group "a*a"]
+        parse "\"<a>a\"" `shouldBe` [Include $ Group "<a>a"]
+        parse "\"<a>,-a\"" `shouldBe` [Include $ Group "<a>,-a"]
+        parse "\"<a>*\",-\"(a\"" `shouldBe` [Include $ Group "<a>*", Exclude $ Group "(a"]
+        parse "*\"<*a>\"*" `shouldBe` [Include $ Pac (PacNameAndVersion "<*a>" Nothing)]
+        parse "-<\"*a>*\">" `shouldBe` [Exclude $ Ind "*a>*"]
+        parse "-\"-<*a*>\"" `shouldBe` [Exclude $ Group "-<*a*>"]
+        parse "*\")*+c\"-1.0.0*" `shouldBe` [Include $ Pac (PacNameAndVersion ")*+c" (Just $ makeVersion [1,0,0]))]
+        parse "<'<*a>*'-1.0.0:\"<*b>*\":'<*c>*'>" `shouldBe`
+            [SpecificInd "<*c>*" "<*b>*" (PacNameAndVersion "<*a>*" (Just $ makeVersion [1,0,0]))]
     it "should fail with any other setting" $ do
         -- the following type annotations - annoyingly - are required because readEntitiesFromString is polymorphic,
         -- and even though it all returns Left, the compiler complains about ambiguous types.
@@ -131,6 +144,8 @@ testReadPoseidonEntitiesString =
         (readEntitiesFromString "<c: b:a>"         :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "<c-1.0.0 :b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
         (readEntitiesFromString "<c- 1.0.0:b:a>"   :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<\"a> ,b,*c*"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
+        (readEntitiesFromString "<'a> ,b,*c*"     :: Either PoseidonException EntitiesList) `shouldSatisfy` isLeft
 
 testReadEntitiesFromFile :: Spec
 testReadEntitiesFromFile =

@@ -196,7 +196,8 @@ instance EntitySpec PoseidonEntity where
         parseGroup       = Group <$> parseName
         parseInd         = P.try parseSimpleInd <|> parseSpecificInd
         parseNameAndVer  = do
-            namePart <- parseNamePart ""
+            namePart <- parseQuoted <|> parseNamePart ""
+            P.skipMany (P.char '-') -- for quoted case, where - is not yet handled
             versionPart <- P.optionMaybe parseVersion
             return $ PacNameAndVersion namePart versionPart
         parseNamePart prevPart = do
@@ -214,7 +215,7 @@ instance EntitySpec PoseidonEntity where
                                 -- consuming input if there is no version, and lookAhead to not
                                 -- consume the version if it is there, because we want to parse
                                 -- it later in the normal flow
-        parseName        = P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` [':', ',', '<', '>', '*'])))
+        parseName = parseQuoted <|> P.many1 (P.satisfy (\c -> not (isSpace c || c `elem` [':', ',', '<', '>', '*'])))
         parseSimpleInd   = Ind <$> P.between (P.char '<') (P.char '>') parseName
         parseSpecificInd = do
             _ <- P.char '<'
@@ -225,6 +226,9 @@ instance EntitySpec PoseidonEntity where
             indName <- parseName
             _ <- P.char '>'
             return $ SpecificInd indName groupName pac
+        parseQuoted =
+                P.between (P.char '\"') (P.char '\"') (P.many1 (P.satisfy (/= '\"')))
+            <|> P.between (P.char '\'') (P.char '\'') (P.many1 (P.satisfy (/= '\'')))
 
 -- turns out that we cannot easily write instances for classes, so need to be explicit for both types
 instance FromJSON PoseidonEntity where parseJSON = withText "PoseidonEntity" aesonParseEntitySpec
