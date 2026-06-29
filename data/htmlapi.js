@@ -203,4 +203,5 @@ if (document.querySelector('#mapid')) {
     }
     mymap.addLayer(markers);
   }
+
 }

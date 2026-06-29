@@ -7,8 +7,11 @@ import qualified Data.FileEmbed       as FE
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
-stylesBS :: BL.ByteString
-stylesBS = BL.fromStrict $(FE.embedFile "data/pico.classless.blue.min.css")
+picocssBS :: BL.ByteString
+picocssBS = BL.fromStrict $(FE.embedFile "data/pico.classless.blue.min.css")
 
 jsText :: T.Text
 jsText = TE.decodeUtf8 $(FE.embedFile "data/htmlapi.js")
+
+cssText :: T.Text
+cssText = TE.decodeUtf8 $(FE.embedFile "data/htmlapi.css")

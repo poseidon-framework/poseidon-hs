@@ -59,42 +59,6 @@ instance ToJSON PlotSample where
 dataToJSON :: ToJSON a => a -> T.Text
 dataToJSON = T.pack . C.unpack . encode
 
--- css (specific additions to the stylesheet)
-
-mapCSS :: T.Text
-mapCSS = [text|
-  .leaflet-container {
-    background: white;
-  }
-  #mapid.leaflet-container {
-    background-color: white !important;
-    border: 1px solid black !important;
-    box-sizing: border-box;
-  }
-  #mapid,
-  #mapid * {
-    padding: 0;
-    --pico-border-width: 0rem !important;
-    --pico-background-color: transparent !important;
-  }
-  /* legend */
-  .legend {
-    padding: 6px 8px !important;
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    color: #777;
-  }
-  .leaflet-popup-content-wrapper {
-    padding: 6px 8px !important;
-  }
-  /* overwrite some styling for the sortable table */
-  .datatable-active button {
-    color: #13171F !important;
-  }
-|]
-
 -- html template
 
 explorerPage :: [T.Text] -> H.Html -> H.Html
@@ -112,11 +76,8 @@ explorerPage urlPath content = do
 header :: H.Markup
 header = H.head $ do
     -- load classless pico CSS
-    H.link ! A.rel "stylesheet"
-           ! A.type_ "text/css"
-           ! A.href "/styles.css"
-    H.style ! A.type_ "text/css"
-            $ H.preEscapedToHtml mapCSS
+    H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/pico.css"
+    H.style ! A.type_ "text/css" $ H.preEscapedToHtml cssText
     -- leaflet (js must be after css)
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"

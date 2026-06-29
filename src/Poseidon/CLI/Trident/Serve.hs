@@ -22,7 +22,7 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  ApiReturnData (..),
                                                  ServerApiReturnType (..))
 import           Poseidon.Core.ServerHTML
-import           Poseidon.Core.ServerStylesheet (stylesBS)
+import           Poseidon.Core.ServerStylesheet (picocssBS)
 import           Poseidon.Core.ServerZipStream  (collectPackageZipFiles,
                                                  sendPackageArchive)
 import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
@@ -268,9 +268,9 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
         -- html API
 
         -- css stylesheet
-        get "/styles.css" $ do
+        get "/pico.css" $ do
             setHeader "Content-Type" "text/css; charset=utf-8"
-            raw stylesBS
+            raw picocssBS
         -- landing page
         get "/" $ do
             redirect "/explorer"
