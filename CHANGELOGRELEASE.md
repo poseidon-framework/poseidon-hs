@@ -1,3 +1,25 @@
+### V 2.1.0.0
+
+This release adds some new intelligence for merging genotypes across packages, and reworks the download of .zip archives from the webserver.
+
+#### Handling of strand flips
+
+Previously, `trident forge` or any other command that would merge genotypes, also in `xerxes`, would only merge sites with exactly two alleles in all packages. SNPs with strand-flip pairs, such as A/C in one package, but T/G in another, would be dropped without warning. We now beefed this up substantially:
+
+First, by default, if incongruent pairs of SNPs are found, an actual error is thrown, with a helpful error message reporting the offending SNPs in all packages. 
+
+Second, a new option is available named `--strandCheck`. With this option, strand flips get detected and automatically corrected. Note that even with `--strandCheck` on, there may be cases of pairs that are still un-mergeable, such as A/T and A/G. For this case a second option is offered: `--skipIncongruentSNPs`. This option restores the original behaviour of trident, i.e. it removes any such SNPs from the output.
+
+To test a set of package for incongruent SNPs among them, `trident validate` now has an option `--forgeTest` (+ `--strandCheck`). This attempts a full merge of the packages and throws the same informative error message as `trident forge` if it encounters any issues.
+
+#### Data transfer from the webserver
+
+With the AADR v66 arose a need to handle very large (>4GB) packages in the Poseidon framework. This already required various adjustments in the archives, and now also in poseidon-hs. `trident serve` (and a new extra executable `poseidon-server`) could not create the large .zip archives to host them on the web for the `/zip_file` API, and `trident fetch` could not unpack them after download.
+
+To address this we reimplemented the way zipping and unzipping is done: trident now streams the data from the file system directly into a zipped format and through the web. That means precomputed .zip archives are not required any more and the `-z`/`--zipDir` option in `serve` is obsolete.
+
+The unzipping in `fetch` uses the same streaming mechanism and can therefore also handle archives >4GB. Unfortunately it has to load them into memory, causing a heavy memory spike for large archives.
+
 ### V 2.0.0.0
 
 This release ushers in a new era in the development of poseidon-hs: We merged the poseidon-analysis-hs library into poseidon-hs, which was previously developed in a separate repository [here](https://github.com/poseidon-framework/poseidon-analysis-hs).

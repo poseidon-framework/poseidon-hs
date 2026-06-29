@@ -1,3 +1,16 @@
+- V 2.1.1.0:
+    - Activated Ploidy checks for packages with PoseidonVersion 3.0.0 or greater, whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
+    - Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.
+- V 2.1.0.1: 
+    Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
+- V 2.1.0.0:
+    - Changed the mechanism by which `serve` provides packages for download: Instead of preparing zip archives for all packages upon server startup, the zipping is now done on-the-fly in a continous stream when a specific package is requested for download. `-z`/`--zipDir` is therefore obsolete. That makes this a breaking change.
+    - Adjusted the unzipping in `fetch` accordingly. It can now handle archives >4GB, but it has to load them into memory.
+    - Added a log mode that omits all warnings: `--noWarn`/`--logMode NoWarnLog`.
+- V 2.0.1.0:
+    - Added options `--strandCheck` and `--skipIncongruentSNPs` to `forge` and many other commands that consume genotype data from multiple packages.
+    - Slightly change the underlying pipeline to merge genotype data. Expect a little less logging.
+    - Added an option `--forgeTest` (+ `--strandCheck`) to `validate`. This performs a full merge of all requested packages to uncover incongruent SNPs between them.
 - V 2.0.0.1:
     - Added an extra executable `poseidon-server` with slightly different compilation parameters to run poseidon webservers more independently and with specific runtime settings.
 - V 2.0.0.0:

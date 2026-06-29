@@ -65,18 +65,20 @@ data FreqSpec = FreqNone
     deriving (Show)
 
 data RASOptions = RASOptions
-    { _rasBaseDirs       :: [FilePath]
-    , _rasJackknifeMode  :: JackknifeMode
-    , _rasExcludeChroms  :: [Chrom]
-    , _rasPopConfig      :: FilePath
-    , _rasMinFreq        :: FreqSpec
-    , _rasMaxFreq        :: FreqSpec
-    , _rasMaxMissingness :: Double
-    , _rasBlockTableFile :: Maybe FilePath
-    , _rasF4tableOutFile :: Maybe FilePath
-    , _rasMaxSnps        :: Maybe Int
-    , _rasNoTransitions  :: Bool
-    , _rasBedFile        :: Maybe FilePath
+    { _rasBaseDirs         :: [FilePath]
+    , _rasJackknifeMode    :: JackknifeMode
+    , _rasExcludeChroms    :: [Chrom]
+    , _rasPopConfig        :: FilePath
+    , _rasMinFreq          :: FreqSpec
+    , _rasMaxFreq          :: FreqSpec
+    , _rasMaxMissingness   :: Double
+    , _rasStrandCheck      :: Bool
+    , _rasSkipAmbigousSNPs :: Bool
+    , _rasBlockTableFile   :: Maybe FilePath
+    , _rasF4tableOutFile   :: Maybe FilePath
+    , _rasMaxSnps          :: Maybe Int
+    , _rasNoTransitions    :: Bool
+    , _rasBedFile          :: Maybe FilePath
     }
     deriving (Show)
 
@@ -145,7 +147,7 @@ runRAS rasOpts = do
     errLength <- envErrorLength
     blockData <- liftIO $ catch (
         runSafeT $ do
-            eigenstratProd <- getJointGenotypeData logA False relevantPackages Nothing
+            eigenstratProd <- getJointGenotypeData logA False (_rasStrandCheck rasOpts) (_rasSkipAmbigousSNPs rasOpts) relevantPackages Nothing
             let eigenstratProdFiltered =
                     bedFilterFunc (eigenstratProd >->
                                     P.filter (chromFilter (_rasExcludeChroms rasOpts)) >->

@@ -28,6 +28,7 @@ module Poseidon.Core.Package (
     packagesToPackageInfos,
     getAllGroupInfo,
     validateGeno,
+    validateForge,
     filterToRelevantPackages,
     getBibliographyInfo
 ) where
@@ -36,6 +37,7 @@ import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
                                                  readBibTeXFile)
 import           Poseidon.Core.ColumnTypesJanno (GeneticSex (..),
                                                  GroupName (..),
+                                                 JannoGenotypePloidy (..),
                                                  JannoLibraryBuilt (..),
                                                  JannoPublication (..),
                                                  JannoUDG (..), PoseidonID (..))
@@ -97,7 +99,6 @@ import           Data.Aeson                     (FromJSON, ToJSON, object,
                                                  (.!=), (.:), (.:?), (.=))
 import qualified Data.ByteString                as B
 import qualified Data.ByteString.Char8          as Bchs
-import qualified Data.ByteString.Char8          as BSC
 import           Data.Char                      (isSpace)
 import           Data.Csv                       (toNamedRecord)
 import           Data.Either                    (lefts, rights)
@@ -137,6 +138,7 @@ import           System.FilePath                (takeBaseName, takeDirectory,
                                                  (</>))
 import           System.IO                      (IOMode (ReadMode),
                                                  hGetContents, withFile)
+import qualified Text.Layout.Table              as TLT
 
 -- | Internal structure for YAML loading only
 data PoseidonYamlStruct = PoseidonYamlStruct
@@ -283,21 +285,25 @@ instance HasNameAndVersion PoseidonPackage where
     getPacVersion = getPacVersion . posPacNameAndVersion
 
 data PackageReadOptions = PackageReadOptions
-    { _readOptIgnoreChecksums    :: Bool
+    { _readOptIgnoreChecksums     :: Bool
     -- ^ whether to ignore all checksums
-    , _readOptIgnoreGeno         :: Bool
+    , _readOptIgnoreGeno          :: Bool
     -- ^ whether to ignore missing genotype files, useful for developer use cases
-    , _readOptGenoCheck          :: Bool
+    , _readOptGenoCheck           :: Bool
     -- ^ whether to check the SNPs of the genotypes
-    , _readOptFullGeno           :: Bool
+    , _readOptFullGeno            :: Bool
     -- ^ whether to check all SNPs or only the first 100
-    , _readOptIgnorePosVersion   :: Bool
+    , _readOptStrandChecks        :: Bool
+    -- ^ whether to perform strand checks
+    , _readOptSkipIncongruentSnps :: Bool
+    -- ^ whether to skip incongruent SNPs
+    , _readOptIgnorePosVersion    :: Bool
     -- ^ whether to ignore the Poseidon version of an input package.
-    , _readOptOnlyLatest         :: Bool
+    , _readOptOnlyLatest          :: Bool
     -- ^ whether to keep multiple versions of the same package (True) or just the latest one (False)
-    , _readOptMandatoryJannoCols :: [Bchs.ByteString]
+    , _readOptMandatoryJannoCols  :: [Bchs.ByteString]
     -- ^ .janno columns that should be treated as mandatory
-    , _readOptMandatorySSFCols   :: [Bchs.ByteString]
+    , _readOptMandatorySSFCols    :: [Bchs.ByteString]
     -- ^ .ssf columns that should be treated as mandatory
     }
 
@@ -310,6 +316,8 @@ defaultPackageReadOptions = PackageReadOptions {
     , _readOptIgnoreGeno           = False
     , _readOptGenoCheck            = True
     , _readOptFullGeno             = False
+    , _readOptStrandChecks         = False
+    , _readOptSkipIncongruentSnps         = False
     , _readOptIgnorePosVersion     = False
     , _readOptOnlyLatest           = False
     , _readOptMandatoryJannoCols   = []
@@ -495,35 +503,48 @@ validateGeno :: PoseidonPackage -> Bool -> PoseidonIO ()
 validateGeno pac checkFullGeno = do
     logA <- envLogAction
     errLength <- envErrorLength
-    --let jannoRows = getJannoRowsFromPac pac
-    --let ploidyList = map jGenotypePloidy jannoRows
-    --let indivNames = map jPoseidonID jannoRows
+    let jannoRows = getJannoRowsFromPac pac
+    let maybeCheckPloidyPipe =
+            if posPacPoseidonVersion pac >= PoseidonVersion (makeVersion [3, 0, 0]) then
+                let ploidyList = map jGenotypePloidy jannoRows
+                    indivNames = map (Bchs.unpack . unPoseidonID . jPoseidonID) jannoRows
+                in  checkPloidy logA ploidyList indivNames
+            else
+                cat
     liftIO $ catch (
         runSafeT $ do
-            -- we're using getJointGenotypeData here on a single package to check for SNP consistency
-            -- since that check is only implemented in the jointLoading function, not in the per-package loading
-            eigenstratProd <- getJointGenotypeData logA False [pac] Nothing
+            eigenstratProd <- loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac)
             -- check all or only the first 100 SNPs
             if checkFullGeno
             then do
                 currentTime <- liftIO getCurrentTime
-                --runEffect $ eigenstratProd >-> checkPloidy logA ploidyList indivNames >-> printSNPCopyProgress logA currentTime >-> P.drain
-                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
+                runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> maybeCheckPloidyPipe >-> P.drain
+                -- runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
             else
-                --runEffect $ eigenstratProd >-> P.take 100 >-> checkPloidy logA ploidyList indivNames >-> P.drain
-                runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
+                runEffect $ eigenstratProd >-> P.take 100 >-> maybeCheckPloidyPipe >-> P.drain
+                -- runEffect $ eigenstratProd >-> P.take 100 >-> P.drain
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
-  -- where
-  --   checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
-  --       let illegals =
-  --               map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
-  --               filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
-  --               zip3 ploidyList indivNames . V.toList $ genoLine
-  --       unless (null illegals) $ do
-  --           logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
-  --           mapM_ (logWithEnv logA . logDebug) illegals
-  --           liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
+  where
+    checkPloidy logA ploidyList indivNames = for cat $ \(_, genoLine) -> do
+        let illegals =
+                map (\(_, ind, _) -> renderNameWithVersion pac ++ ": " ++ ind) .
+                filter (\(ploidy, _, geno) -> ploidy == Just Haploid && geno == Het) .
+                zip3 ploidyList indivNames . V.toList $ genoLine
+        unless (null illegals) $ do
+            logWithEnv logA . logDebug $ "The following samples have heterozygote genotypes despite being annotated as \"haploid\" in the Janno file:"
+            mapM_ (logWithEnv logA . logDebug) illegals
+            liftIO . throwIO $ PoseidonGenotypeException "Illegal heterozygote genotypes for individuals marked as 'haploid' in the Janno file. Choose --logMode VerboseLog to output more"
 
+validateForge :: [PoseidonPackage] -> Bool -> PoseidonIO ()
+validateForge pacs strandcheck = do
+    logA <- envLogAction
+    errLength <- envErrorLength
+    liftIO $ catch (
+        runSafeT $ do
+            currentTime <- liftIO getCurrentTime
+            eigenstratProd <- getJointGenotypeData logA False strandcheck False pacs Nothing
+            runEffect $ eigenstratProd >-> printSNPCopyProgress logA currentTime >-> P.drain
+        ) (throwIO . PoseidonGenotypeExceptionForward errLength)
 
 -- throws exception if any file is missing or checksum is incorrect
 checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
@@ -692,16 +713,18 @@ findAllPoseidonYmlFiles baseDir = do
 getJointGenotypeData :: MonadSafe m =>
                         LogA -- ^ how messages should be logged
                      -> Bool -- ^ whether to generate an intersection instead of union of input sites
+                     -> Bool -- ^ whether to check strand consistency
+                     -> Bool -- ^ whether to skip incongruent SNPs
                      -> [PoseidonPackage] -- ^ A list of poseidon packages.
                      -> Maybe FilePath -- ^ a genotype file to select SNPs from
                      -> m (Producer (EigenstratSnpEntry, GenoLine) m ())
                      -- ^ a pair of the EigenstratIndEntries and a Producer over the Snp position values and the genotype line, joined across all packages.
-getJointGenotypeData logA intersect pacs maybeSnpFile = do
+getJointGenotypeData logA intersect strandcheck skipIncongruentSnps pacs maybeSnpFile = do
     genotypeProducers <- sequence [loadGenotypeData (posPacBaseDir pac) (posPacGenotypeData pac) | pac <- pacs]
     let nrInds          = map (length . getJannoRows . posPacJanno) pacs
         pacNames        = map getPacName pacs
         prod            = orderedZipAll compFunc genotypeProducers >->
-                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds pacNames
+                                P.filter filterUnionOrIntersection >-> joinEntryPipe logA nrInds strandcheck skipIncongruentSnps pacNames
     jointProducer <- case maybeSnpFile of
         Nothing -> do
             return prod
@@ -732,14 +755,39 @@ getJannoRowsFromPac pac = let (JannoRows rows) = posPacJanno pac in rows
 
 -- | A pipe to merge the genotype entries from multiple packages.
 -- Uses the `joinEntries` function and catches exceptions to skip the respective SNPs.
-joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
-joinEntryPipe logA nrInds pacNames = for cat $ \maybeEntries -> do
-    eitherJE <- liftIO . try $ joinEntries logA nrInds pacNames maybeEntries
-    case eitherJE of
-        Left (PoseidonGenotypeException err) ->
-            logWithEnv logA . logDebug $ "Skipping SNP due to " ++ err
-        Left e -> liftIO . throwIO $ e
-        Right (eigenstratSnpEntry, genoLine) -> yield (eigenstratSnpEntry, genoLine)
+joinEntryPipe :: (MonadIO m) => LogA -> [Int] -> Bool -> Bool -> [String] -> Pipe [Maybe (EigenstratSnpEntry, GenoLine)] (EigenstratSnpEntry, GenoLine) m r
+joinEntryPipe logA nrInds strandCheck skipIncongruentSnps pacNames = for cat $ \maybeEntries -> do
+    case joinEntries nrInds pacNames strandCheck maybeEntries of
+        Left err ->
+            if skipIncongruentSnps then do
+                logWithEnv logA . logDebug $ err
+                logWithEnv logA . logDebug $ "Skipping this SNP"
+                return ()
+            else do
+                let tableH = ["Package", "SNP ID", "Chrom", "Pos", "GenPos", "Ref", "Alt"]
+                    tableB = zipWith makeSnpTableRow pacNames maybeEntries
+                    colSpecs = replicate (length tableH) (TLT.column (TLT.expandUntil 60) TLT.def TLT.def TLT.def)
+                    refAltTable = TLT.tableString colSpecs TLT.asciiRoundS (TLT.titlesH tableH) [TLT.rowsG tableB]
+                liftIO . throwIO . PoseidonGenotypeException $
+                   "\n" ++
+                   refAltTable ++
+                   "\n" ++
+                   "Incongruent SNP entries: " ++ err ++ " " ++
+                   (if strandCheck then "" else "Could this be due to strand-flips? If so, consider using --strandCheck. ") ++
+                   "In forge you can skip all offending SNPs with --skipIncongruentSNPs."
+        Right Nothing -> return ()
+        Right (Just (eigenstratSnpEntry, genoLine)) -> yield (eigenstratSnpEntry, genoLine)
+
+makeSnpTableRow :: String -> Maybe (EigenstratSnpEntry, GenoLine) -> [String]
+makeSnpTableRow p Nothing = [p, "", "", "", "", "", ""]
+makeSnpTableRow p (Just (x, _)) = [
+     p
+   , Bchs.unpack $ snpId x
+   , show $ snpChrom x
+   , show $ snpPos x
+   , show $ snpGeneticPos x
+   , [snpRef x], [snpAlt x]
+   ]
 
 loadBimOrSnpFile :: (MonadSafe m) => FilePath -> Producer EigenstratSnpEntry m ()
 loadBimOrSnpFile fn
@@ -936,7 +984,7 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
             AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
             AddColList c -> c
-        additionalColumnEntries = [(k, BSC.unpack <$> toNamedRecord jannoRow HM.!? BSC.pack k) | k <- colNames]
+        additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
     return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries

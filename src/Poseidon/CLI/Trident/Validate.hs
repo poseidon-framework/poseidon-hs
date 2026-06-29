@@ -14,12 +14,12 @@ import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  getJointIndividualInfo,
                                                  makePseudoPackageFromGenotypeData,
                                                  readPoseidonPackageCollectionWithSkipIndicator,
-                                                 validateGeno)
+                                                 validateForge, validateGeno)
 import           Poseidon.Core.SequencingSource (SeqSourceRows (..),
                                                  readSeqSourceFile)
 import           Poseidon.Core.Utils            (PoseidonIO, logError, logInfo)
 
-import           Control.Monad                  (forM_, unless)
+import           Control.Monad                  (forM_, unless, when)
 import           Control.Monad.Catch            (throwM)
 import           Control.Monad.IO.Class         (liftIO)
 import qualified Data.ByteString                as B
@@ -44,6 +44,8 @@ data ValidatePlan =
           _valPlanBaseDirs         :: [FilePath]
         , _valPlanIgnoreGeno       :: Bool
         , _valPlanFullGeno         :: Bool
+        , _valPlanForgeTest        :: Bool
+        , _valPlanStrandCheck      :: Bool
         , _valPlanIgnoreDuplicates :: Bool
         , _valPlanIgnoreChecksums  :: Bool
         , _valPlanIgnorePosVersion :: Bool
@@ -56,7 +58,7 @@ data ValidatePlan =
 
 runValidate :: ValidateOptions -> PoseidonIO ()
 runValidate (ValidateOptions
-    (ValPlanBaseDirs baseDirs ignoreGeno fullGeno ignoreDup ignoreChecksums ignorePosVersion)
+    (ValPlanBaseDirs baseDirs ignoreGeno fullGeno forgeTest strandcheck ignoreDup ignoreChecksums ignorePosVersion)
     mandatoryJannoCols mandatorySSFCols
     noExitCode onlyLatest) = do
     logInfo $ "Validating: " ++ intercalate ", " baseDirs
@@ -86,6 +88,10 @@ runValidate (ValidateOptions
                 forM_ xs $ \x -> do
                     logError $ "  " ++ show x
             throwM . PoseidonCollectionException $ "Detected duplicate individuals."
+    -- check if packages can be forged
+    when forgeTest $ do
+        logInfo "Attempting full forge:"
+        validateForge allPackages strandcheck
     -- fail the validation if not all POSEIDON.yml files yielded a clean package
     conclude (not packagesSkipped) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) _ _ noExitCode _) = do

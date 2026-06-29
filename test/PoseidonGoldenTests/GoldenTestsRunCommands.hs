@@ -317,6 +317,8 @@ testPipelineValidate testDir checkFilePath = do
           _valPlanBaseDirs         = [testPacsDir]
         , _valPlanIgnoreGeno       = False
         , _valPlanFullGeno         = False
+        , _valPlanForgeTest        = False
+        , _valPlanStrandCheck      = False
         , _valPlanIgnoreDuplicates = True
         , _valPlanIgnoreChecksums  = False
         , _valPlanIgnorePosVersion = False
@@ -382,6 +384,11 @@ testPipelineValidate testDir checkFilePath = do
           _validatePlan = validatePlan1 { _valPlanBaseDirs = [testPacsDir </> "Lamnidis_2018"] }
         , _validateMandatorySSF = ["Kaesebrot", "Hutschnur"]
     } & run 13
+    -- wrong ploidy information
+    let validatePlan2 = validatePlan1 { _valPlanBaseDirs = [testPacsDirOther </> "Schmid_2028_wrong_ploidy"] }
+    validateOpts1 { _validatePlan = validatePlan2 } & run 14
+    validateOpts1 { _validatePlan = validatePlan2 { _valPlanIgnoreGeno = True }} & run 15
+    validateOpts1 { _validatePlan = validatePlan2 { _valPlanFullGeno = True }} & run 16
     where
         run :: Integer -> ValidateOptions -> IO ()
         run nr opts = do
@@ -686,6 +693,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -710,6 +719,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -734,6 +745,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>,-<SAMPLE3>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = MinimalOut
         , _forgeOutZip       = False
@@ -755,6 +768,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile1.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -780,6 +795,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesFromFile (testEntityFiles </> "goldenTestForgeFile2.txt")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -804,6 +821,8 @@ testPipelineForge testDir checkFilePath = do
           _forgeGenoSources  = [PacBaseDir $ testPacsDir </> "Schiffels_2016", PacBaseDir $ testPacsDir </> "Wang_2020"]
         , _forgeEntityInput  = []
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -856,6 +875,8 @@ testPipelineForge testDir checkFilePath = do
           ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = GenoOut
         , _forgeOutZip       = False
@@ -894,6 +915,8 @@ testPipelineForge testDir checkFilePath = do
             ]
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP2,<SAMPLE2>,<SAMPLE4>")]
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -918,6 +941,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX001>,<XXX011>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -939,6 +964,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP1,-<Schiffels_2016:POP1:XXX001>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -961,6 +988,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "-<Schmid_2028:POP1:XXX001>,-<Schiffels_2016:POP2:XXX002>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -984,6 +1013,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1006,6 +1037,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1026,6 +1059,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*Lamnidis_2018-1.0.1*,*Schiffels_2016*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1047,6 +1082,8 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "<Lamnidis_2018-1.0.1:POP1:XXX017>,<Lamnidis_2018-1.0.0:POP3:XXX018>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1068,6 +1105,8 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018-1.0.1*,*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1089,6 +1128,8 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-*Lamnidis_2018*,*Lamnidis_2018-1.0.0*")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1110,6 +1151,8 @@ testPipelineForge testDir checkFilePath = do
             readEntitiesFromString "*Lamnidis_2018-1.0.1*,-POP2,-<Lamnidis_2018-1.0.1:POP1:XXX017>,-<Lamnidis_2018-1.0.1:POP3:XXX018>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatEigenstrat
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1129,6 +1172,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "POP3,<XXX004>,<XXX006>,<XXX003>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1150,6 +1195,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "<XXX004>")]
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = PreservePymlOut
         , _forgeOutZip       = False
@@ -1180,6 +1227,8 @@ testPipelineForge testDir checkFilePath = do
         , _forgeEntityInput  = []
         , _forgeSnpFile      = Nothing
         , _forgeIntersect    = False
+        , _forgeStrandCheck  = False
+        , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
         , _forgeOutMode      = NormalOut
         , _forgeOutZip       = False
@@ -1294,7 +1343,7 @@ archives = Left $ ArchiveConfig [
  -- before running them on the main server.
 testPipelineFetch :: FilePath -> FilePath -> IO ()
 testPipelineFetch testDir checkFilePath = do
-    let serverOpts = ServeOptions archives (Just "/tmp/zip_dir") 3000 True Nothing
+    let serverOpts = ServeOptions archives 3000 True Nothing
     -- we prepare an empty MVar, which is filled as soon as the server is ready
     serverReady <- newEmptyMVar
     -- this will start the server on another thread
@@ -1386,7 +1435,7 @@ testPipelineFetch testDir checkFilePath = do
 
 testPipelineListRemote :: FilePath -> FilePath -> IO ()
 testPipelineListRemote testDir checkFilePath = do
-    let serverOpts = ServeOptions archives Nothing 3001 True Nothing
+    let serverOpts = ServeOptions archives 3001 True Nothing
     -- see above
     serverReady <- newEmptyMVar
     threadID <- forkIO (testLog $ runServer serverOpts serverReady)

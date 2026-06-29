@@ -7,10 +7,7 @@ import           Paths_poseidon_hs              (version)
 import           Poseidon.Core.BibFile          (renderBibEntry)
 import           Poseidon.Core.ColumnTypesJanno
 import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
-                                                 PacNameAndVersion (PacNameAndVersion),
-                                                 renderNameWithVersion)
-import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
-                                                 GenotypeFileSpec (..))
+                                                 PacNameAndVersion (PacNameAndVersion))
 import           Poseidon.Core.Janno            (JannoRow (..), getJannoRows)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  PoseidonPackage (..),
@@ -27,24 +24,29 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  ServerApiReturnType (..))
 import           Poseidon.Core.ServerHTML
 import           Poseidon.Core.ServerStylesheet (stylesBS)
+import           Poseidon.Core.ServerZipStream  (collectPackageZipFiles,
+                                                 sendPackageArchive)
 import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
                                                  logDebug, logInfo, logWithEnv)
 
-import           Codec.Archive.Zip              (Archive, addEntryToArchive,
-                                                 emptyArchive, fromArchive,
-                                                 toEntry)
 import           Control.Concurrent.MVar        (MVar, newEmptyMVar, putMVar)
-import           Control.Monad                  (foldM, forM, when)
+import           Control.Monad                  (forM)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
+<<<<<<< HEAD
 import qualified Data.ByteString.Lazy           as B
 import           Data.Coerce                    (coerce)
 import           Data.List                      (groupBy, intercalate, sortOn)
 import           Data.List.Split                (splitOn)
 import           Data.Maybe                     (isJust)
 import           Data.Ord                       (Down (..))
+=======
+import           Data.List                      (foldl', groupBy, intercalate,
+                                                 sortOn)
+import           Data.List.Split                (splitOn)
+import           Data.Maybe                     (isJust, mapMaybe)
+>>>>>>> master
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
-import           Data.Time.Clock.POSIX          (utcTimeToPOSIXSeconds)
 import           Data.Version                   (Version, parseVersion,
                                                  showVersion)
 import           Data.Yaml                      (FromJSON, decodeFileThrow,
@@ -56,21 +58,27 @@ import           Network.Wai.Handler.Warp       (defaultSettings, runSettings,
 import           Network.Wai.Handler.WarpTLS    (runTLS, tlsSettings,
                                                  tlsSettingsChain)
 import           Network.Wai.Middleware.Cors    (simpleCors)
+<<<<<<< HEAD
 import           System.Directory               (createDirectoryIfMissing,
                                                  doesFileExist,
                                                  getModificationTime)
 import           System.FilePath                ((<.>), (</>))
+=======
+import           Paths_poseidon_hs              (version)
+import           Poseidon.Core.BibFile          (renderBibEntry)
+import           Poseidon.Core.ColumnTypesJanno (JannoLatitude (..),
+                                                 JannoLongitude (..))
+>>>>>>> master
 import           Text.ParserCombinators.ReadP   (readP_to_S)
 import           Web.Scotty                     (ActionM, ScottyM, captureParam,
-                                                 file, get, json, middleware,
+                                                 get, json, middleware,
                                                  notFound, queryParamMaybe, raw,
                                                  redirect, request, scottyApp,
-                                                 setHeader, text)
+                                                 setHeader, stream, text)
 
 -- CLI options and routines
 data ServeOptions = ServeOptions
     { cliArchiveConfig   :: Either ArchiveConfig FilePath
-    , cliZipDir          :: Maybe FilePath
     , cliPort            :: Int
     , cliIgnoreChecksums :: Bool
     , cliCertFiles       :: Maybe (FilePath, [FilePath], FilePath)
@@ -152,9 +160,6 @@ parseArchiveConfigFile = decodeFileThrow
 type ArchiveStore a = [(ArchiveSpec, a)] -- a generic lookup table from an archive specification to an item
 
 type ArchiveStorePackages = ArchiveStore [PoseidonPackage]
-type ArchiveStoreZipFiles = ArchiveStore ZipStore
-
-type ZipStore = [(PacNameAndVersion, FilePath)] -- maps PackageName+Version to a zipfile-path
 
 getArchiveSpecs :: ArchiveStore a -> [ArchiveSpec]
 getArchiveSpecs = map fst
@@ -180,23 +185,6 @@ readArchiveStore (ArchiveConfig archiveSpecs) pacReadOpts = do
         pacs <- readPoseidonPackageCollection pacReadOpts relevantDirs
         return (spec, pacs)
 
-createZipArchiveStore :: ArchiveStorePackages -> FilePath -> PoseidonIO ArchiveStoreZipFiles
-createZipArchiveStore archiveStore zipPath =
-    forM archiveStore $ \(spec, packages) -> do
-        logInfo $ "Zipping packages in archive " ++ _archSpecName spec
-        (spec,) <$> forM packages (\pac -> do
-            logInfo "Checking whether zip files are missing or outdated"
-            liftIO $ createDirectoryIfMissing True (zipPath </> _archSpecName spec)
-            let combinedPackageVersionTitle = renderNameWithVersion pac
-            let fn = zipPath </> _archSpecName spec </> combinedPackageVersionTitle <.> "zip"
-            zipFileOutdated <- liftIO $ checkZipFileOutdated pac fn
-            when zipFileOutdated $ do
-                logInfo ("Zip Archive for package " ++ combinedPackageVersionTitle ++ " missing or outdated. Zipping now")
-                zip_ <- liftIO $ makeZipArchive pac
-                let zip_raw = fromArchive zip_
-                liftIO $ B.writeFile fn zip_raw
-            return (posPacNameAndVersion pac, fn))
-
 runServerMainThread :: ServeOptions -> PoseidonIO ()
 runServerMainThread opts = do
     -- the MVar is used as a signal from the server to the calling thread that it is ready.
@@ -205,11 +193,10 @@ runServerMainThread opts = do
     runServer opts dummy
 
 runServer :: ServeOptions -> MVar () -> PoseidonIO ()
-runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles) serverReady = do
-    let archiveZip = isJust maybeZipPath
-        pacReadOpts = defaultPackageReadOptions {
+runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady = do
+    let pacReadOpts = defaultPackageReadOptions {
               _readOptIgnoreChecksums  = ignoreChecksums
-            , _readOptGenoCheck        = archiveZip
+            , _readOptGenoCheck        = False
         }
 
     logInfo "Server starting up. Loading packages..."
@@ -220,10 +207,6 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             readArchiveStore archiveConfig pacReadOpts
 
     logInfo $ "Using " ++ (_archSpecName . fst . head) archiveStore ++ " as the default archive"
-
-    zipArchiveStore <- case maybeZipPath of
-        Nothing -> return []
-        Just z  -> createZipArchiveStore archiveStore z
 
     let archiveSpecs = getArchiveSpecs archiveStore
 
@@ -284,34 +267,23 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             return $ ServerApiReturnType [] (Just retData)
 
         -- API for retreiving package zip files
-        when archiveZip . get "/zip_file/:package_name" $ do
+        get "/zip_file/:package_name" $ do
             logRequest logA
-            -- here we do not filter on retired. Requested packages are always served.
-            zipStore <- getItemFromArchiveStore zipArchiveStore
-            packageName <- captureParam "package_name"
+            pacName            <- captureParam "package_name"
             maybeVersionString <- queryParamMaybe "package_version"
-            maybeVersion <- case maybeVersionString of
-                Nothing -> return Nothing
-                Just versionStr -> case parseVersionString versionStr of
-                    Nothing -> fail $ "Could not parse package version string " ++ versionStr
-                    Just v -> return $ Just v
-            case sortOn (Down . fst) . filter ((==packageName) . getPacName . fst) $ zipStore of
-                [] -> fail $ "unknown package " ++ packageName -- no version found
-                [(pacNameAndVersion, fn)] -> case maybeVersion of -- exactly one version found
-                    Nothing -> file fn
-                    Just v -> if getPacVersion pacNameAndVersion == Just v
-                            then file fn
-                            else
-                                fail $ "Package " ++ packageName ++
-                                    " is not available for version " ++showVersion v
-                pl@((_, fnLatest) : _) -> case maybeVersion of
-                    Nothing -> file fnLatest
-                    Just v -> case filter ((==Just v) . getPacVersion . fst) pl of
-                        [] -> fail $
-                            "Package " ++ packageName ++
-                            "is not available for version " ++ showVersion v
-                        [(_, fn)] -> file fn
-                        _ -> error "Should never happen" -- packageCollection should have been filtered to have only one version per package
+            let pacVersionString = case maybeVersionString of
+                  Nothing -> "latest"
+                  Just x  -> x
+            pacVersionWL <- case parsePackageVersionString pacVersionString of
+                Nothing -> fail $ "Could not parse package version string " ++ pacVersionString
+                Just v -> return v
+            -- here we do not filter on retired. Requested packages are always served
+            allPacs <- getItemFromArchiveStore archiveStore
+            allVersions <- prepPacVersions pacName allPacs
+            oneVersion  <- prepPacVersion pacVersionWL allVersions
+            zipFiles <- liftIO $ collectPackageZipFiles oneVersion
+            setHeader "Content-Type" "application/zip"
+            stream (sendPackageArchive zipFiles)
 
         -- html API
 
@@ -342,8 +314,14 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
             retiredPacs <- getRetiredPackages spec
             latestPacs <- selectLatest <$> (getArchiveContentByName archiveName archiveStore >>= filterRetired retiredPacs)
             let packagesToMap = excludePackagesByName excludeFromMap latestPacs
+<<<<<<< HEAD
                 plotSamples = concatMap (prepPlotSamples archiveName) packagesToMap
             archivePage archiveName maybeArchiveDataURL archiveZip excludeFromMap plotSamples latestPacs
+=======
+                nrSamplesToMap = foldl' (\i p -> i + length (getJannoRows $ posPacJanno p)) 0 packagesToMap
+                mapMarkers = concatMap (prepMappable archiveName) packagesToMap
+            archivePage archiveName maybeArchiveDataURL excludeFromMap nrSamplesToMap mapMarkers latestPacs
+>>>>>>> master
         -- per package pages
         get "/explorer/:archive_name/:package_name" $ do
             -- we do not filter by retired. A requested package is always shown, even if it is retired.
@@ -365,7 +343,11 @@ runServer (ServeOptions archBaseDirs maybeZipPath port ignoreChecksums certFiles
                 bib = intercalate "\n" $ map renderBibEntry $ posPacBib oneVersion
                 pacVersion = getPacVersion oneVersion
             samples <- prepSamples oneVersion
+<<<<<<< HEAD
             packageVersionPage archiveName pacName pacVersion archiveZip plotSamples bib oneVersion allVersions samples
+=======
+            packageVersionPage archiveName pacName pacVersion mapMarkers bib oneVersion allVersions samples
+>>>>>>> master
         -- per sample pages
         get "/explorer/:archive_name/:package_name/:package_version/:sample" $ do
             logRequest logA
@@ -485,61 +467,6 @@ conditionOnClientVersion contentAction = do
     else do
         ServerApiReturnType messages content <- contentAction
         json $ ServerApiReturnType (genericServerMessages ++ versionWarnings ++ messages) content
-
-checkZipFileOutdated :: PoseidonPackage -> FilePath -> IO Bool
-checkZipFileOutdated pac fn = do
-    zipFileExists <- doesFileExist fn
-    if zipFileExists
-    then do
-        zipModTime <- getModificationTime fn
-        yamlOutdated <- checkOutdated zipModTime (posPacBaseDir pac </> "POSEIDON.yml")
-        bibOutdated <- case posPacBibFile pac of
-            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing  -> return False
-        jannoOutdated <- case posPacJannoFile pac of
-            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing  -> return False
-        readmeOutdated <- case posPacReadmeFile pac of
-            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing  -> return False
-        changelogOutdated <- case posPacChangelogFile pac of
-            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing  -> return False
-        ssfOutdated <- case posPacSeqSourceFile pac of
-            Just fn_ -> checkOutdated zipModTime (posPacBaseDir pac </> fn_)
-            Nothing  -> return False
-        let gd = posPacGenotypeData pac
-        genoFilesOutdated <- case  genotypeFileSpec gd of
-            GenotypeEigenstrat gf _ sf _ i _ -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf, sf, i]
-            GenotypePlink gf _ sf _ i _      -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf, sf, i]
-            GenotypeVCF gf _                 -> mapM (checkOutdated zipModTime . (posPacBaseDir pac </>)) [gf]
-        return . or $ [yamlOutdated, bibOutdated, jannoOutdated, readmeOutdated, changelogOutdated, ssfOutdated] ++ genoFilesOutdated
-    else
-        return True
-  where
-    checkOutdated zipModTime fn_ = (> zipModTime) <$> getModificationTime fn_
-
-makeZipArchive :: PoseidonPackage -> IO Archive
-makeZipArchive pac =
-    addYaml emptyArchive >>= addJanno >>= addBib >>= addReadme >>= addChangelog >>= addGenos >>= addSSF
-  where
-    addYaml      = addFN "POSEIDON.yml"
-    addJanno     = maybe return addFN (posPacJannoFile pac)
-    addBib       = maybe return addFN (posPacBibFile pac)
-    addReadme    = maybe return addFN (posPacReadmeFile pac)
-    addChangelog = maybe return addFN (posPacChangelogFile pac)
-    addSSF       = maybe return addFN (posPacSeqSourceFile pac)
-    addGenos archive = case genotypeFileSpec . posPacGenotypeData $ pac of
-        GenotypeEigenstrat gf _ sf _ i _ -> foldM (flip addFN) archive [gf, sf, i]
-        GenotypePlink gf _ sf _ i _      -> foldM (flip addFN) archive [gf, sf, i]
-        GenotypeVCF gf _                 -> addFN gf archive
-    addFN :: FilePath -> Archive -> IO Archive
-    addFN fn a = do
-        let fullFN = posPacBaseDir pac </> fn
-        rawFN <- B.readFile fullFN
-        modTime <- round . utcTimeToPOSIXSeconds <$> getModificationTime fullFN
-        let zipEntry = toEntry fn modTime rawFN
-        return (addEntryToArchive zipEntry a)
 
 scottyHTTPS :: MVar () -> Int -> FilePath -> [FilePath] -> FilePath -> ScottyM () -> PoseidonIO ()
 scottyHTTPS serverReady port cert chains key s = do
