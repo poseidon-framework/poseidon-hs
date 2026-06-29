@@ -199,6 +199,12 @@ escapeJsonForScript =
   . T.replace ">" "\\u003e"
   . T.replace "<" "\\u003c"
 
+plots = do
+    H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
+    H.div ! A.style "font-size: 12px; margin-bottom: 10px;" $ do
+      H.toMarkup $ H.string "Only considers one median age per sample, binned in 100 year bins."
+    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+
 archivePage ::
      String
   -> Maybe String
@@ -213,8 +219,7 @@ archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
       samplesJsonScript (dataToJSON plotSamples)
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
-    H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    plots
     case excludeFromMap of
       [] -> do
         H.div ! A.style "font-size: 12px;" $ do
@@ -267,8 +272,7 @@ packageVersionPage
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
-    H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    plots
     H.br
     -- description
     H.article $ do
@@ -333,8 +337,7 @@ samplePage plotSample row = do
       samplesJsonScript (dataToJSON [plotSample])
       H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
     H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
-    H.div ! A.id "timelineid" ! A.style "height: 120px; width: 100%;" $ ""
-    H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
+    plots
     H.div $ H.table $ do
       H.tr $ do
         H.th $ H.b "Property"
