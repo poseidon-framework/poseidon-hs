@@ -90,8 +90,8 @@ if (document.querySelector('#timelineid')) {
         .filter(Number.isFinite);
     const dataMin = Math.min(...ages);
     const dataMax = Math.max(...ages);
-    const domainStart = Math.floor(dataMin / binWidth) * binWidth;
-    const domainEnd = Math.ceil(dataMax / binWidth) * binWidth;
+    const domainStart = dataMin - 2000;
+    const domainEnd = dataMax + 2000;
     const timelineSpec = {
         $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
         width: 'container',
@@ -101,18 +101,16 @@ if (document.querySelector('#timelineid')) {
         params: [
             {
                 name: 'x_zoom',
-                select: {
-                    type: 'interval',
-                    encodings: ['x']
-                },
+                select: { type: 'interval', encodings: ['x'] },
                 bind: 'scales'
             }
         ],
-        mark: { type: 'bar', color: '#13171f' },
+        mark: { type: 'bar', orient: 'vertical', color: '#13171f' },
         encoding: {
             x: {
                 field: 'binStart',
                 type: 'quantitative',
+                bin: 'binned',
                 title: null,
                 scale: {
                     domain: [domainStart, domainEnd],
@@ -135,22 +133,11 @@ if (document.querySelector('#timelineid')) {
                 title: 'Samples',
                 axis: { tickMinStep: 1 }
             },
+            y2: { datum: 0 }, // force bars to extend down to zero
             tooltip: [
-                {
-                    field: 'binLabel',
-                    type: 'nominal',
-                    title: 'Interval'
-                },
-                {
-                    field: 'count',
-                    type: 'quantitative',
-                    title: 'Samples'
-                },
-                {
-                    field: 'idsPreview',
-                    type: 'nominal',
-                    title: 'Poseidon IDs'
-                }
+                { field: 'binLabel', type: 'nominal', title: 'Interval' },
+                { field: 'count', type: 'quantitative', title: 'Samples' },
+                { field: 'idsPreview', type: 'nominal', title: 'Poseidon IDs' }
             ]
         },
         config: {
