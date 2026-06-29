@@ -81,6 +81,8 @@ if (document.querySelector('#timelineid')) {
                 count: d.count
             };
         });
+    const maxCount = Math.max(...timelineBins.map(d => d.count));
+    const yMax = Math.ceil(maxCount * 1.15);
     const ages = timelineMarkers
         .map(s => Number(s.mmAge))
         .filter(Number.isFinite);
@@ -129,7 +131,11 @@ if (document.querySelector('#timelineid')) {
                     field: 'count',
                     type: 'quantitative',
                     title: 'Samples',
-                    axis: { tickMinStep: 1 }
+                    scale: {
+                        domain: [0, yMax],
+                        nice: false
+                    },
+                    axis: { tickMinStep: 1, tickCount: 5 }
                 },
                 y2: { datum: 0 } // force bars to extend down to zero
             }
@@ -137,25 +143,15 @@ if (document.querySelector('#timelineid')) {
         {
             // rug/presence ticks
             mark: {
-                type: 'tick',
+                type: 'point',
                 color: '#d94801',
-                thickness: 5,
-                size: 5,
-                opacity: 1
+                size: 20,
+                shape: "triangle-down"
             },
             encoding: {
-                x: {
-                    field: 'binMid',
-                    type: 'quantitative',
-                    scale: {
-                        domain: [domainStart, domainEnd],
-                        nice: false
-                    }
-                },
-                y: {
-                    field: 'count',
-                    type: 'quantitative'
-                }
+                x: { field: 'binMid', type: 'quantitative' },
+                y: { field: 'count', type: 'quantitative' },
+                yOffset: { value: -5 } // move up by 5 pixels
             }
         }],
         resolve: { scale: { x: 'shared' } },
