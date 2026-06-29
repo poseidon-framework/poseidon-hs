@@ -74,15 +74,10 @@ if (document.querySelector('#timelineid')) {
     const timelineBins = Array.from(bins.values())
         .sort((a, b) => a.binStart - b.binStart)
         .map(d => {
-            const idsPreview = d.ids.length > 20
-                ? d.ids.slice(0, 20).join(', ') + `, … ${d.ids.length - 20} more`
-                : d.ids.join(', ');
             return {
                 binStart: d.binStart,
                 binEnd: d.binEnd,
-                count: d.count,
-                binLabel: `${formatYear(d.binStart)} – ${formatYear(d.binEnd)}`,
-                idsPreview
+                count: d.count
             };
         });
     const ages = timelineMarkers
@@ -95,7 +90,7 @@ if (document.querySelector('#timelineid')) {
     const timelineSpec = {
         $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
         width: 'container',
-        height: 120,
+        height: 115, // less than the surrounding div, to show 1px border
         autosize: { type: 'fit', contains: 'padding' },
         data: { values: timelineBins },
         params: [
@@ -133,12 +128,7 @@ if (document.querySelector('#timelineid')) {
                 title: 'Samples',
                 axis: { tickMinStep: 1 }
             },
-            y2: { datum: 0 }, // force bars to extend down to zero
-            tooltip: [
-                { field: 'binLabel', type: 'nominal', title: 'Interval' },
-                { field: 'count', type: 'quantitative', title: 'Samples' },
-                { field: 'idsPreview', type: 'nominal', title: 'Poseidon IDs' }
-            ]
+            y2: { datum: 0 } // force bars to extend down to zero
         },
         config: {
             view: {

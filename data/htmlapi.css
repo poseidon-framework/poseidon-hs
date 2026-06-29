@@ -1,3 +1,14 @@
+/* overwrite some pico styling */
+
+/* vega timeline plot */
+#timelineid {
+    background-color: white !important;
+    border: 1px solid black !important;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+/* leaflet map */
 .leaflet-container {
     background: white;
 }
@@ -24,7 +35,8 @@
 .leaflet-popup-content-wrapper {
     padding: 6px 8px !important;
 }
-/* overwrite some styling for the sortable table */
+
+/* sortable table */
 .datatable-active button {
     color: #13171F !important;
 }
