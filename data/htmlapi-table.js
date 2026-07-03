@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   new simpleDatatables.DataTable(table, {
     searchable: true,
+    sortable: false,
     perPage: 10
   });
 });
