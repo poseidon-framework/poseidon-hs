@@ -270,9 +270,9 @@ packageVersionPage
       then do
         samplesJsonScript (dataToJSON plotSamples)
         plots
+        H.br
       else do
         showPlotsButton
-    H.br
     -- description
     H.article $ do
       H.b "Description: "
