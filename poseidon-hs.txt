@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.1.2.0
+@version 2.1.2.1
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -1064,7 +1064,8 @@ instance Poseidon.Core.ColumnTypesUtils.FromFieldVersioned Poseidon.Core.ColumnT
 
 module Poseidon.Core.ServerStylesheet
 picocssBS :: ByteString
-jsText :: Text
+htmlApiTableBS :: ByteString
+htmlApiPlotsBS :: ByteString
 cssText :: Text
 
 module Poseidon.Core.Utils
