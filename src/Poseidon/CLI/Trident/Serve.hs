@@ -22,7 +22,7 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  ApiReturnData (..),
                                                  ServerApiReturnType (..))
 import           Poseidon.Core.ServerHTML
-import           Poseidon.Core.ServerStylesheet (picocssBS)
+import           Poseidon.Core.ServerStylesheet
 import           Poseidon.Core.ServerZipStream  (collectPackageZipFiles,
                                                  sendPackageArchive)
 import           Poseidon.Core.Utils            (LogA, PoseidonIO, envLogAction,
@@ -271,6 +271,14 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
         get "/pico.css" $ do
             setHeader "Content-Type" "text/css; charset=utf-8"
             raw picocssBS
+        get "/htmlapi-table.js" $ do
+            setHeader "Content-Type" "text/javascript; charset=utf-8"
+            setHeader "Cache-Control" "public, max-age=86400"
+            raw htmlApiTableBS
+        get "/htmlapi-plots.js" $ do
+            setHeader "Content-Type" "text/javascript; charset=utf-8"
+            setHeader "Cache-Control" "public, max-age=86400"
+            raw htmlApiPlotsBS
         -- landing page
         get "/" $ do
             redirect "/explorer"

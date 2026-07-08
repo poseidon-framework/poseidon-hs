@@ -10,8 +10,11 @@ import qualified Data.Text.Encoding   as TE
 picocssBS :: BL.ByteString
 picocssBS = BL.fromStrict $(FE.embedFile "data/pico.classless.blue.min.css")
 
-jsText :: T.Text
-jsText = TE.decodeUtf8 $(FE.embedFile "data/htmlapi.js")
+htmlApiTableBS :: BL.ByteString
+htmlApiTableBS = BL.fromStrict $(FE.embedFile "data/htmlapi-table.js")
+
+htmlApiPlotsBS :: BL.ByteString
+htmlApiPlotsBS = BL.fromStrict $(FE.embedFile "data/htmlapi-plots.js")
 
 cssText :: T.Text
 cssText = TE.decodeUtf8 $(FE.embedFile "data/htmlapi.css")

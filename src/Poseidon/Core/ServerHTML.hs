@@ -74,11 +74,11 @@ escapeJsonForScript =
 
 -- html template
 
-explorerPage :: [T.Text] -> H.Html -> H.Html
-explorerPage urlPath content = do
+explorerPage :: [T.Text] -> H.Html -> H.Html -> H.Html
+explorerPage urlPath extraHead content = do
     H.docType
     H.html $ do
-      header
+      header extraHead
       H.body $ do
         H.main $ do
           navBar
@@ -86,37 +86,12 @@ explorerPage urlPath content = do
           content
           footer
 
-header :: H.Markup
-header = H.head $ do
+header :: H.Html -> H.Markup
+header extraHead = H.head $ do
     H.meta ! A.charset "utf-8"
     -- load classless pico CSS
     H.link ! A.rel "stylesheet" ! A.type_ "text/css" ! A.href "/pico.css"
     H.style ! A.type_ "text/css" $ H.preEscapedToHtml cssText
-    -- leaflet (js must be after css)
-    H.link ! A.rel "stylesheet"
-           ! A.type_ "text/css"
-           ! A.href "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-           ! H.customAttribute "integrity" "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-           ! H.customAttribute "crossorigin" ""
-    H.script ! A.src "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-             ! H.customAttribute "integrity" "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-             ! H.customAttribute "crossorigin" ""
-             $ ""
-    -- leaflet markercluster
-    H.link ! A.rel "stylesheet"
-           ! A.type_ "text/css"
-           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-           ! H.customAttribute "integrity" "sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc="
-           ! H.customAttribute "crossorigin" ""
-    H.link ! A.rel "stylesheet"
-           ! A.type_ "text/css"
-           ! A.href "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-           ! H.customAttribute "integrity" "sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA="
-           ! H.customAttribute "crossorigin" ""
-    H.script ! A.src "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
-             ! H.customAttribute "integrity" "sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg="
-             ! H.customAttribute "crossorigin" ""
-             $ ""
     -- DataTables
     H.link ! A.rel "stylesheet"
            ! A.type_ "text/css"
@@ -126,20 +101,14 @@ header = H.head $ do
     H.script ! A.src "https://cdn.jsdelivr.net/npm/simple-datatables@10.0"
              ! H.customAttribute "integrity" "sha256-x6Cva2xkJFDOJblsizzuGX3Y+ucjav8yEx3sRFmgDYk="
              ! H.customAttribute "crossorigin" ""
+             ! H.customAttribute "defer" ""
              $ ""
-    -- vega-lite
-    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega@6.2.0"
-             ! H.customAttribute "integrity" "sha256-6mpZNjgdBvkSRmNU4raiDrZsTUHxyp3/HgI23+5u45I="
-             ! H.customAttribute "crossorigin" ""
+    -- custom javascript to trigger DataTables
+    H.script ! A.src "/htmlapi-table.js"
+             ! H.customAttribute "defer" ""
              $ ""
-    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-lite@6.4.3"
-             ! H.customAttribute "integrity" "sha256-NamCHfg4glsFpqc+lBS1h0ehsYMhWDhY7ZA8Zjk6XH4="
-             ! H.customAttribute "crossorigin" ""
-             $ ""
-    H.script ! A.src "https://cdn.jsdelivr.net/npm/vega-embed@7.1.0"
-             ! H.customAttribute "integrity" "sha256-w2JUJwIZ7uWPubHZVN7K2VT7B7/Jq3gMXUQBvURc1Qw="
-             ! H.customAttribute "crossorigin" ""
-             $ ""
+    -- page-specific headers
+    extraHead
 
 navBar :: H.Html
 navBar = H.nav $ do
@@ -171,7 +140,7 @@ footer = H.footer ! A.style "border-top: 1px solid; padding: 1em; border-color: 
 mainPage :: [(String, Maybe String, Maybe String,[PoseidonPackage])] -> S.ActionM ()
 mainPage pacsPerArchive = do
   urlPath <- pathInfo <$> S.request
-  S.html $ renderMarkup $ explorerPage urlPath $ do
+  S.html $ renderMarkup $ explorerPage urlPath mempty $ do
     H.h1 "Archives"
     H.ul $ forM_ pacsPerArchive $ \(archiveName, maybeDescription, maybeURL, pacs) -> do
       let nrPackages = length pacs
@@ -207,6 +176,22 @@ plots = do
       H.toMarkup $ H.string "Only considers one median age per sample, binned in 100 year bins."
     H.div ! A.id "mapid" ! A.style "height: 350px;" $ ""
 
+plotHeader :: H.Html
+plotHeader = do
+    H.script
+      ! A.src "/htmlapi-plots.js"
+      ! H.customAttribute "defer" ""
+      $ ""
+
+showPlotsButton :: H.Html
+showPlotsButton =
+  H.form ! A.method "get" $ do
+    H.button
+      ! A.type_ "submit"
+      ! A.name "plots"
+      ! A.value "true"
+      $ "Show plots"
+
 archivePage ::
      String
   -> Maybe String
@@ -215,13 +200,19 @@ archivePage ::
   -> [PoseidonPackage]
   -> S.ActionM ()
 archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
-  urlPath <- pathInfo <$> S.request
-  S.html $ renderMarkup $ explorerPage urlPath $ do
-    H.head $ do
-      samplesJsonScript (dataToJSON plotSamples)
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
+  req <- S.request
+  queryParams <- S.queryParams
+  let urlPath = pathInfo req
+      showPlots = lookup "plots" queryParams == Just "true"
+      extraHeader = if showPlots then plotHeader else mempty
+  S.html $ renderMarkup $ explorerPage urlPath extraHeader $ do
     H.h1 (H.toMarkup $ "Archive: " <> archiveName)
-    plots
+    if showPlots
+      then do
+        samplesJsonScript (dataToJSON plotSamples)
+        plots
+      else do
+        showPlotsButton
     case excludeFromMap of
       [] -> do
         H.div ! A.style "font-size: 12px;" $ do
@@ -265,17 +256,23 @@ packageVersionPage
   plotSamples
   bib
   oneVersion allVersions samples = do
-  urlPath <- pathInfo <$> S.request
+  req <- S.request
+  queryParams <- S.queryParams
+  let urlPath = pathInfo req
+      showPlots = lookup "plots" queryParams == Just "true"
+      extraHeader = if showPlots then plotHeader else mempty
   let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
-  S.html $ renderMarkup $ explorerPage urlPath $ do
-    H.head $ do
-      samplesJsonScript (dataToJSON plotSamples)
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
+  S.html $ renderMarkup $ explorerPage urlPath extraHeader $ do
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
       Just v -> H.h1 (H.toMarkup $ "Package: " <> pacName <> "-" <> showVersion v)
-    plots
-    H.br
+    if showPlots
+      then do
+        samplesJsonScript (dataToJSON plotSamples)
+        plots
+        H.br
+      else do
+        showPlotsButton
     -- description
     H.article $ do
       H.b "Description: "
@@ -334,11 +331,9 @@ samplePage ::
 samplePage plotSample row = do
   urlPath <- pathInfo <$> S.request
   let hashMap = toNamedRecord row
-  S.html $ renderMarkup $ explorerPage urlPath $ do
-    H.head $ do
-      samplesJsonScript (dataToJSON [plotSample])
-      H.script ! A.type_ "text/javascript" $ H.preEscapedToHtml jsText
+  S.html $ renderMarkup $ explorerPage urlPath plotHeader $ do
     H.h1 (H.toMarkup $ "Sample: " <> show (jPoseidonID row))
+    samplesJsonScript (dataToJSON [plotSample])
     plots
     H.div $ H.table $ do
       H.tr $ do
