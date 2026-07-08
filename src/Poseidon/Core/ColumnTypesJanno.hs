@@ -10,7 +10,6 @@ import           Poseidon.Core.ColumnTypesUtils
 import           Country                        (Country, alphaTwoUpper,
                                                  decodeAlphaTwo)
 import qualified Data.ByteString.Char8          as B
--- import qualified Data.Char                      as C
 import qualified Data.Csv                       as Csv
 import           Data.String                    (IsString (..))
 import qualified Data.Text                      as T
@@ -52,15 +51,7 @@ newtype PoseidonID = PoseidonID {unPoseidonID :: B.ByteString} deriving (Eq, Ord
 instance Makeable PoseidonID where
     make _ x = (return . PoseidonID . B.pack . T.unpack) x
 
--- isRecommendedPoseidonIDChar :: Char -> Bool
--- isRecommendedPoseidonIDChar c =
---     C.isAscii c && (C.isAlphaNum c || c `elem` ['_', '-', '.'])
-
 instance Suspicious PoseidonID where
-    -- inspect id_ = if B.all isRecommendedPoseidonIDChar (unPoseidonID id_)
-    --               then Nothing
-    --               else Just ["PoseidonID should only contain alphanumeric characters and '_', '-', '.': "  ++
-    --                          B.unpack (unPoseidonID id_)]
     inspect = const Nothing
 
 instance Show PoseidonID where
@@ -83,12 +74,7 @@ instance Makeable GroupName where
     make _ x = (return . GroupName . B.pack . T.unpack) x
 
 instance Suspicious GroupName where
-    -- inspect groupName = if B.all isRecommendedPoseidonIDChar (unGroupName groupName)
-    --                     then Nothing
-    --                     else Just ["Group_Name should only contain alphanumeric characters and '_', '-', '.': " ++
-    --                                B.unpack (unGroupName groupName)]
     inspect = const Nothing
-
 
 instance Show GroupName where
     show (GroupName x) = B.unpack x
