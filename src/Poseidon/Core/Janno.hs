@@ -405,15 +405,15 @@ writeJannoFile path (JannoRows rows) = do
 writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
 writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
     let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
-    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector (V.Vector Bch.ByteString)) of
-        Left _  -> error "internal error, please report"
+    case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector Csv.Record) of
+        Left err -> error $ "internal error, please report: " <> err
         Right x -> do
             let janno = V.toList $ V.map V.toList x
                 jannoTransposed = transpose janno
                 jannoTransposedFiltered = filter (any (/= "n/a") . tail) jannoTransposed
                 jannoBackTransposed = transpose jannoTransposedFiltered
-                jannoConcat = Bch.intercalate "\n" $ map (Bch.intercalate "\t") jannoBackTransposed
-            Bch.writeFile path (jannoConcat <> "\n")
+                encoded = Csv.encodeWith encodingOptions (map V.fromList jannoBackTransposed)
+            Bch.writeFile path encoded
 
 -- | A function to load one janno file
 readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
