@@ -15,6 +15,7 @@ import           Control.Monad.IO.Class         (liftIO)
 import           Data.List                      (group, intercalate, sort,
                                                  sortBy)
 import           Data.Maybe                     (mapMaybe)
+import           Data.Scientific                (toRealFloat)
 import           Poseidon.Core.ColumnTypesJanno (JannoCoverageOnTargets (..),
                                                  JannoEndogenous (JannoEndogenous),
                                                  JannoNrSNPs (..))
@@ -78,11 +79,11 @@ summariseJannoRows (JannoRows rows) rawOutput = do
                 ["Y haplogroups"
                 , printFrequencyMaybeString ", " . frequency . map (fmap show . jYHaplogroup) $ rows],
                 ["% endogenous DNA"
-                , meanAndSdRoundTo 2 . map (\(JannoEndogenous x) -> x) . mapMaybe jEndogenous $ rows],
+                , meanAndSdRoundTo 2 . map (\(JannoEndogenous x) -> toRealFloat x) . mapMaybe jEndogenous $ rows],
                 ["Nr of SNPs"
                 , meanAndSdInteger . map fromIntegral . mapMaybe (fmap (\(JannoNrSNPs x) -> x) . jNrSNPs) $ rows],
                 ["Coverage on target"
-                , meanAndSdRoundTo 2 . mapMaybe (fmap (\(JannoCoverageOnTargets x) -> x) .  jCoverageOnTargets) $ rows],
+                , meanAndSdRoundTo 2 . mapMaybe (fmap (\(JannoCoverageOnTargets x) -> toRealFloat x) .  jCoverageOnTargets) $ rows],
                 ["Library type"
                 , printFrequencyMaybe ", " . frequency . map jLibraryBuilt $ rows],
                 ["UDG treatment"
