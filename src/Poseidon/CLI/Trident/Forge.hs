@@ -26,6 +26,7 @@ import           Poseidon.Core.GenotypeData     (GenoDataSource (..),
                                                  writeVCF)
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
                                                  jannoRows2EigenstratIndEntries,
+                                                 makeJannoHeader,
                                                  writeJannoFile)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  PoseidonPackage (..),
@@ -317,7 +318,9 @@ runForge (
             snpList <- liftIO $ VU.freeze newNrSNPs
             let jannoRowsWithNewSNPNumbers =
                     zipWith (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)}) rows (VU.toList snpList)
-            liftIO $ writeJannoFile (outPath </> outName <.> "janno") (JannoRows jannoRowsWithNewSNPNumbers)
+            liftIO $ writeJannoFile (outPath </> outName <.> "janno")
+                         (makeJannoHeader (JannoRows jannoRowsWithNewSNPNumbers))
+                         (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
 sumNonMissingSNPs accumulator (_, geno) = do

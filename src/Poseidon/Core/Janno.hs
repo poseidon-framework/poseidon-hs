@@ -18,7 +18,7 @@ module Poseidon.Core.Janno (
     mainJannoColumns,
     JannoRows (..),
     jannoRows2EigenstratIndEntries,
-    makeHeaderWithAdditionalColumns,
+    makeJannoHeader,
     parseJannoRowFromNamedRecord
 ) where
 
@@ -375,8 +375,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
-makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
-makeHeaderWithAdditionalColumns rows =
+makeJannoHeader :: JannoRows -> Csv.Header
+makeJannoHeader (JannoRows rows) =
     let addCols = sort . HM.keys . HM.unions . map (getCsvNR . jAdditionalColumns) $ rows
         nonNoteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x /= "Note") addCols
         noteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x == "Note") addCols
@@ -397,14 +397,14 @@ makeHeaderWithAdditionalColumns rows =
         removeSuffix :: Bchs.ByteString -> Bchs.ByteString
         removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
 
-writeJannoFile :: FilePath -> JannoRows -> IO ()
-writeJannoFile path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+writeJannoFile :: FilePath -> Csv.Header -> JannoRows -> IO ()
+writeJannoFile path header (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions header rows
     Bch.writeFile path jannoAsBytestring
 
-writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
-writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+writeJannoFileWithoutEmptyCols :: FilePath -> Csv.Header -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols path header (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions header rows
     case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector Csv.Record) of
         Left err -> error $ "internal error, please report: " <> err
         Right x -> do

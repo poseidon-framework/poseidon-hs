@@ -4,6 +4,7 @@
 module Poseidon.CLI.Trident.Jannocoalesce where
 
 import           Poseidon.Core.Janno           (JannoRow (..), JannoRows (..),
+                                                makeJannoHeader,
                                                 parseJannoRowFromNamedRecord,
                                                 readJannoFile, writeJannoFile)
 import           Poseidon.Core.Package         (PackageReadOptions (..),
@@ -67,7 +68,7 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV target
     logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
     liftIO $ do
         createDirectoryIfMissing True (takeDirectory outPath)
-        writeJannoFile outPath (JannoRows newJanno)
+        writeJannoFile outPath (makeJannoHeader (JannoRows newJanno)) (JannoRows newJanno)
 
 type CounterMismatches = R.IORef Int
 type CounterCopied     = R.IORef Int

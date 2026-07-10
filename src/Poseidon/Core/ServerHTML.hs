@@ -339,7 +339,7 @@ samplePage plotSample row = do
       H.tr $ do
         H.th $ H.b "Property"
         H.th $ H.b "Value"
-      forM_ (makeHeaderWithAdditionalColumns [row]) $ \key -> do
+      forM_ (makeJannoHeader (JannoRows [row])) $ \key -> do
         H.tr $ do
           H.td $ H.toMarkup $ T.decodeUtf8Lenient key
           H.td $ H.toMarkup $ T.decodeUtf8Lenient $ HM.findWithDefault "" key hashMap

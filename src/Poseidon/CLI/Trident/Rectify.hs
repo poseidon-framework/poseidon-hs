@@ -10,7 +10,8 @@ import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
                                                 renderNameWithVersion)
 import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
                                                 GenotypeFileSpec (..))
-import           Poseidon.Core.Janno           (writeJannoFileWithoutEmptyCols)
+import           Poseidon.Core.Janno           (makeJannoHeader,
+                                                writeJannoFileWithoutEmptyCols)
 import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 PoseidonPackage (..),
                                                 defaultPackageReadOptions,
@@ -88,7 +89,10 @@ runRectify (RectifyOptions
                         logWarning "No .janno file to modify with --jannoRemoveEmpty"
                     Just jannoPath -> do
                         logInfo "Reordering and removing empty columns from .janno file"
-                        liftIO $ writeJannoFileWithoutEmptyCols (posPacBaseDir inPac </> jannoPath) (posPacJanno inPac)
+                        liftIO $ writeJannoFileWithoutEmptyCols
+                                     (posPacBaseDir inPac </> jannoPath)
+                                     (makeJannoHeader (posPacJanno inPac))
+                                     (posPacJanno inPac)
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
