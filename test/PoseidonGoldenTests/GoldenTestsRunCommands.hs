@@ -7,7 +7,7 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
 import           Poseidon.CLI.Trident.Fetch         (FetchOptions (..),
                                                      runFetch)
 import           Poseidon.CLI.Trident.Forge         (ForgeOptions (..),
-                                                     ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
+                                                     ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreserveOut),
                                                      runForge)
 import           Poseidon.CLI.Trident.Genoconvert   (GenoconvertOptions (..),
                                                      runGenoconvert)
@@ -1198,7 +1198,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeStrandCheck  = False
         , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
-        , _forgeOutMode      = PreservePymlOut
+        , _forgeOutMode      = PreserveOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
         , _forgeOutPacName   = Just "ForgePac19"

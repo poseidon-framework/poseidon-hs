@@ -52,6 +52,7 @@ import           Poseidon.Core.Utils            (PoseidonException (..),
 import           Control.Exception              (catch, throwIO)
 import           Control.Monad                  (filterM, forM, forM_, unless,
                                                  when)
+import qualified Data.ByteString                as B
 import           Data.List                      (intercalate, nub)
 import           Data.Maybe                     (catMaybes, mapMaybe)
 import           Data.Time                      (getCurrentTime)
@@ -96,12 +97,12 @@ data ForgeOptions = ForgeOptions
 data ForgeOutMode =
       GenoOut
     | MinimalOut
-    | PreservePymlOut
+    | PreserveOut
     | NormalOut
 
-preservePyml :: ForgeOutMode -> Bool
-preservePyml PreservePymlOut = True
-preservePyml _               = False
+isPreserve :: ForgeOutMode -> Bool
+isPreserve PreserveOut = True
+isPreserve _           = False
 
 pacReadOpts :: PackageReadOptions
 pacReadOpts = defaultPackageReadOptions {
@@ -152,7 +153,7 @@ runForge (
     relevantPackages <- filterToRelevantPackages entities allPackages
     logInfo $ (show . length $ relevantPackages) ++ " packages contain data for this forging operation"
     when (null relevantPackages) $ liftIO $ throwIO PoseidonEmptyForgeException
-    when (length relevantPackages > 1 && preservePyml outMode) $ liftIO $ throwIO PoseidonCantPreserveException
+    when (length relevantPackages > 1 && isPreserve outMode) $ liftIO $ throwIO PoseidonCantPreserveException
 
     -- get all individuals from the relevant packages
     indInfoCollection <- getJointIndividualInfo relevantPackages
@@ -218,7 +219,7 @@ runForge (
             writePoseidonYmlFile pac
             _ <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             return ()
-        PreservePymlOut -> do
+        PreserveOut -> do
             normalPac <- newPackageTemplate outPath outName genotypeData
                     (Just (Right newJanno)) relevantSeqSourceRows relevantBibEntries
             let pac = normalPac {
@@ -235,7 +236,8 @@ runForge (
             copyREADMEFile outPath pacSource
             copyCHANGELOGFile outPath pacSource
             newNrSnps <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
-            writingJannoFile outPath outName newNrSnps relevantJannoRows
+            let inputJannoHeader = posPacJannoInputHeader pacSource
+            writingJannoFile outPath outName newNrSnps (Just inputJannoHeader) relevantJannoRows
         NormalOut  -> do
             pac <- newPackageTemplate outPath outName genotypeData
                     (Just (Right newJanno)) relevantSeqSourceRows relevantBibEntries
@@ -243,7 +245,7 @@ runForge (
             writeSSFile outPath outName relevantSeqSourceRows
             writeBibFile outPath outName relevantBibEntries
             newNrSnps <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
-            writingJannoFile outPath outName newNrSnps relevantJannoRows
+            writingJannoFile outPath outName newNrSnps Nothing relevantJannoRows
 
     where
         -- individual writer functions --
@@ -312,14 +314,21 @@ runForge (
                 ) (throwIO . PoseidonGenotypeExceptionForward errLength)
             logInfo "Done"
             return newNrSNPs
-        writingJannoFile :: FilePath -> String -> VUM.MVector VUM.RealWorld Int -> [JannoRow] -> PoseidonIO ()
-        writingJannoFile outPath outName newNrSNPs rows = do
+        writingJannoFile ::
+               FilePath -> String
+            -> VUM.MVector VUM.RealWorld Int
+            -> Maybe (V.Vector B.ByteString) -> [JannoRow]
+            -> PoseidonIO ()
+        writingJannoFile outPath outName newNrSNPs maybeHeader rows = do
             logInfo "Creating .janno file"
             snpList <- liftIO $ VU.freeze newNrSNPs
             let jannoRowsWithNewSNPNumbers =
                     zipWith (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)}) rows (VU.toList snpList)
+            let header = case maybeHeader of
+                    Nothing -> makeJannoHeader (JannoRows jannoRowsWithNewSNPNumbers)
+                    Just x  -> x
             liftIO $ writeJannoFile (outPath </> outName <.> "janno")
-                         (makeJannoHeader (JannoRows jannoRowsWithNewSNPNumbers))
+                         header
                          (JannoRows jannoRowsWithNewSNPNumbers)
 
 sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
