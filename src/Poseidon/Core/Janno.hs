@@ -34,6 +34,7 @@ import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
 import           Data.Bifunctor                       (second)
+import qualified Data.ByteString                      as B
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
 import qualified Data.Csv                             as Csv
@@ -416,7 +417,7 @@ writeJannoFileWithoutEmptyCols path header (JannoRows rows) = do
             Bch.writeFile path encoded
 
 -- | A function to load one janno file
-readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO ([B.ByteString], JannoRows)
 readJannoFile pv mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -465,7 +466,7 @@ readJannoFile pv mandatoryCols jannoPath = do
                 -- putStrLn $ show $ map jSourceTissue x
                 -- putStrLn $ show $ map jLongitude x
                 -- putStrLn $ show $ map jUDG x
-                return x
+                return (jannoColNames, x)
 
 findSimilarNames :: [String] -> [String] -> [String]
 findSimilarNames reference = map (findSimilar reference)

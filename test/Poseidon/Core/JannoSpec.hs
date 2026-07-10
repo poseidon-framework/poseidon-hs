@@ -94,7 +94,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Core.Janno.readJannoFile" $
     let normalJannoPath       = "test/testDat/testJannoFiles/normal.janno"
     let borkedJannoPath       = "test/testDat/testJannoFiles/borked.janno"
     it "should read minimal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] minimalJannoPath
+        (_, JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] minimalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jGroupName janno                    `shouldBe` [ ListColumn [GroupName "POP1"]
@@ -103,7 +103,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Core.Janno.readJannoFile" $
                                                            ]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
     it "should read normal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] normalJannoPath
+        (_, JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] normalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` [ "XXX011", "XXX012", "XXX013" ]
         map jRelationDegree janno               `shouldBe` [ Just (ListColumn [First, Second])

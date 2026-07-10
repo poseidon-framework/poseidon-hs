@@ -65,7 +65,7 @@ import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
                                                  createMinimalJanno,
                                                  jannoHeaderString,
                                                  mainJannoColumns,
-                                                 readJannoFile)
+                                                 makeJannoHeader, readJannoFile)
 import           Poseidon.Core.PoseidonVersion  (PoseidonVersion (..),
                                                  asVersion,
                                                  latestPoseidonVersion,
@@ -254,6 +254,8 @@ data PoseidonPackage = PoseidonPackage
     -- ^ the paths to the genotype files
     , posPacJannoFile           :: Maybe FilePath
     -- ^ the path to the janno file
+    , posPacJannoInputHeader    :: V.Vector B.ByteString
+    -- ^ the janno file header (in input order)
     , posPacJanno               :: JannoRows
     -- ^ the loaded janno file
     , posPacJannoFileChkSum     :: Maybe String
@@ -449,18 +451,21 @@ readPoseidonPackage opts ymlPath = do
             GenotypeVCF _ _ -> True
             _               -> False
 
-    janno <- case poseidonJannoFilePath baseDir yml of
+    (loadedJannoHeader, janno) <- case poseidonJannoFilePath baseDir yml of
         Nothing -> do
             -- create minimal, but fail if more cols are mandatory
             let extraMandatoryColumns = filter (`notElem` mainJannoColumns) $ _readOptMandatoryJannoCols opts
             if null extraMandatoryColumns
-            then return $ createMinimalJanno indEntries
+            then do
+                let minimalJanno = createMinimalJanno indEntries
+                    minimalJannoHeader = makeJannoHeader minimalJanno
+                return (minimalJannoHeader, minimalJanno)
             else throwM $ PoseidonPackageException $
                 "Missing mandatory .janno columns: " ++ intercalate ", " (map Bchs.unpack extraMandatoryColumns)
         Just p -> do
-            loadedJanno <- readJannoFile ver (_readOptMandatoryJannoCols opts) p
+            (loadedHeader, loadedJanno) <- readJannoFile ver (_readOptMandatoryJannoCols opts) p
             liftIO $ checkJannoIndConsistency tit loadedJanno indEntries isVCF
-            return loadedJanno
+            return (V.fromList loadedHeader, loadedJanno)
 
     -- read seqSource
     seqSource <- case poseidonSeqSourceFilePath baseDir yml of
@@ -484,7 +489,7 @@ readPoseidonPackage opts ymlPath = do
         logInfo $ "Trying to parse genotype data for package: " ++ tit
 
     -- create PoseidonPackage
-    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ lic geno jannoF janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
+    let pac = PoseidonPackage baseDir ver (PacNameAndVersion tit pacVer) des con mod_ lic geno jannoF loadedJannoHeader janno jannoC seqSourceF seqSource seqSourceC bibF bib bibC readF changeF
 
     -- validate genotype data
     when (not (_readOptIgnoreGeno opts) && _readOptGenoCheck opts) $
@@ -809,6 +814,7 @@ newMinimalPackageTemplate baseDir name gd = do
     ,   posPacLicense = Nothing
     ,   posPacGenotypeData = reducedGD
     ,   posPacJannoFile = Nothing
+    ,   posPacJannoInputHeader = mempty
     ,   posPacJanno = mempty
     ,   posPacJannoFileChkSum = Nothing
     ,   posPacSeqSourceFile = Nothing
@@ -884,7 +890,12 @@ newPackageTemplate baseDir name genoData indsOrJanno seqSource bib = do
             }
 
 writePoseidonPackage :: PoseidonPackage -> IO ()
-writePoseidonPackage (PoseidonPackage baseDir ver nameAndVer des con mod_ lic geno jannoF _ jannoC seqSourceF _ seqSourceC bibF _ bibFC readF changeF) = do
+writePoseidonPackage (
+    PoseidonPackage
+    baseDir ver nameAndVer des con mod_ lic geno
+    jannoF _ _ jannoC
+    seqSourceF _ seqSourceC bibF _ bibFC readF changeF
+    ) = do
     let yamlPac = PoseidonYamlStruct ver (getPacName nameAndVer) des con (getPacVersion nameAndVer) mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibFC readF changeF
         outF = baseDir </> "POSEIDON.yml"
     B.writeFile outF $!! encodePretty opts yamlPac
