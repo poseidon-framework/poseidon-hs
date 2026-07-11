@@ -230,17 +230,20 @@ runForge (
                 ,   posPacReadmeFile     = posPacReadmeFile pacSource
                 ,   posPacChangelogFile  = posPacChangelogFile pacSource
                 }
-            writePoseidonYmlFile pac
-            writeSSFile outPath outName relevantSeqSourceRows
-            writeBibFile outPath outName relevantBibEntries
-            copyREADMEFile outPath pacSource
-            copyCHANGELOGFile outPath pacSource
             newNrSnps <- compileGenotypeData outPath genotypeFileData relevantPackages relevantIndices
             let inputJannoHeader = posPacJannoInputHeader pacSource
+                relevantBibEntriesInputOrder = filterBibEntries newJanno $ posPacBib pacSource
+            -- write files
+            writePoseidonYmlFile pac
+            writeSSFile outPath outName relevantSeqSourceRows
+            writeBibFile outPath outName relevantBibEntriesInputOrder
+            copyREADMEFile outPath pacSource
+            copyCHANGELOGFile outPath pacSource
             writingJannoFile outPath outName newNrSnps (Just inputJannoHeader) relevantJannoRows
         NormalOut  -> do
             pac <- newPackageTemplate outPath outName genotypeData
                     (Just (Right newJanno)) relevantSeqSourceRows relevantBibEntries
+            -- write files
             writePoseidonYmlFile pac
             writeSSFile outPath outName relevantSeqSourceRows
             writeBibFile outPath outName relevantBibEntries

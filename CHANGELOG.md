@@ -1,5 +1,5 @@
 - V 2.1.2.1:
-    - Further refactoring of the html API to increase responsiveness. Hit plots behind a button to speed up the normal browsing loop.
+    - Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
 - V 2.1.2.0:
     - Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
 - V 2.1.1.0:
