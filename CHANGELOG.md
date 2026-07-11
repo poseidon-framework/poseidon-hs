@@ -1,3 +1,6 @@
+- V 2.1.3.0:
+    - Removed tedious `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning.
+    - Introduced a quoting feature for the forge language to handle entity names that would usually break the parser, e.g. names containing `':', ',', '<', '>', '*'`.
 - V 2.1.2.2:
     - Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
 - V 2.1.2.1:
