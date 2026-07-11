@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.1.2.2
+@version 2.1.3.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -445,7 +445,6 @@ GeneticSex :: Sex -> GeneticSex
 newtype PoseidonID
 PoseidonID :: ByteString -> PoseidonID
 [unPoseidonID] :: PoseidonID -> ByteString
-isRecommendedPoseidonIDChar :: Char -> Bool
 
 -- | A datatype for the Group_Name .janno column
 newtype GroupName
