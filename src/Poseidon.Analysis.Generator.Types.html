@@ -9,7 +9,7 @@
 </span><a href="Poseidon.Analysis.Generator.Types.html#_groupName"><span class="hs-identifier hs-var hs-var">_groupName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-8"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_popSet"><span class="annot"><span class="annottext">IndConcrete -&gt; [PopFracConcrete]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popSet"><span class="hs-identifier hs-var hs-var">_popSet</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFracConcrete"><span class="hs-identifier hs-type">PopFracConcrete</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-9"></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679729399"><span id="local-6989586621679729409"><span id="local-6989586621679729413"><span class="annot"><span class="annottext">Int -&gt; IndConcrete -&gt; ShowS
+</span><span id="line-9"></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679729236"><span id="local-6989586621679729246"><span id="local-6989586621679729250"><span class="annot"><span class="annottext">Int -&gt; IndConcrete -&gt; ShowS
 [IndConcrete] -&gt; ShowS
 IndConcrete -&gt; String
 (Int -&gt; IndConcrete -&gt; ShowS)
@@ -33,7 +33,7 @@ showList :: [IndConcrete] -&gt; ShowS
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popFrac"><span class="hs-identifier hs-var hs-var">_popFrac</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span>
 </span><span id="line-14"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="_popInds"><span class="annot"><span class="annottext">PopFracConcrete -&gt; [(String, Int)]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popInds"><span class="hs-identifier hs-var hs-var">_popInds</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-15"></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679729423"><span id="local-6989586621679729433"><span id="local-6989586621679729436"><span class="annot"><span class="annottext">Int -&gt; PopFracConcrete -&gt; ShowS
+</span><span id="line-15"></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679729260"><span id="local-6989586621679729270"><span id="local-6989586621679729273"><span class="annot"><span class="annottext">Int -&gt; PopFracConcrete -&gt; ShowS
 [PopFracConcrete] -&gt; ShowS
 PopFracConcrete -&gt; String
 (Int -&gt; PopFracConcrete -&gt; ShowS)
@@ -59,23 +59,23 @@ showList :: [PopFracConcrete] -&gt; ShowS
 </span><a href="Poseidon.Analysis.Generator.Types.html#_inPopSet"><span class="hs-identifier hs-var hs-var">_inPopSet</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFrac"><span class="hs-identifier hs-type">PopFrac</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-21"></span><span class="hs-special">}</span><span>
 </span><span id="line-22"></span><span>
-</span><span id="line-23"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679729447"><span id="local-6989586621679729452"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#RequestedInd"><span class="hs-identifier hs-type">RequestedInd</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-24"></span><span>    </span><span id="local-6989586621679729456"><span class="annot"><span class="annottext">show :: RequestedInd -&gt; String
-</span><a href="#local-6989586621679729456"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#RequestedInd"><span class="hs-identifier hs-type">RequestedInd</span></a></span><span> </span><span id="local-6989586621679729458"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729458"><span class="hs-identifier hs-var">_admixInd</span></a></span></span><span> </span><span id="local-6989586621679729459"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729459"><span class="hs-identifier hs-var">_admixUnit</span></a></span></span><span> </span><span id="local-6989586621679729460"><span class="annot"><span class="annottext">[PopFrac]
-</span><a href="#local-6989586621679729460"><span class="hs-identifier hs-var">_popFracList</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679729284"><span id="local-6989586621679729289"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#RequestedInd"><span class="hs-identifier hs-type">RequestedInd</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>    </span><span id="local-6989586621679729293"><span class="annot"><span class="annottext">show :: RequestedInd -&gt; String
+</span><a href="#local-6989586621679729293"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#RequestedInd"><span class="hs-identifier hs-type">RequestedInd</span></a></span><span> </span><span id="local-6989586621679729295"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679729295"><span class="hs-identifier hs-var">_admixInd</span></a></span></span><span> </span><span id="local-6989586621679729296"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679729296"><span class="hs-identifier hs-var">_admixUnit</span></a></span></span><span> </span><span id="local-6989586621679729297"><span class="annot"><span class="annottext">[PopFrac]
+</span><a href="#local-6989586621679729297"><span class="hs-identifier hs-var">_popFracList</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-25"></span><span>        </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;[&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729458"><span class="hs-identifier hs-var">_admixInd</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679729295"><span class="hs-identifier hs-var">_admixInd</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;:&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729459"><span class="hs-identifier hs-var">_admixUnit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679729296"><span class="hs-identifier hs-var">_admixUnit</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;]&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -92,7 +92,7 @@ forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PopFrac -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">[PopFrac]
-</span><a href="#local-6989586621679729460"><span class="hs-identifier hs-var">_popFracList</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679729297"><span class="hs-identifier hs-var">_popFracList</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
@@ -104,13 +104,13 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_inPopFrac"><span class="hs-identifier hs-var hs-var">_inPopFrac</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span>
 </span><span id="line-31"></span><span class="hs-special">}</span><span>
 </span><span id="line-32"></span><span>
-</span><span id="line-33"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679729465"><span id="local-6989586621679729469"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFrac"><span class="hs-identifier hs-type">PopFrac</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-34"></span><span>    </span><span id="local-6989586621679729473"><span class="annot"><span class="annottext">show :: PopFrac -&gt; String
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFrac"><span class="hs-identifier hs-type">PopFrac</span></a></span><span> </span><span id="local-6989586621679729474"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729474"><span class="hs-identifier hs-var">_pop</span></a></span></span><span> </span><span id="local-6989586621679729475"><span class="annot"><span class="annottext">Rational
-</span><a href="#local-6989586621679729475"><span class="hs-identifier hs-var">_frac</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679729302"><span id="local-6989586621679729306"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFrac"><span class="hs-identifier hs-type">PopFrac</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-34"></span><span>    </span><span id="local-6989586621679729310"><span class="annot"><span class="annottext">show :: PopFrac -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFrac"><span class="hs-identifier hs-type">PopFrac</span></a></span><span> </span><span id="local-6989586621679729311"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679729311"><span class="hs-identifier hs-var">_pop</span></a></span></span><span> </span><span id="local-6989586621679729312"><span class="annot"><span class="annottext">Rational
+</span><a href="#local-6989586621679729312"><span class="hs-identifier hs-var">_frac</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-35"></span><span>        </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679729474"><span class="hs-identifier hs-var">_pop</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621679729311"><span class="hs-identifier hs-var">_pop</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;=&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -118,5 +118,5 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Rational -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Rational
-</span><a href="#local-6989586621679729475"><span class="hs-identifier hs-var">_frac</span></a></span><span>
+</span><a href="#local-6989586621679729312"><span class="hs-identifier hs-var">_frac</span></a></span><span>
 </span><span id="line-36"></span></pre></body></html>
