@@ -1,3 +1,5 @@
+- V 2.1.2.2:
+    - Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
 - V 2.1.2.1:
     - Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
 - V 2.1.2.0:
