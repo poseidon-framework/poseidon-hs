@@ -11,7 +11,7 @@ import           Poseidon.Core.Janno
 import           Poseidon.Core.Package
 import           Poseidon.Core.ServerStylesheet
 
-import           Control.Monad                  (forM_)
+import           Control.Monad                  (forM_, unless)
 import           Data.Aeson                     (defaultOptions, encode,
                                                  genericToEncoding)
 import           Data.Aeson.Types               (ToJSON (..))
@@ -192,6 +192,15 @@ showPlotsButton =
       ! A.value "true"
       $ "Show plots"
 
+showAllSamplesButton :: Int -> H.Html
+showAllSamplesButton nrSamples =
+  H.form ! A.method "get" $ do
+    H.button
+      ! A.type_ "submit"
+      ! A.name "allSamples"
+      ! A.value "true"
+      $ H.toHtml $ "Show all " ++ show nrSamples ++ " samples"
+
 archivePage ::
      String
   -> Maybe String
@@ -261,7 +270,9 @@ packageVersionPage
   let urlPath = pathInfo req
       showPlots = lookup "plots" queryParams == Just "true"
       extraHeader = if showPlots then plotHeader else mempty
-  let nrSamples = length $ getJannoRows $ posPacJanno oneVersion
+      showAllSamples = lookup "allSamples" queryParams == Just "true"
+      nrSamples = length $ getJannoRows $ posPacJanno oneVersion
+      samplesSubset = if showAllSamples then samples else take 5 samples
   S.html $ renderMarkup $ explorerPage urlPath extraHeader $ do
     case pacVersion of
       Nothing -> H.h1 (H.toMarkup $ "Package: " <> pacName)
@@ -317,12 +328,13 @@ packageVersionPage
           H.th $ H.b "PoseidonID"
           H.th $ H.b "Genetic_Sex"
           H.th $ H.b "Group_Name"
-      forM_ samples $ \jannoRow -> do
+      forM_ samplesSubset $ \jannoRow -> do
         let link = "/explorer/" <> H.toValue archiveName <> "/" <> H.toValue pacName <> "/" <> H.toValue (renderMaybeVersion pacVersion) <> "/" <> H.toValue (BS.unpack . unPoseidonID . jPoseidonID $ jannoRow)
         H.tr $ do
           H.td $ H.a ! A.href link $ H.toMarkup . T.pack . BS.unpack . unPoseidonID . jPoseidonID $ jannoRow
           H.td $ H.toMarkup $ show $ jGeneticSex jannoRow
           H.td . H.toMarkup . T.intercalate ", " . map (T.pack . BS.unpack . unGroupName) . getListColumn . jGroupName $ jannoRow
+    unless (showAllSamples || nrSamples <= 5) (showAllSamplesButton nrSamples)
 
 samplePage ::
      PlotSample
