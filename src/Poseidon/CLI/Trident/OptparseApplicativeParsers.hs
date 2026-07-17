@@ -678,7 +678,8 @@ parsePreserveFlag = OP.flag' PreserveOut (
             \Only works for a singular source package! \
             \With this option some fields of the source package's POSEIDON.yml file, \
             \its README file and its CHANGELOG file (if available) are copied \
-            \to the output package. The count and order of .janno file columns are preserved."
+            \to the output package. \
+            \The order of .janno file columns and .bib file entries are also preserved."
     )
 
 parsePackageWise :: OP.Parser Bool
