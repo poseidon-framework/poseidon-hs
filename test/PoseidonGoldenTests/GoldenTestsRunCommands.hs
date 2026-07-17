@@ -7,7 +7,7 @@ module PoseidonGoldenTests.GoldenTestsRunCommands (
 import           Poseidon.CLI.Trident.Fetch         (FetchOptions (..),
                                                      runFetch)
 import           Poseidon.CLI.Trident.Forge         (ForgeOptions (..),
-                                                     ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreservePymlOut),
+                                                     ForgeOutMode (GenoOut, MinimalOut, NormalOut, PreserveOut),
                                                      runForge)
 import           Poseidon.CLI.Trident.Genoconvert   (GenoconvertOptions (..),
                                                      runGenoconvert)
@@ -117,6 +117,16 @@ copyDirectoryRecursive srcDir destDir = do
     then do copyDirectoryRecursive srcPath destPath
     else do copyFile srcPath destPath
 
+patchVCFTridentVersion :: FilePath -> FilePath -> IO ()
+patchVCFTridentVersion testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "##source=trident_" `T.isPrefixOf` l
+            then return "##source=trident_<version>"
+            else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
 patchLastModified :: FilePath -> FilePath -> IO ()
 patchLastModified testDir yamlFile = do
     lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
@@ -124,6 +134,16 @@ patchLastModified testDir yamlFile = do
             l <- lines_
             if "lastModified" `T.isPrefixOf` l
             then return "lastModified: 1970-01-01"
+            else return l
+    T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
+
+patchCommitHashes :: FilePath -> FilePath -> IO ()
+patchCommitHashes testDir yamlFile = do
+    lines_ <- T.lines <$> T.readFile (testDir </> yamlFile)
+    let patchedLines = do
+            l <- lines_
+            if "  commit" `T.isPrefixOf` l
+            then return "  commit: <hash>"
             else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
@@ -1198,7 +1218,7 @@ testPipelineForge testDir checkFilePath = do
         , _forgeStrandCheck  = False
         , _forgeSkipIncongruentSNPs = True
         , _forgeOutFormat    = GenotypeOutFormatPlink
-        , _forgeOutMode      = PreservePymlOut
+        , _forgeOutMode      = PreserveOut
         , _forgeOutZip       = False
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac19"
         , _forgeOutPacName   = Just "ForgePac19"
@@ -1249,7 +1269,9 @@ testPipelineForge testDir checkFilePath = do
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac21"
         , _forgeOutPacName   = Just "ForgePac21"
     }
-    let action21 = testLog (runForge forgeOpts21) >> patchLastModified testDir ("forge" </> "ForgePac21" </> "POSEIDON.yml")
+    let action21 = testLog (runForge forgeOpts21) >>
+            patchLastModified testDir ("forge" </> "ForgePac21" </> "POSEIDON.yml") >>
+            patchVCFTridentVersion testDir ("forge" </> "ForgePac21" </> "ForgePac21.vcf")
     runAndChecksumFiles checkFilePath testDir action21 "forge" [
           "forge" </> "ForgePac21" </> "POSEIDON.yml"
         , "forge" </> "ForgePac21" </> "ForgePac21.vcf"
@@ -1309,7 +1331,9 @@ testPipelineChronicleAndTimetravel testDir checkFilePath = do
          , _timetravelSourceDir     = testDir </> "chronicle"
          , _timetravelChronicleFile = testDir </> "chronicle" </> "chronicle2.yml"
     }
-    let action2 = testLog (runTimetravel timetravelOpts1)
+    let action2 = testLog (runTimetravel timetravelOpts1) >>
+            patchLastModified testDir ("chronicle" </> "chronicle2.yml") >>
+            patchCommitHashes testDir ("chronicle" </> "chronicle2.yml")
     runAndChecksumFiles checkFilePath testDir action2 "timetravel" [
             -- normal package in version A
             "timetravel" </> "Lamnidis_2018-1.0.0" </> "POSEIDON.yml"

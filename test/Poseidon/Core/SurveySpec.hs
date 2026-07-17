@@ -21,11 +21,11 @@ testRenderJannoCompleteness :: Spec
 testRenderJannoCompleteness =
     describe "Poseidon.CLI.Trident.Survey.renderJannoCompleteness" $ do
     it "should work for a full janno file" $ do
-        janno <- testLog $ readJannoFile latestPoseidonVersion [] testJannoNormal
+        (_, janno) <- testLog $ readJannoFile latestPoseidonVersion [] testJannoNormal
         renderJannoCompleteness janno
             `shouldBe` "███..▓.██▓..▒▒▒▒███████▒▒▒███.████▓█████████▓▓▓███▓▓"
     it "should work for a minimum janno file" $ do
-        janno <- testLog $ readJannoFile latestPoseidonVersion [] testJannoMinimal
+        (_, janno) <- testLog $ readJannoFile latestPoseidonVersion [] testJannoMinimal
         renderJannoCompleteness janno
             `shouldBe`
             "███................................................."

@@ -22,12 +22,12 @@ import           Test.Hspec                     (Spec, anyException, describe,
 
 spec :: Spec
 spec = do
-    testMakeHeaderWithAdditionalColumns
+    testMakeJannoHeader
     testEnAndDecoding
     testPoseidonSampleFromJannoFile
 
-testMakeHeaderWithAdditionalColumns :: Spec
-testMakeHeaderWithAdditionalColumns = describe "Poseidon.Core.Janno: Column sorting (header preparation)" $ do
+testMakeJannoHeader :: Spec
+testMakeJannoHeader = describe "Poseidon.Core.Janno: Column sorting (header preparation)" $ do
     it "should sort columns as expected" $ do
         let jannoRowEmpty = createMinimalSample (EigenstratIndEntry "a" Unknown "test")
             jannoRow = jannoRowEmpty {
@@ -41,7 +41,7 @@ testMakeHeaderWithAdditionalColumns = describe "Poseidon.Core.Janno: Column sort
                  ,("AdditionalColumn1","n/a")
                 ]
             }
-            header = V.toList $ makeHeaderWithAdditionalColumns [jannoRow]
+            header = V.toList $ makeJannoHeader (JannoRows [jannoRow])
         -- this test is not very clever and will also sometimes need adjustment when
         -- something unrelated changes in the .janno column setup
         header `shouldContain` ["Relation_Type", "Relation_Note"]
@@ -94,7 +94,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Core.Janno.readJannoFile" $
     let normalJannoPath       = "test/testDat/testJannoFiles/normal.janno"
     let borkedJannoPath       = "test/testDat/testJannoFiles/borked.janno"
     it "should read minimal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] minimalJannoPath
+        (_, JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] minimalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` ["XXX011", "XXX012", "XXX013"]
         map jGroupName janno                    `shouldBe` [ ListColumn [GroupName "POP1"]
@@ -103,7 +103,7 @@ testPoseidonSampleFromJannoFile = describe "Poseidon.Core.Janno.readJannoFile" $
                                                            ]
         map jGeneticSex janno                   `shouldBe` [GeneticSex Male, GeneticSex Female, GeneticSex Male]
     it "should read normal janno files correctly" $ do
-        (JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] normalJannoPath
+        (_, JannoRows janno) <- testLog $ readJannoFile latestPoseidonVersion [] normalJannoPath
         length janno `shouldBe` 3
         map jPoseidonID janno                   `shouldBe` [ "XXX011", "XXX012", "XXX013" ]
         map jRelationDegree janno               `shouldBe` [ Just (ListColumn [First, Second])

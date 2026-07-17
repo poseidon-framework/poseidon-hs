@@ -35,6 +35,7 @@ import           Data.Coerce                    (coerce)
 import           Data.List                      (groupBy, intercalate, sortOn)
 import           Data.List.Split                (splitOn)
 import           Data.Maybe                     (isJust)
+import           Data.Scientific                (toRealFloat)
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
 import           Data.Version                   (Version, parseVersion,
@@ -377,9 +378,9 @@ prepPlotSamples archiveName pac =
 toPlotSample :: String -> String -> Maybe String -> JannoRow -> PlotSample
 toPlotSample archiveName pacName pacVersion row =
         let poseidonID = jPoseidonID row
-            lon = coerce $ jLongitude row
-            lat = coerce $ jLatitude row
-            loc = (\(JannoLocation x) -> x) <$> jLocation row
+            lon = (\(JannoLongitude x) -> toRealFloat x) <$> jLongitude row
+            lat = (\(JannoLatitude x)  -> toRealFloat x) <$> jLatitude row
+            loc = (\(JannoLocation x)  -> x            ) <$> jLocation row
             ageStart = coerce $ jDateBCADStart row
             ageMedian = coerce $ jDateBCADMedian row
             ageStop = coerce $ jDateBCADStop row

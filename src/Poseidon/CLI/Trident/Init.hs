@@ -7,7 +7,7 @@ import           Poseidon.Core.GenotypeData (GenotypeDataSpec (..),
                                              GenotypeFileSpec (..),
                                              loadIndividuals,
                                              reduceGenotypeFilepaths)
-import           Poseidon.Core.Janno        (writeJannoFile)
+import           Poseidon.Core.Janno        (makeJannoHeader, writeJannoFile)
 import           Poseidon.Core.Package      (PoseidonPackage (..),
                                              newMinimalPackageTemplate,
                                              newPackageTemplate,
@@ -59,7 +59,7 @@ runInit (InitOptions genotypeDataIn outPathRaw maybeOutName minimal) = do
     unless minimal $ do
         -- janno
         logInfo "Creating minimal .janno file"
-        liftIO $ writeJannoFile (outPath </> outName <.> "janno") $ posPacJanno pac
+        liftIO $ writeJannoFile (outPath </> outName <.> "janno") (makeJannoHeader (posPacJanno pac)) (posPacJanno pac)
         -- bib
         logInfo "Creating dummy .bib file"
         liftIO $ writeBibTeXFile (outPath </> outName <.> "bib") $ posPacBib pac

@@ -18,7 +18,7 @@ module Poseidon.Core.Janno (
     mainJannoColumns,
     JannoRows (..),
     jannoRows2EigenstratIndEntries,
-    makeHeaderWithAdditionalColumns,
+    makeJannoHeader,
     parseJannoRowFromNamedRecord
 ) where
 
@@ -34,6 +34,7 @@ import qualified Control.Monad.Except                 as E
 import           Control.Monad.IO.Class               (liftIO)
 import qualified Control.Monad.Writer                 as W
 import           Data.Bifunctor                       (second)
+import qualified Data.ByteString                      as B
 import qualified Data.ByteString.Char8                as Bchs
 import qualified Data.ByteString.Lazy.Char8           as Bch
 import qualified Data.Csv                             as Csv
@@ -375,8 +376,8 @@ createMinimalSample (EigenstratIndEntry id_ sex pop) =
 
 -- Janno file writing
 
-makeHeaderWithAdditionalColumns :: [JannoRow] -> Csv.Header
-makeHeaderWithAdditionalColumns rows =
+makeJannoHeader :: JannoRows -> Csv.Header
+makeJannoHeader (JannoRows rows) =
     let addCols = sort . HM.keys . HM.unions . map (getCsvNR . jAdditionalColumns) $ rows
         nonNoteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x /= "Note") addCols
         noteAddCols = filter (\x -> Bchs.takeWhileEnd (/= '_') x == "Note") addCols
@@ -397,14 +398,14 @@ makeHeaderWithAdditionalColumns rows =
         removeSuffix :: Bchs.ByteString -> Bchs.ByteString
         removeSuffix = Bchs.dropEnd 1 . Bchs.dropWhileEnd (/= '_')
 
-writeJannoFile :: FilePath -> JannoRows -> IO ()
-writeJannoFile path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+writeJannoFile :: FilePath -> Csv.Header -> JannoRows -> IO ()
+writeJannoFile path header (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions header rows
     Bch.writeFile path jannoAsBytestring
 
-writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
-writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
-    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions (makeHeaderWithAdditionalColumns rows) rows
+writeJannoFileWithoutEmptyCols :: FilePath -> Csv.Header -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols path header (JannoRows rows) = do
+    let jannoAsBytestring = Csv.encodeByNameWith encodingOptions header rows
     case Csv.decodeWith decodingOptions Csv.NoHeader jannoAsBytestring :: Either String (V.Vector Csv.Record) of
         Left err -> error $ "internal error, please report: " <> err
         Right x -> do
@@ -416,7 +417,7 @@ writeJannoFileWithoutEmptyCols path (JannoRows rows) = do
             Bch.writeFile path encoded
 
 -- | A function to load one janno file
-readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile :: PoseidonVersion -> [Bchs.ByteString] -> FilePath -> PoseidonIO ([B.ByteString], JannoRows)
 readJannoFile pv mandatoryCols jannoPath = do
     logDebug $ "Reading: " ++ jannoPath
     jannoFile <- liftIO $ Bch.readFile jannoPath
@@ -465,7 +466,7 @@ readJannoFile pv mandatoryCols jannoPath = do
                 -- putStrLn $ show $ map jSourceTissue x
                 -- putStrLn $ show $ map jLongitude x
                 -- putStrLn $ show $ map jUDG x
-                return x
+                return (jannoColNames, x)
 
 findSimilarNames :: [String] -> [String] -> [String]
 findSimilarNames reference = map (findSimilar reference)

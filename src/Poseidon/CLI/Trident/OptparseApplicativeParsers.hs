@@ -651,7 +651,7 @@ parseForgeOutMode :: OP.Parser ForgeOutMode
 parseForgeOutMode =
         parseOutOnlyGenoFlag
     <|> parseMinimalOutputFlag
-    <|> parsePreservePymlFlag
+    <|> parsePreserveFlag
     <|> pure NormalOut
 
 parseOutOnlyGenoFlag :: OP.Parser ForgeOutMode
@@ -671,13 +671,15 @@ minimalOutputDocu =
     OP.long "minimal" <>
     OP.help "Should the output Poseidon package be reduced to a necessary minimum?"
 
-parsePreservePymlFlag :: OP.Parser ForgeOutMode
-parsePreservePymlFlag = OP.flag' PreservePymlOut (
-    OP.long "preservePyml" <>
+parsePreserveFlag :: OP.Parser ForgeOutMode
+parsePreserveFlag = OP.flag' PreserveOut (
+    OP.long "preserve" <>
     OP.help "Should the output Poseidon package mimic the input package? \
+            \Only works for a singular source package! \
             \With this option some fields of the source package's POSEIDON.yml file, \
             \its README file and its CHANGELOG file (if available) are copied \
-            \to the output package. Only works for a singular source package."
+            \to the output package. \
+            \The order of .janno file columns and .bib file entries are also preserved."
     )
 
 parsePackageWise :: OP.Parser Bool

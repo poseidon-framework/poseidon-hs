@@ -1,10 +1,13 @@
+- V 2.2.0.0:
+    - Replaced the `trident forge` feature `--preservePyml` with a more general mode `--preserve`. `--preserve` is available for forge operations on a single input package and aims to keep the diff between input and output minimal. It i) copies stable information from the input POSEIDON.yml file to the output (as already with `--preservePyml`), uses the input's order of columns in the .janno file in the output, and maintains the input's order of bibtex entries in the .bib file.
+    - Changed `Double` types in the .janno file representation to `Scientific` and improved the writing of these values to avoid floating point precision issues. These numbers are now always printed in standard decimal notation.
 - V 2.1.3.0:
     - Removed tedious `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning.
     - Introduced a quoting feature for the forge language to handle entity names that would usually break the parser, e.g. names containing `':', ',', '<', '>', '*'`.
 - V 2.1.2.2:
     - Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
 - V 2.1.2.1:
-    - Further refactoring of the html API to increase responsiveness. Hit plots behind a button to speed up the normal browsing loop.
+    - Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
 - V 2.1.2.0:
     - Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
 - V 2.1.1.0:

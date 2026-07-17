@@ -4,6 +4,7 @@
 module Poseidon.CLI.Trident.Jannocoalesce where
 
 import           Poseidon.Core.Janno           (JannoRow (..), JannoRows (..),
+                                                makeJannoHeader,
                                                 parseJannoRowFromNamedRecord,
                                                 readJannoFile, writeJannoFile)
 import           Poseidon.Core.Package         (PackageReadOptions (..),
@@ -51,7 +52,7 @@ data JannoCoalesceOptions = JannoCoalesceOptions
 runJannocoalesce :: JannoCoalesceOptions -> PoseidonIO ()
 runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV targetPath) outPath fields overwrite sKey tKey maybeStrip) = do
     JannoRows sourceRows <- case sourceSpec of
-        JannoSourceSingle (VersionedFile sourcePV sourcePath) -> readJannoFile sourcePV [] sourcePath
+        JannoSourceSingle (VersionedFile sourcePV sourcePath) -> snd <$> readJannoFile sourcePV [] sourcePath
         JannoSourceBaseDirs sourceDirs -> do
             let pacReadOpts = defaultPackageReadOptions {
                       _readOptIgnoreChecksums      = True
@@ -60,14 +61,14 @@ runJannocoalesce (JannoCoalesceOptions sourceSpec (VersionedFile targetPV target
                     , _readOptOnlyLatest           = True
                 }
             getJointJanno <$> readPoseidonPackageCollection pacReadOpts sourceDirs
-    JannoRows targetRows <- readJannoFile targetPV [] targetPath
+    JannoRows targetRows <- snd <$> readJannoFile targetPV [] targetPath
 
     newJanno <- makeNewJannoRows sourceRows targetRows fields overwrite sKey tKey maybeStrip
 
     logInfo $ "Writing to file (directory will be created if missing): " ++ outPath
     liftIO $ do
         createDirectoryIfMissing True (takeDirectory outPath)
-        writeJannoFile outPath (JannoRows newJanno)
+        writeJannoFile outPath (makeJannoHeader (JannoRows newJanno)) (JannoRows newJanno)
 
 type CounterMismatches = R.IORef Int
 type CounterCopied     = R.IORef Int

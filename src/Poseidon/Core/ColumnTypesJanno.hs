@@ -9,8 +9,11 @@ import           Poseidon.Core.ColumnTypesUtils
 
 import           Country                        (Country, alphaTwoUpper,
                                                  decodeAlphaTwo)
+import qualified Data.Attoparsec.Text           as A
 import qualified Data.ByteString.Char8          as B
 import qualified Data.Csv                       as Csv
+import           Data.Scientific                (FPFormat (..), Scientific,
+                                                 formatScientific)
 import           Data.String                    (IsString (..))
 import qualified Data.Text                      as T
 import qualified Data.Text.Read                 as T
@@ -227,37 +230,38 @@ newtype JannoSite = JannoSite T.Text deriving (Eq, Ord)
 $(makeInstances ''JannoSite "Site")
 
 -- | A datatype for the Latitude .janno column
-newtype JannoLatitude = JannoLatitude Double deriving (Eq, Ord, Generic)
+newtype JannoLatitude = JannoLatitude Scientific deriving (Eq, Ord, Generic)
 
 instance Makeable JannoLatitude where
     make _ x =
-        case T.double x of
-            Left e -> fail $ "Latitude can not be converted to Double because " ++ e
-            Right (num, "") ->
+        case A.parseOnly parseScientific x of
+            Left e -> fail $ "Latitude can not be converted to decimal because " ++ e
+            Right num ->
                 if num >= -90 && num <= 90
                 then pure (JannoLatitude num)
                 else fail $ "Latitude " ++ show x ++ " not between -90 and 90"
-            Right (_, rest) -> fail $ "Latitude can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoLatitude where inspect _ = Nothing
-instance Show JannoLatitude where          show (JannoLatitude x) = show x
-instance Csv.ToField JannoLatitude where   toField (JannoLatitude x) = Csv.toField x
+instance Show JannoLatitude where          show (JannoLatitude x) = formatScientific Fixed Nothing x
+instance Csv.ToField JannoLatitude where   toField (JannoLatitude x) = B.pack (formatScientific Fixed Nothing x)
 instance FromFieldVersioned JannoLatitude where parseFieldVersioned pv = parseTypeCSV pv "Latitude"
 
+parseScientific :: A.Parser Scientific
+parseScientific = A.skipSpace *> A.scientific <* A.skipSpace <* A.endOfInput
+
 -- | A datatype for the Longitude .janno column
-newtype JannoLongitude = JannoLongitude Double deriving (Eq, Ord, Generic)
+newtype JannoLongitude = JannoLongitude Scientific deriving (Eq, Ord, Generic)
 
 instance Makeable JannoLongitude where
     make _ x =
-        case T.double x of
-            Left e -> fail $ "Longitude can not be converted to Double because " ++ e
-            Right (num, "") ->
+        case A.parseOnly parseScientific x of
+            Left e -> fail $ "Longitude can not be converted to decimal because " ++ e
+            Right num ->
                 if num >= -180 && num <= 180
                 then pure (JannoLongitude num)
                 else fail $ "Longitude " ++ show x ++ " not between -180 and 180"
-            Right (_, rest) -> fail $ "Longitude can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoLongitude where inspect _ = Nothing
-instance Show JannoLongitude where          show (JannoLongitude x) = show x
-instance Csv.ToField JannoLongitude where   toField (JannoLongitude x) = Csv.toField x
+instance Show JannoLongitude where          show (JannoLongitude x) = formatScientific Fixed Nothing x
+instance Csv.ToField JannoLongitude where   toField (JannoLongitude x) = B.pack (formatScientific Fixed Nothing x)
 instance FromFieldVersioned JannoLongitude where parseFieldVersioned pv = parseTypeCSV pv "Longitude"
 
 -- | A datatype for the Date_Type .janno column
@@ -568,13 +572,13 @@ instance Csv.ToField JannoDataPreparationPipelineURL where   toField (JannoDataP
 instance FromFieldVersioned JannoDataPreparationPipelineURL where parseFieldVersioned pv = parseTypeCSV pv "Data_Preparation_Pipeline_URL"
 
 -- | A datatype for the Endogenous .janno column
-newtype JannoEndogenous = JannoEndogenous Double deriving (Eq, Ord, Generic)
+newtype JannoEndogenous = JannoEndogenous Scientific deriving (Eq, Ord, Generic)
 
 instance Makeable JannoEndogenous where
     make pv x =
-        case T.double x of
-            Left e -> fail $ "Endogenous can not be converted to Double because " ++ e
-            Right (num, "") ->
+        case A.parseOnly parseScientific x of
+            Left e -> fail $ "Endogenous can not be converted to decimal because " ++ e
+            Right num ->
                 if asVersion pv >= makeVersion [3,0,0]
                 then do
                     if num >= 0 && num <= 1
@@ -584,10 +588,9 @@ instance Makeable JannoEndogenous where
                     if num >= 0 && num <= 100
                     then pure (JannoEndogenous $ num / 100) -- rescale to 0-1
                     else fail $ "Endogenous " ++ show x ++ " not between 0 and 100."
-            Right (_, rest) -> fail $ "Endogenous can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoEndogenous where inspect _ = Nothing
-instance Show JannoEndogenous where          show (JannoEndogenous x) = show x
-instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = Csv.toField x
+instance Show JannoEndogenous where          show (JannoEndogenous x) = formatScientific Fixed Nothing x
+instance Csv.ToField JannoEndogenous where   toField (JannoEndogenous x) = B.pack (formatScientific Fixed Nothing x)
 instance FromFieldVersioned JannoEndogenous where parseFieldVersioned pv = parseTypeCSV pv "Endogenous"
 
 -- | A datatype for the Nr_SNPs .janno column
@@ -611,27 +614,26 @@ instance Csv.ToField JannoNrSNPs where   toField (JannoNrSNPs x) = Csv.toField x
 instance FromFieldVersioned JannoNrSNPs where parseFieldVersioned pv = parseTypeCSV pv "Nr_SNPs"
 
 -- | A datatype for the Coverage_on_Target_SNPs .janno column
-newtype JannoCoverageOnTargets = JannoCoverageOnTargets Double deriving (Eq, Ord, Generic)
+newtype JannoCoverageOnTargets = JannoCoverageOnTargets Scientific deriving (Eq, Ord, Generic)
 
 instance Makeable JannoCoverageOnTargets where
     make _ x =
-        case T.double x of
-            Left e -> fail $ "Coverage_on_Target_SNPs can not be converted to Double because " ++ e
-            Right (num, "") ->  pure (JannoCoverageOnTargets num)
-            Right (_, rest) -> fail $ "Coverage_on_Target_SNPs can not be converted to Double, because of a trailing " ++ show rest
+        case A.parseOnly parseScientific x of
+            Left e -> fail $ "Coverage_on_Target_SNPs can not be converted to decimal because " ++ e
+            Right num ->  pure (JannoCoverageOnTargets num)
 instance Suspicious JannoCoverageOnTargets where inspect _ = Nothing
-instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets x) = show x
-instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = Csv.toField x
+instance Show JannoCoverageOnTargets where          show (JannoCoverageOnTargets x) = formatScientific Fixed Nothing x
+instance Csv.ToField JannoCoverageOnTargets where   toField (JannoCoverageOnTargets x) = B.pack (formatScientific Fixed Nothing x)
 instance FromFieldVersioned JannoCoverageOnTargets where parseFieldVersioned pv = parseTypeCSV pv "Coverage_on_Target_SNPs"
 
 -- | A datatype for the Damage .janno column
-newtype JannoDamage = JannoDamage Double deriving (Eq, Ord, Generic)
+newtype JannoDamage = JannoDamage Scientific deriving (Eq, Ord, Generic)
 
 instance Makeable JannoDamage where
     make pv x =
-        case T.double x of
-            Left e -> fail $ "Damage can not be converted to Double because " ++ e
-            Right (num, "") ->
+        case A.parseOnly parseScientific x of
+            Left e -> fail $ "Damage can not be converted to decimal because " ++ e
+            Right num ->
                 if asVersion pv >= makeVersion [3,0,0]
                 then do
                     if num >= 0 && num <= 1
@@ -641,10 +643,9 @@ instance Makeable JannoDamage where
                     if num >= 0 && num <= 100
                     then pure (JannoDamage $ num / 100) -- rescale to 0-1
                     else fail $ "Damage " ++ show x ++ " not between 0 and 100."
-            Right (_, rest) -> fail $ "Damage can not be converted to Double, because of a trailing " ++ show rest
 instance Suspicious JannoDamage where inspect _ = Nothing
-instance Show JannoDamage where          show (JannoDamage x) = show x
-instance Csv.ToField JannoDamage where   toField (JannoDamage x) = Csv.toField x
+instance Show JannoDamage where          show (JannoDamage x) = formatScientific Fixed Nothing x
+instance Csv.ToField JannoDamage where   toField (JannoDamage x) = B.pack (formatScientific Fixed Nothing x)
 instance FromFieldVersioned JannoDamage where parseFieldVersioned pv = parseTypeCSV pv "Damage"
 
 -- | A datatype for the Contamination .janno column

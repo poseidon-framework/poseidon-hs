@@ -113,7 +113,7 @@ runValidate (ValidateOptions (ValPlanGeno geno) _ _ noExitCode _) = do
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanJanno (VersionedFile pv path)) mandatoryJannoCols _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
-    (JannoRows entries) <- readJannoFile pv mandatoryJannoCols path
+    (_,JannoRows entries) <- readJannoFile pv mandatoryJannoCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanSSF (VersionedFile pv path)) _ mandatorySSFCols noExitCode _) = do
