@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.1.3.0
+@version 2.2.0.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -527,11 +527,12 @@ JannoSite :: Text -> JannoSite
 
 -- | A datatype for the Latitude .janno column
 newtype JannoLatitude
-JannoLatitude :: Double -> JannoLatitude
+JannoLatitude :: Scientific -> JannoLatitude
+parseScientific :: Parser Scientific
 
 -- | A datatype for the Longitude .janno column
 newtype JannoLongitude
-JannoLongitude :: Double -> JannoLongitude
+JannoLongitude :: Scientific -> JannoLongitude
 
 -- | A datatype for the Date_Type .janno column
 data JannoDateType
@@ -630,7 +631,7 @@ JannoDataPreparationPipelineURL :: Text -> JannoDataPreparationPipelineURL
 
 -- | A datatype for the Endogenous .janno column
 newtype JannoEndogenous
-JannoEndogenous :: Double -> JannoEndogenous
+JannoEndogenous :: Scientific -> JannoEndogenous
 
 -- | A datatype for the Nr_SNPs .janno column
 newtype JannoNrSNPs
@@ -638,11 +639,11 @@ JannoNrSNPs :: Int -> JannoNrSNPs
 
 -- | A datatype for the Coverage_on_Target_SNPs .janno column
 newtype JannoCoverageOnTargets
-JannoCoverageOnTargets :: Double -> JannoCoverageOnTargets
+JannoCoverageOnTargets :: Scientific -> JannoCoverageOnTargets
 
 -- | A datatype for the Damage .janno column
 newtype JannoDamage
-JannoDamage :: Double -> JannoDamage
+JannoDamage :: Scientific -> JannoDamage
 
 -- | A datatype for the Contamination .janno column
 newtype JannoContamination
@@ -1164,7 +1165,7 @@ PoseidonChronicleException :: String -> PoseidonException
 -- | An exception for issues with git
 PoseidonGitException :: FilePath -> String -> PoseidonException
 
--- | An exception for issues with --preservePyml
+-- | An exception for issues with --preserve
 PoseidonCantPreserveException :: PoseidonException
 renderPoseidonException :: PoseidonException -> String
 usePoseidonLogger :: LogMode -> TestMode -> PlinkPopNameMode -> ErrorLength -> PoseidonIO a -> IO a
@@ -1349,11 +1350,11 @@ JannoRow :: PoseidonID -> GeneticSex -> ListColumn GroupName -> Maybe JannoIndiv
 [jComments] :: JannoRow -> Maybe JannoComment
 [jKeywords] :: JannoRow -> Maybe (ListColumn JannoKeyword)
 [jAdditionalColumns] :: JannoRow -> CsvNamedRecord
-writeJannoFile :: FilePath -> JannoRows -> IO ()
-writeJannoFileWithoutEmptyCols :: FilePath -> JannoRows -> IO ()
+writeJannoFile :: FilePath -> Header -> JannoRows -> IO ()
+writeJannoFileWithoutEmptyCols :: FilePath -> Header -> JannoRows -> IO ()
 
 -- | A function to load one janno file
-readJannoFile :: PoseidonVersion -> [ByteString] -> FilePath -> PoseidonIO JannoRows
+readJannoFile :: PoseidonVersion -> [ByteString] -> FilePath -> PoseidonIO ([ByteString], JannoRows)
 
 -- | A function to create empty janno rows for a set of individuals
 createMinimalJanno :: [EigenstratIndEntry] -> JannoRows
@@ -1371,7 +1372,7 @@ JannoRows :: [JannoRow] -> JannoRows
 -- | a convenience function to construct Eigenstrat Ind entries out of
 --   jannoRows
 jannoRows2EigenstratIndEntries :: JannoRows -> [EigenstratIndEntry]
-makeHeaderWithAdditionalColumns :: [JannoRow] -> Header
+makeJannoHeader :: JannoRows -> Header
 parseJannoRowFromNamedRecord :: PoseidonVersion -> [ByteString] -> NamedRecord -> Parser JannoRow
 instance Generics.SOP.Universe.Generic Poseidon.Core.Janno.JannoRow
 instance Generics.SOP.Universe.HasDatatypeInfo Poseidon.Core.Janno.JannoRow
@@ -1773,7 +1774,7 @@ PoseidonYamlStruct :: PoseidonVersion -> String -> Maybe String -> [ContributorS
 
 -- | A data type to represent a Poseidon Package
 data PoseidonPackage
-PoseidonPackage :: FilePath -> PoseidonVersion -> PacNameAndVersion -> Maybe String -> [ContributorSpec] -> Maybe Day -> Maybe LicenseSpec -> GenotypeDataSpec -> Maybe FilePath -> JannoRows -> Maybe String -> Maybe FilePath -> SeqSourceRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonPackage
+PoseidonPackage :: FilePath -> PoseidonVersion -> PacNameAndVersion -> Maybe String -> [ContributorSpec] -> Maybe Day -> Maybe LicenseSpec -> GenotypeDataSpec -> Maybe FilePath -> Vector ByteString -> JannoRows -> Maybe String -> Maybe FilePath -> SeqSourceRows -> Maybe String -> Maybe FilePath -> BibTeX -> Maybe String -> Maybe FilePath -> Maybe FilePath -> PoseidonPackage
 
 -- | the base directory of the YAML file
 [posPacBaseDir] :: PoseidonPackage -> FilePath
@@ -1799,6 +1800,9 @@ PoseidonPackage :: FilePath -> PoseidonVersion -> PacNameAndVersion -> Maybe Str
 
 -- | the path to the janno file
 [posPacJannoFile] :: PoseidonPackage -> Maybe FilePath
+
+-- | the janno file header (in input order)
+[posPacJannoInputHeader] :: PoseidonPackage -> Vector ByteString
 
 -- | the loaded janno file
 [posPacJanno] :: PoseidonPackage -> JannoRows
@@ -1925,7 +1929,7 @@ PoseidonChronicleException :: String -> PoseidonException
 -- | An exception for issues with git
 PoseidonGitException :: FilePath -> String -> PoseidonException
 
--- | An exception for issues with --preservePyml
+-- | An exception for issues with --preserve
 PoseidonCantPreserveException :: PoseidonException
 data PackageReadOptions
 PackageReadOptions :: Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> [ByteString] -> [ByteString] -> PackageReadOptions
@@ -2311,9 +2315,9 @@ ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath
 data ForgeOutMode
 GenoOut :: ForgeOutMode
 MinimalOut :: ForgeOutMode
-PreservePymlOut :: ForgeOutMode
+PreserveOut :: ForgeOutMode
 NormalOut :: ForgeOutMode
-preservePyml :: ForgeOutMode -> Bool
+isPreserve :: ForgeOutMode -> Bool
 pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
@@ -2591,7 +2595,7 @@ onlyGenoOutputDocu :: Mod FlagFields a
 parseMinimalOutputFlag :: Parser ForgeOutMode
 parseMinimalOutputSwitch :: Parser Bool
 minimalOutputDocu :: Mod FlagFields a
-parsePreservePymlFlag :: Parser ForgeOutMode
+parsePreserveFlag :: Parser ForgeOutMode
 parsePackageWise :: Parser Bool
 parseMaybeSnpFile :: Parser (Maybe FilePath)
 parseListEntity :: Parser ListEntity

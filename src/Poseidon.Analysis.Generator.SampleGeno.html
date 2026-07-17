@@ -15,23 +15,23 @@
 </span><span id="line-15"></span><span>
 </span><span id="line-16"></span><span class="hs-comment">-- admixpops</span><span>
 </span><span id="line-17"></span><span>
-</span><span id="line-18"></span><span id="local-6989586621679745384"><span id="local-6989586621679745389"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerChunk"><span class="hs-identifier hs-type">samplePerChunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745384"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-18"></span><span id="local-6989586621679745999"><span id="local-6989586621679746004"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerChunk"><span class="hs-identifier hs-type">samplePerChunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745999"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
 </span><span id="line-19"></span><span>       </span><span class="annot"><a href="Poseidon.Core.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span>
 </span><span id="line-20"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-21"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679745384"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679745389"><span class="hs-identifier hs-type">r</span></a></span><span>
-</span><span id="line-22"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679745384"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679745389"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679745999"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679746004"><span class="hs-identifier hs-type">r</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679745999"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679746004"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
 </span><span id="line-23"></span><span id="samplePerChunk"><span class="annot"><span class="annottext">samplePerChunk :: forall (m :: * -&gt; *) r.
 MonadIO m =&gt;
 LogA
 -&gt; [IndConcrete]
 -&gt; Producer (EigenstratSnpEntry, GenoLine) m r
 -&gt; Producer (EigenstratSnpEntry, GenoLine) m r
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerChunk"><span class="hs-identifier hs-var hs-var">samplePerChunk</span></a></span></span><span> </span><span id="local-6989586621679745563"><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679745563"><span class="hs-identifier hs-var">logEnv</span></a></span></span><span> </span><span id="local-6989586621679745564"><span class="annot"><span class="annottext">[IndConcrete]
-</span><a href="#local-6989586621679745564"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span id="local-6989586621679745565"><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) m r
-</span><a href="#local-6989586621679745565"><span class="hs-identifier hs-var">prod</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-24"></span><span>    </span><span id="local-6989586621679745566"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745566"><span class="hs-identifier hs-var">sampledSourceInds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(IndConcrete -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m Int)
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerChunk"><span class="hs-identifier hs-var hs-var">samplePerChunk</span></a></span></span><span> </span><span id="local-6989586621679746178"><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679746178"><span class="hs-identifier hs-var">logEnv</span></a></span></span><span> </span><span id="local-6989586621679746179"><span class="annot"><span class="annottext">[IndConcrete]
+</span><a href="#local-6989586621679746179"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span id="local-6989586621679746180"><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) m r
+</span><a href="#local-6989586621679746180"><span class="hs-identifier hs-var">prod</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-24"></span><span>    </span><span id="local-6989586621679746181"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746181"><span class="hs-identifier hs-var">sampledSourceInds</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(IndConcrete -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m Int)
 -&gt; [IndConcrete]
 -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m [Int]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
@@ -43,8 +43,8 @@ forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
 -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m Int
 forall (m :: * -&gt; *). MonadIO m =&gt; LogA -&gt; IndConcrete -&gt; m Int
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleInIndForChunk"><span class="hs-identifier hs-var">sampleInIndForChunk</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679745563"><span class="hs-identifier hs-var">logEnv</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[IndConcrete]
-</span><a href="#local-6989586621679745564"><span class="hs-identifier hs-var">inds</span></a></span><span>
+</span><a href="#local-6989586621679746178"><span class="hs-identifier hs-var">logEnv</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[IndConcrete]
+</span><a href="#local-6989586621679746179"><span class="hs-identifier hs-var">inds</span></a></span><span>
 </span><span id="line-25"></span><span>    </span><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) m r
 -&gt; ((EigenstratSnpEntry, GenoLine)
     -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m ())
@@ -54,7 +54,7 @@ Functor m =&gt;
 Proxy x' x b' b m a'
 -&gt; (b -&gt; Proxy x' x c' c m b') -&gt; Proxy x' x c' c m a'
 </span><span class="hs-identifier hs-var">for</span></span><span> </span><span class="annot"><span class="annottext">Producer (EigenstratSnpEntry, GenoLine) m r
-</span><a href="#local-6989586621679745565"><span class="hs-identifier hs-var">prod</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746180"><span class="hs-identifier hs-var">prod</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int]
 -&gt; (EigenstratSnpEntry, GenoLine)
 -&gt; Proxy X () () (EigenstratSnpEntry, GenoLine) m ()
 forall (m :: * -&gt; *).
@@ -62,80 +62,80 @@ MonadIO m =&gt;
 [Int]
 -&gt; (EigenstratSnpEntry, GenoLine)
 -&gt; Producer (EigenstratSnpEntry, GenoLine) m ()
-</span><a href="#local-6989586621679745570"><span class="hs-identifier hs-var">handleEntry</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745566"><span class="hs-identifier hs-var">sampledSourceInds</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746185"><span class="hs-identifier hs-var">handleEntry</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746181"><span class="hs-identifier hs-var">sampledSourceInds</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-26"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-27"></span><span>    </span><span id="local-6989586621679745421"><span class="annot"><a href="#local-6989586621679745570"><span class="hs-identifier hs-type">handleEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745421"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679745421"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
-</span><span id="line-28"></span><span>    </span><span id="local-6989586621679745570"><span class="annot"><span class="annottext">handleEntry :: forall (m :: * -&gt; *).
+</span><span id="line-27"></span><span>    </span><span id="local-6989586621679746036"><span class="annot"><a href="#local-6989586621679746185"><span class="hs-identifier hs-type">handleEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679746036"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Producer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679746036"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679746185"><span class="annot"><span class="annottext">handleEntry :: forall (m :: * -&gt; *).
 MonadIO m =&gt;
 [Int]
 -&gt; (EigenstratSnpEntry, GenoLine)
 -&gt; Producer (EigenstratSnpEntry, GenoLine) m ()
-</span><a href="#local-6989586621679745570"><span class="hs-identifier hs-var hs-var">handleEntry</span></a></span></span><span> </span><span id="local-6989586621679745576"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745576"><span class="hs-identifier hs-var">sampledInds</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679745577"><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745577"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679745578"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745578"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-29"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745579"><span class="annot"><span class="annottext">newGenoLine :: GenoLine
-</span><a href="#local-6989586621679745579"><span class="hs-identifier hs-var hs-var">newGenoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
+</span><a href="#local-6989586621679746185"><span class="hs-identifier hs-var hs-var">handleEntry</span></a></span></span><span> </span><span id="local-6989586621679746191"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746191"><span class="hs-identifier hs-var">sampledInds</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679746192"><span class="annot"><span class="annottext">EigenstratSnpEntry
+</span><a href="#local-6989586621679746192"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679746193"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746193"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-29"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746194"><span class="annot"><span class="annottext">newGenoLine :: GenoLine
+</span><a href="#local-6989586621679746194"><span class="hs-identifier hs-var hs-var">newGenoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">([GenoEntry] -&gt; GenoLine) -&gt; [GenoEntry] -&gt; GenoLine
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745578"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
+</span><a href="#local-6989586621679746193"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
 forall a. Vector a -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">V.!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745582"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679745582"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745582"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745576"><span class="hs-identifier hs-var">sampledInds</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679746197"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679746197"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679746197"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746191"><span class="hs-identifier hs-var">sampledInds</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-30"></span><span>        </span><span class="annot"><span class="annottext">(EigenstratSnpEntry, GenoLine)
 -&gt; Producer (EigenstratSnpEntry, GenoLine) m ()
 forall (m :: * -&gt; *) a x' x. Functor m =&gt; a -&gt; Proxy x' x () a m ()
 </span><span class="hs-identifier hs-var">yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745577"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745579"><span class="hs-identifier hs-var">newGenoLine</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746192"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746194"><span class="hs-identifier hs-var">newGenoLine</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-31"></span><span>
-</span><span id="line-32"></span><span id="local-6989586621679745412"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleInIndForChunk"><span class="hs-identifier hs-type">sampleInIndForChunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745412"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Poseidon.Core.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679745412"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
+</span><span id="line-32"></span><span id="local-6989586621679746027"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleInIndForChunk"><span class="hs-identifier hs-type">sampleInIndForChunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679746027"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Poseidon.Core.Utils.html#LogA"><span class="hs-identifier hs-type">LogA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679746027"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
 </span><span id="line-33"></span><span id="sampleInIndForChunk"><span class="annot"><span class="annottext">sampleInIndForChunk :: forall (m :: * -&gt; *). MonadIO m =&gt; LogA -&gt; IndConcrete -&gt; m Int
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleInIndForChunk"><span class="hs-identifier hs-var hs-var">sampleInIndForChunk</span></a></span></span><span> </span><span id="local-6989586621679745595"><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679745595"><span class="hs-identifier hs-var">logEnv</span></a></span></span><span> </span><span id="local-6989586621679745596"><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745596"><span class="hs-identifier hs-var">ind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-34"></span><span>    </span><span id="local-6989586621679745597"><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745597"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleInIndForChunk"><span class="hs-identifier hs-var hs-var">sampleInIndForChunk</span></a></span></span><span> </span><span id="local-6989586621679746210"><span class="annot"><span class="annottext">LogA
+</span><a href="#local-6989586621679746210"><span class="hs-identifier hs-var">logEnv</span></a></span></span><span> </span><span id="local-6989586621679746211"><span class="annot"><span class="annottext">IndConcrete
+</span><a href="#local-6989586621679746211"><span class="hs-identifier hs-var">ind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-34"></span><span>    </span><span id="local-6989586621679746212"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679746212"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">IO StdGen
 forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 </span><span class="hs-identifier hs-var">getStdGen</span></span><span>
-</span><span id="line-35"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745599"><span class="annot"><span class="annottext">indName :: String
-</span><a href="#local-6989586621679745599"><span class="hs-identifier hs-var hs-var">indName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IndConcrete -&gt; String
+</span><span id="line-35"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746214"><span class="annot"><span class="annottext">indName :: String
+</span><a href="#local-6989586621679746214"><span class="hs-identifier hs-var hs-var">indName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IndConcrete -&gt; String
 </span><a href="Poseidon.Analysis.Generator.Types.html#_indName"><span class="hs-identifier hs-var">_indName</span></a></span><span> </span><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745596"><span class="hs-identifier hs-var">ind</span></a></span><span>
-</span><span id="line-36"></span><span>        </span><span id="local-6989586621679745601"><span class="annot"><span class="annottext">popSet :: [((String, [(String, Int)]), Rational)]
-</span><a href="#local-6989586621679745601"><span class="hs-identifier hs-var hs-var">popSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">[PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)]
-</span><a href="#local-6989586621679745602"><span class="hs-identifier hs-var">popAdmixPopsToNestedTuple</span></a></span><span> </span><span class="annot"><span class="annottext">([PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)])
+</span><a href="#local-6989586621679746211"><span class="hs-identifier hs-var">ind</span></a></span><span>
+</span><span id="line-36"></span><span>        </span><span id="local-6989586621679746216"><span class="annot"><span class="annottext">popSet :: [((String, [(String, Int)]), Rational)]
+</span><a href="#local-6989586621679746216"><span class="hs-identifier hs-var hs-var">popSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">[PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)]
+</span><a href="#local-6989586621679746217"><span class="hs-identifier hs-var">popAdmixPopsToNestedTuple</span></a></span><span> </span><span class="annot"><span class="annottext">([PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)])
 -&gt; [PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IndConcrete -&gt; [PopFracConcrete]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popSet"><span class="hs-identifier hs-var">_popSet</span></a></span><span> </span><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745596"><span class="hs-identifier hs-var">ind</span></a></span><span>
-</span><span id="line-37"></span><span>        </span><span id="local-6989586621679745606"><span class="annot"><span class="annottext">sampledPopTuple :: (String, [(String, Int)])
-</span><a href="#local-6989586621679745606"><span class="hs-identifier hs-var hs-var">sampledPopTuple</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679746211"><span class="hs-identifier hs-var">ind</span></a></span><span>
+</span><span id="line-37"></span><span>        </span><span id="local-6989586621679746221"><span class="annot"><span class="annottext">sampledPopTuple :: (String, [(String, Int)])
+</span><a href="#local-6989586621679746221"><span class="hs-identifier hs-var hs-var">sampledPopTuple</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen
 -&gt; [((String, [(String, Int)]), Rational)]
 -&gt; (String, [(String, Int)])
 forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var">sampleWeightedList</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745597"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[((String, [(String, Int)]), Rational)]
-</span><a href="#local-6989586621679745601"><span class="hs-identifier hs-var">popSet</span></a></span><span>
-</span><span id="line-38"></span><span>        </span><span id="local-6989586621679745608"><span class="annot"><span class="annottext">sampledPopName :: String
-</span><a href="#local-6989586621679745608"><span class="hs-identifier hs-var hs-var">sampledPopName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String, [(String, Int)]) -&gt; String
+</span><a href="#local-6989586621679746212"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[((String, [(String, Int)]), Rational)]
+</span><a href="#local-6989586621679746216"><span class="hs-identifier hs-var">popSet</span></a></span><span>
+</span><span id="line-38"></span><span>        </span><span id="local-6989586621679746223"><span class="annot"><span class="annottext">sampledPopName :: String
+</span><a href="#local-6989586621679746223"><span class="hs-identifier hs-var hs-var">sampledPopName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String, [(String, Int)]) -&gt; String
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(String, [(String, Int)])
-</span><a href="#local-6989586621679745606"><span class="hs-identifier hs-var">sampledPopTuple</span></a></span><span>
-</span><span id="line-39"></span><span>        </span><span id="local-6989586621679745613"><span class="annot"><span class="annottext">sampledSourceInd :: (String, Int)
-</span><a href="#local-6989586621679745613"><span class="hs-identifier hs-var hs-var">sampledSourceInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [((String, Int), Rational)] -&gt; (String, Int)
+</span><a href="#local-6989586621679746221"><span class="hs-identifier hs-var">sampledPopTuple</span></a></span><span>
+</span><span id="line-39"></span><span>        </span><span id="local-6989586621679746228"><span class="annot"><span class="annottext">sampledSourceInd :: (String, Int)
+</span><a href="#local-6989586621679746228"><span class="hs-identifier hs-var hs-var">sampledSourceInd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [((String, Int), Rational)] -&gt; (String, Int)
 forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var">sampleWeightedList</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745597"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">([((String, Int), Rational)] -&gt; (String, Int))
+</span><a href="#local-6989586621679746212"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">([((String, Int), Rational)] -&gt; (String, Int))
 -&gt; [((String, Int), Rational)] -&gt; (String, Int)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(String, Int)] -&gt; [Rational] -&gt; [((String, Int), Rational)]
@@ -143,14 +143,14 @@ forall a b. [a] -&gt; [b] -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String, [(String, Int)]) -&gt; [(String, Int)]
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(String, [(String, Int)])
-</span><a href="#local-6989586621679745606"><span class="hs-identifier hs-var">sampledPopTuple</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rational -&gt; [Rational]
+</span><a href="#local-6989586621679746221"><span class="hs-identifier hs-var">sampledPopTuple</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rational -&gt; [Rational]
 forall a. a -&gt; [a]
 </span><span class="hs-identifier hs-var">repeat</span></span><span> </span><span class="annot"><span class="annottext">Rational
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
 </span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">LogA -&gt; PoseidonIO () -&gt; m ()
 forall (m :: * -&gt; *). MonadIO m =&gt; LogA -&gt; PoseidonIO () -&gt; m ()
 </span><a href="Poseidon.Core.Utils.html#logWithEnv"><span class="hs-identifier hs-var">logWithEnv</span></a></span><span> </span><span class="annot"><span class="annottext">LogA
-</span><a href="#local-6989586621679745595"><span class="hs-identifier hs-var">logEnv</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; m ())
+</span><a href="#local-6989586621679746210"><span class="hs-identifier hs-var">logEnv</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; m ())
 -&gt; (String -&gt; PoseidonIO ()) -&gt; String -&gt; m ()
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; PoseidonIO ()
@@ -162,13 +162,13 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span>
 </span><span id="line-42"></span><span>        </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679745599"><span class="hs-identifier hs-var">indName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679746214"><span class="hs-identifier hs-var">indName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679745608"><span class="hs-identifier hs-var">sampledPopName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679746223"><span class="hs-identifier hs-var">sampledPopName</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
@@ -176,7 +176,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String, Int) -&gt; String
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(String, Int)
-</span><a href="#local-6989586621679745613"><span class="hs-identifier hs-var">sampledSourceInd</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746228"><span class="hs-identifier hs-var">sampledSourceInd</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">StdGen
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
 forall a. IO a -&gt; m a
@@ -192,116 +192,116 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(String, Int) -&gt; Int
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(String, Int)
-</span><a href="#local-6989586621679745613"><span class="hs-identifier hs-var">sampledSourceInd</span></a></span><span>
+</span><a href="#local-6989586621679746228"><span class="hs-identifier hs-var">sampledSourceInd</span></a></span><span>
 </span><span id="line-45"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-46"></span><span>        </span><span id="local-6989586621679745602"><span class="annot"><span class="annottext">popAdmixPopsToNestedTuple :: [PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)]
-</span><a href="#local-6989586621679745602"><span class="hs-identifier hs-var hs-var">popAdmixPopsToNestedTuple</span></a></span></span><span> </span><span id="local-6989586621679745617"><span class="annot"><span class="annottext">[PopFracConcrete]
-</span><a href="#local-6989586621679745617"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, [(String, Int)])]
+</span><span id="line-46"></span><span>        </span><span id="local-6989586621679746217"><span class="annot"><span class="annottext">popAdmixPopsToNestedTuple :: [PopFracConcrete] -&gt; [((String, [(String, Int)]), Rational)]
+</span><a href="#local-6989586621679746217"><span class="hs-identifier hs-var hs-var">popAdmixPopsToNestedTuple</span></a></span></span><span> </span><span id="local-6989586621679746232"><span class="annot"><span class="annottext">[PopFracConcrete]
+</span><a href="#local-6989586621679746232"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, [(String, Int)])]
 -&gt; [Rational] -&gt; [((String, [(String, Int)]), Rational)]
 forall a b. [a] -&gt; [b] -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PopFracConcrete -&gt; (String, [(String, Int)]))
 -&gt; [PopFracConcrete] -&gt; [(String, [(String, Int)])]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679745618"><span class="annot"><span class="annottext">PopFracConcrete
-</span><a href="#local-6989586621679745618"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PopFracConcrete -&gt; String
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679746233"><span class="annot"><span class="annottext">PopFracConcrete
+</span><a href="#local-6989586621679746233"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PopFracConcrete -&gt; String
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popName"><span class="hs-identifier hs-var">_popName</span></a></span><span> </span><span class="annot"><span class="annottext">PopFracConcrete
-</span><a href="#local-6989586621679745618"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PopFracConcrete -&gt; [(String, Int)]
+</span><a href="#local-6989586621679746233"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PopFracConcrete -&gt; [(String, Int)]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popInds"><span class="hs-identifier hs-var">_popInds</span></a></span><span> </span><span class="annot"><span class="annottext">PopFracConcrete
-</span><a href="#local-6989586621679745618"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[PopFracConcrete]
-</span><a href="#local-6989586621679745617"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PopFracConcrete -&gt; Rational) -&gt; [PopFracConcrete] -&gt; [Rational]
+</span><a href="#local-6989586621679746233"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[PopFracConcrete]
+</span><a href="#local-6989586621679746232"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PopFracConcrete -&gt; Rational) -&gt; [PopFracConcrete] -&gt; [Rational]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">PopFracConcrete -&gt; Rational
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popFrac"><span class="hs-identifier hs-var">_popFrac</span></a></span><span> </span><span class="annot"><span class="annottext">[PopFracConcrete]
-</span><a href="#local-6989586621679745617"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746232"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-47"></span><span>
-</span><span id="line-48"></span><span id="local-6989586621679745457"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerSNP"><span class="hs-identifier hs-type">samplePerSNP</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745457"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-48"></span><span id="local-6989586621679746072"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerSNP"><span class="hs-identifier hs-type">samplePerSNP</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679746072"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
 </span><span id="line-49"></span><span>       </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
 </span><span id="line-50"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-51"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span><span>
-</span><span id="line-52"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679745457"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679746072"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">EigenstratSnpEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span class="hs-special">)</span></span><span>
 </span><span id="line-53"></span><span id="samplePerSNP"><span class="annot"><span class="annottext">samplePerSNP :: forall (m :: * -&gt; *).
 MonadIO m =&gt;
 Bool
 -&gt; [IndConcrete]
 -&gt; (EigenstratSnpEntry, GenoLine)
 -&gt; m (EigenstratSnpEntry, GenoLine)
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerSNP"><span class="hs-identifier hs-var hs-var">samplePerSNP</span></a></span></span><span> </span><span id="local-6989586621679745630"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745630"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679745631"><span class="annot"><span class="annottext">[IndConcrete]
-</span><a href="#local-6989586621679745631"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679745632"><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745632"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679745633"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745633"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-54"></span><span>    </span><span id="local-6989586621679745634"><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745634"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(IndConcrete -&gt; m GenoEntry) -&gt; [IndConcrete] -&gt; m [GenoEntry]
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#samplePerSNP"><span class="hs-identifier hs-var hs-var">samplePerSNP</span></a></span></span><span> </span><span id="local-6989586621679746245"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679746245"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679746246"><span class="annot"><span class="annottext">[IndConcrete]
+</span><a href="#local-6989586621679746246"><span class="hs-identifier hs-var">inds</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679746247"><span class="annot"><span class="annottext">EigenstratSnpEntry
+</span><a href="#local-6989586621679746247"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679746248"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746248"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-54"></span><span>    </span><span id="local-6989586621679746249"><span class="annot"><span class="annottext">[GenoEntry]
+</span><a href="#local-6989586621679746249"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(IndConcrete -&gt; m GenoEntry) -&gt; [IndConcrete] -&gt; m [GenoEntry]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
 forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
-</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679745635"><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745635"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IndConcrete -&gt; GenoLine -&gt; m GenoEntry
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679746250"><span class="annot"><span class="annottext">IndConcrete
+</span><a href="#local-6989586621679746250"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IndConcrete -&gt; GenoLine -&gt; m GenoEntry
 forall (m :: * -&gt; *).
 MonadIO m =&gt;
 Bool -&gt; IndConcrete -&gt; GenoLine -&gt; m GenoEntry
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleSNPForOneOutInd"><span class="hs-identifier hs-var">sampleSNPForOneOutInd</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745630"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span> </span><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745635"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745633"><span class="hs-identifier hs-var">genoLine</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[IndConcrete]
-</span><a href="#local-6989586621679745631"><span class="hs-identifier hs-var">inds</span></a></span><span>
+</span><a href="#local-6989586621679746245"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span> </span><span class="annot"><span class="annottext">IndConcrete
+</span><a href="#local-6989586621679746250"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746248"><span class="hs-identifier hs-var">genoLine</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[IndConcrete]
+</span><a href="#local-6989586621679746246"><span class="hs-identifier hs-var">inds</span></a></span><span>
 </span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">(EigenstratSnpEntry, GenoLine) -&gt; m (EigenstratSnpEntry, GenoLine)
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745632"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
+</span><a href="#local-6989586621679746247"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745634"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746249"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-56"></span><span>
-</span><span id="line-57"></span><span id="local-6989586621679745459"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleSNPForOneOutInd"><span class="hs-identifier hs-type">sampleSNPForOneOutInd</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679745459"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679745459"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span></span><span>
+</span><span id="line-57"></span><span id="local-6989586621679746074"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleSNPForOneOutInd"><span class="hs-identifier hs-type">sampleSNPForOneOutInd</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679746074"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#IndConcrete"><span class="hs-identifier hs-type">IndConcrete</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679746074"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span></span><span>
 </span><span id="line-58"></span><span id="sampleSNPForOneOutInd"><span class="annot"><span class="annottext">sampleSNPForOneOutInd :: forall (m :: * -&gt; *).
 MonadIO m =&gt;
 Bool -&gt; IndConcrete -&gt; GenoLine -&gt; m GenoEntry
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleSNPForOneOutInd"><span class="hs-identifier hs-var hs-var">sampleSNPForOneOutInd</span></a></span></span><span> </span><span id="local-6989586621679745646"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745646"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679745647"><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745647"><span class="hs-identifier hs-var">ind</span></a></span></span><span> </span><span id="local-6989586621679745648"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745648"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-59"></span><span>    </span><span id="local-6989586621679745649"><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745649"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleSNPForOneOutInd"><span class="hs-identifier hs-var hs-var">sampleSNPForOneOutInd</span></a></span></span><span> </span><span id="local-6989586621679746261"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679746261"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679746262"><span class="annot"><span class="annottext">IndConcrete
+</span><a href="#local-6989586621679746262"><span class="hs-identifier hs-var">ind</span></a></span></span><span> </span><span id="local-6989586621679746263"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746263"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-59"></span><span>    </span><span id="local-6989586621679746264"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679746264"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
 forall a. IO a -&gt; m a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">IO StdGen
 forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 </span><span class="hs-identifier hs-var">getStdGen</span></span><span>
-</span><span id="line-60"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745650"><span class="annot"><span class="annottext">indIDsAndFracs :: [([(String, Int)], Rational)]
-</span><a href="#local-6989586621679745650"><span class="hs-identifier hs-var hs-var">indIDsAndFracs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PopFracConcrete -&gt; ([(String, Int)], Rational))
+</span><span id="line-60"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746265"><span class="annot"><span class="annottext">indIDsAndFracs :: [([(String, Int)], Rational)]
+</span><a href="#local-6989586621679746265"><span class="hs-identifier hs-var hs-var">indIDsAndFracs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PopFracConcrete -&gt; ([(String, Int)], Rational))
 -&gt; [PopFracConcrete] -&gt; [([(String, Int)], Rational)]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Analysis.Generator.Types.html#PopFracConcrete"><span class="hs-identifier hs-type">PopFracConcrete</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679745652"><span class="annot"><span class="annottext">Rational
-</span><a href="#local-6989586621679745652"><span class="hs-identifier hs-var">frac_</span></a></span></span><span> </span><span id="local-6989586621679745653"><span class="annot"><span class="annottext">[(String, Int)]
-</span><a href="#local-6989586621679745653"><span class="hs-identifier hs-var">inds_</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, Int)]
-</span><a href="#local-6989586621679745653"><span class="hs-identifier hs-var">inds_</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Rational
-</span><a href="#local-6989586621679745652"><span class="hs-identifier hs-var">frac_</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([PopFracConcrete] -&gt; [([(String, Int)], Rational)])
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679746267"><span class="annot"><span class="annottext">Rational
+</span><a href="#local-6989586621679746267"><span class="hs-identifier hs-var">frac_</span></a></span></span><span> </span><span id="local-6989586621679746268"><span class="annot"><span class="annottext">[(String, Int)]
+</span><a href="#local-6989586621679746268"><span class="hs-identifier hs-var">inds_</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, Int)]
+</span><a href="#local-6989586621679746268"><span class="hs-identifier hs-var">inds_</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Rational
+</span><a href="#local-6989586621679746267"><span class="hs-identifier hs-var">frac_</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([PopFracConcrete] -&gt; [([(String, Int)], Rational)])
 -&gt; [PopFracConcrete] -&gt; [([(String, Int)], Rational)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IndConcrete -&gt; [PopFracConcrete]
 </span><a href="Poseidon.Analysis.Generator.Types.html#_popSet"><span class="hs-identifier hs-var">_popSet</span></a></span><span> </span><span class="annot"><span class="annottext">IndConcrete
-</span><a href="#local-6989586621679745647"><span class="hs-identifier hs-var">ind</span></a></span><span>
-</span><span id="line-61"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745655"><span class="annot"><span class="annottext">sampledGenotypesPerPop :: [(GenoEntry, Rational)]
-</span><a href="#local-6989586621679745655"><span class="hs-identifier hs-var hs-var">sampledGenotypesPerPop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([(String, Int)], Rational) -&gt; (GenoEntry, Rational))
+</span><a href="#local-6989586621679746262"><span class="hs-identifier hs-var">ind</span></a></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746270"><span class="annot"><span class="annottext">sampledGenotypesPerPop :: [(GenoEntry, Rational)]
+</span><a href="#local-6989586621679746270"><span class="hs-identifier hs-var hs-var">sampledGenotypesPerPop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([(String, Int)], Rational) -&gt; (GenoEntry, Rational))
 -&gt; [([(String, Int)], Rational)] -&gt; [(GenoEntry, Rational)]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">StdGen -&gt; ([(String, Int)], Rational) -&gt; (GenoEntry, Rational)
 forall {p} {a} {b}.
 RandomGen p =&gt;
 p -&gt; ([(a, Int)], b) -&gt; (GenoEntry, b)
-</span><a href="#local-6989586621679745656"><span class="hs-identifier hs-var">sampleGenotypePerPop</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745649"><span class="hs-identifier hs-var">gen</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([(String, Int)], Rational)]
-</span><a href="#local-6989586621679745650"><span class="hs-identifier hs-var">indIDsAndFracs</span></a></span><span>
-</span><span id="line-62"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745658"><span class="annot"><span class="annottext">sampledGenotypeAcrossPops :: GenoEntry
-</span><a href="#local-6989586621679745658"><span class="hs-identifier hs-var hs-var">sampledGenotypeAcrossPops</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
+</span><a href="#local-6989586621679746271"><span class="hs-identifier hs-var">sampleGenotypePerPop</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679746264"><span class="hs-identifier hs-var">gen</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([(String, Int)], Rational)]
+</span><a href="#local-6989586621679746265"><span class="hs-identifier hs-var">indIDsAndFracs</span></a></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746273"><span class="annot"><span class="annottext">sampledGenotypeAcrossPops :: GenoEntry
+</span><a href="#local-6989586621679746273"><span class="hs-identifier hs-var hs-var">sampledGenotypeAcrossPops</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
 forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var">sampleWeightedList</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745649"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, Rational)]
-</span><a href="#local-6989586621679745655"><span class="hs-identifier hs-var">sampledGenotypesPerPop</span></a></span><span>
+</span><a href="#local-6989586621679746264"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, Rational)]
+</span><a href="#local-6989586621679746270"><span class="hs-identifier hs-var">sampledGenotypesPerPop</span></a></span><span>
 </span><span id="line-63"></span><span>    </span><span class="annot"><span class="annottext">StdGen
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; m StdGen
 forall a. IO a -&gt; m a
@@ -313,59 +313,59 @@ forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 forall a. a -&gt; m a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745658"><span class="hs-identifier hs-var">sampledGenotypeAcrossPops</span></a></span><span>
+</span><a href="#local-6989586621679746273"><span class="hs-identifier hs-var">sampledGenotypeAcrossPops</span></a></span><span>
 </span><span id="line-65"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-66"></span><span>        </span><span id="local-6989586621679745656"><span class="annot"><span class="annottext">sampleGenotypePerPop :: p -&gt; ([(a, Int)], b) -&gt; (GenoEntry, b)
-</span><a href="#local-6989586621679745656"><span class="hs-identifier hs-var hs-var">sampleGenotypePerPop</span></a></span></span><span> </span><span id="local-6989586621679745660"><span class="annot"><span class="annottext">p
-</span><a href="#local-6989586621679745660"><span class="hs-identifier hs-var">gen_</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679745661"><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679745661"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679745662"><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621679745662"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-67"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745664"><span class="annot"><span class="annottext">sampledGeno :: GenoEntry
-</span><a href="#local-6989586621679745664"><span class="hs-identifier hs-var hs-var">sampledGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
+</span><span id="line-66"></span><span>        </span><span id="local-6989586621679746271"><span class="annot"><span class="annottext">sampleGenotypePerPop :: p -&gt; ([(a, Int)], b) -&gt; (GenoEntry, b)
+</span><a href="#local-6989586621679746271"><span class="hs-identifier hs-var hs-var">sampleGenotypePerPop</span></a></span></span><span> </span><span id="local-6989586621679746275"><span class="annot"><span class="annottext">p
+</span><a href="#local-6989586621679746275"><span class="hs-identifier hs-var">gen_</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679746276"><span class="annot"><span class="annottext">[(a, Int)]
+</span><a href="#local-6989586621679746276"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679746277"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679746277"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-67"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746279"><span class="annot"><span class="annottext">sampledGeno :: GenoEntry
+</span><a href="#local-6989586621679746279"><span class="hs-identifier hs-var hs-var">sampledGeno</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
 forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var">sampleWeightedList</span></a></span><span> </span><span class="annot"><span class="annottext">p
-</span><a href="#local-6989586621679745660"><span class="hs-identifier hs-var">gen_</span></a></span><span> </span><span class="annot"><span class="annottext">([(GenoEntry, Rational)] -&gt; GenoEntry)
+</span><a href="#local-6989586621679746275"><span class="hs-identifier hs-var">gen_</span></a></span><span> </span><span class="annot"><span class="annottext">([(GenoEntry, Rational)] -&gt; GenoEntry)
 -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [Int] -&gt; GenoLine -&gt; [(GenoEntry, Rational)]
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenotypeFrequency"><span class="hs-identifier hs-var">getGenotypeFrequency</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745646"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((a, Int) -&gt; Int) -&gt; [(a, Int)] -&gt; [Int]
+</span><a href="#local-6989586621679746261"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((a, Int) -&gt; Int) -&gt; [(a, Int)] -&gt; [Int]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">(a, Int) -&gt; Int
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679745661"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745648"><span class="hs-identifier hs-var">genoLine</span></a></span><span>
+</span><a href="#local-6989586621679746276"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746263"><span class="hs-identifier hs-var">genoLine</span></a></span><span>
 </span><span id="line-68"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745664"><span class="hs-identifier hs-var">sampledGeno</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621679745662"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746279"><span class="hs-identifier hs-var">sampledGeno</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679746277"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-69"></span><span>
 </span><span id="line-70"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenotypeFrequency"><span class="hs-identifier hs-type">getGenotypeFrequency</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-71"></span><span id="getGenotypeFrequency"><span class="annot"><span class="annottext">getGenotypeFrequency :: Bool -&gt; [Int] -&gt; GenoLine -&gt; [(GenoEntry, Rational)]
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenotypeFrequency"><span class="hs-identifier hs-var hs-var">getGenotypeFrequency</span></a></span></span><span> </span><span id="local-6989586621679745666"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745666"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679745667"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745667"><span class="hs-identifier hs-var">individualIndices</span></a></span></span><span> </span><span id="local-6989586621679745668"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745668"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-72"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745669"><span class="annot"><span class="annottext">relevantGenoEntries :: [GenoEntry]
-</span><a href="#local-6989586621679745669"><span class="hs-identifier hs-var hs-var">relevantGenoEntries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745668"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenotypeFrequency"><span class="hs-identifier hs-var hs-var">getGenotypeFrequency</span></a></span></span><span> </span><span id="local-6989586621679746281"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679746281"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span></span><span> </span><span id="local-6989586621679746282"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746282"><span class="hs-identifier hs-var">individualIndices</span></a></span></span><span> </span><span id="local-6989586621679746283"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746283"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746284"><span class="annot"><span class="annottext">relevantGenoEntries :: [GenoEntry]
+</span><a href="#local-6989586621679746284"><span class="hs-identifier hs-var hs-var">relevantGenoEntries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746283"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
 forall a. Vector a -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">V.!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745670"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679745670"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745670"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745667"><span class="hs-identifier hs-var">individualIndices</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679746285"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679746285"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679746285"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746282"><span class="hs-identifier hs-var">individualIndices</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-73"></span><span>    </span><span class="hs-keyword">in</span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(GenoEntry -&gt; Bool) -&gt; [GenoEntry] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Missing</span></span><span> </span><span class="annot"><span class="annottext">GenoEntry -&gt; GenoEntry -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745669"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
+</span><a href="#local-6989586621679746284"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
 </span><span id="line-74"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Missing</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Rational
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-75"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679745666"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span>
+</span><a href="#local-6989586621679746281"><span class="hs-identifier hs-var">marginalizeMissing</span></a></span><span>
 </span><span id="line-76"></span><span>             </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; [(GenoEntry, Rational)]
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#calcFractions"><span class="hs-identifier hs-var">calcFractions</span></a></span><span> </span><span class="annot"><span class="annottext">([GenoEntry] -&gt; [(GenoEntry, Rational)])
 -&gt; [GenoEntry] -&gt; [(GenoEntry, Rational)]
@@ -376,17 +376,17 @@ forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">Missing</span></span><span> </span><span class="annot"><span class="annottext">GenoEntry -&gt; GenoEntry -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745669"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
+</span><a href="#local-6989586621679746284"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
 </span><span id="line-77"></span><span>             </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; [(GenoEntry, Rational)]
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#calcFractions"><span class="hs-identifier hs-var">calcFractions</span></a></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745669"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
+</span><a href="#local-6989586621679746284"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
 </span><span id="line-78"></span><span>
 </span><span id="line-79"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#calcFractions"><span class="hs-identifier hs-type">calcFractions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
 </span><span id="line-80"></span><span id="calcFractions"><span class="annot"><span class="annottext">calcFractions :: [GenoEntry] -&gt; [(GenoEntry, Rational)]
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#calcFractions"><span class="hs-identifier hs-var hs-var">calcFractions</span></a></span></span><span> </span><span id="local-6989586621679745675"><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745675"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-81"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745678"><span class="annot"><span class="annottext">ls :: Integer
-</span><a href="#local-6989586621679745678"><span class="hs-identifier hs-var hs-var">ls</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Integer
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#calcFractions"><span class="hs-identifier hs-var hs-var">calcFractions</span></a></span></span><span> </span><span id="local-6989586621679746290"><span class="annot"><span class="annottext">[GenoEntry]
+</span><a href="#local-6989586621679746290"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746293"><span class="annot"><span class="annottext">ls :: Integer
+</span><a href="#local-6989586621679746293"><span class="hs-identifier hs-var hs-var">ls</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Integer
 forall a. Integral a =&gt; a -&gt; Integer
 </span><span class="hs-identifier hs-var">toInteger</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Integer) -&gt; Int -&gt; Integer
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -394,24 +394,24 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745675"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679746290"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-82"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">([GenoEntry] -&gt; (GenoEntry, Rational))
 -&gt; [[GenoEntry]] -&gt; [(GenoEntry, Rational)]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679745680"><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745680"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoEntry
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679746295"><span class="annot"><span class="annottext">[GenoEntry]
+</span><a href="#local-6989586621679746295"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoEntry
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745680"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Integer
+</span><a href="#local-6989586621679746295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Integer
 forall a. Integral a =&gt; a -&gt; Integer
 </span><span class="hs-identifier hs-var">toInteger</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[GenoEntry] -&gt; Int
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745680"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Integer -&gt; Rational
+</span><a href="#local-6989586621679746295"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Integer -&gt; Rational
 forall a. Integral a =&gt; a -&gt; a -&gt; Ratio a
 </span><span class="hs-operator hs-var">%</span></span><span> </span><span class="annot"><span class="annottext">Integer
-</span><a href="#local-6989586621679745678"><span class="hs-identifier hs-var">ls</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([[GenoEntry]] -&gt; [(GenoEntry, Rational)])
+</span><a href="#local-6989586621679746293"><span class="hs-identifier hs-var">ls</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([[GenoEntry]] -&gt; [(GenoEntry, Rational)])
 -&gt; [[GenoEntry]] -&gt; [(GenoEntry, Rational)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; [[GenoEntry]]
@@ -422,14 +422,14 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">sortBy</span></span><span> </span><span class="annot"><span class="annottext">GenoEntry -&gt; GenoEntry -&gt; Ordering
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-var">compareGenoEntry</span></a></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745675"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679746290"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-83"></span><span>
 </span><span id="line-84"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-type">compareGenoEntry</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span><span>
 </span><span id="line-85"></span><span id="compareGenoEntry"><span class="annot"><span class="annottext">compareGenoEntry :: GenoEntry -&gt; GenoEntry -&gt; Ordering
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-var hs-var">compareGenoEntry</span></a></span></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><span class="hs-identifier hs-var">Het</span></span><span> </span><span id="local-6989586621679745686"><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745686"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745686"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span class="hs-identifier hs-var">Het</span></span><span> </span><span id="local-6989586621679746301"><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746301"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746301"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Het</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span>
@@ -437,9 +437,9 @@ forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">LT</span></span><span>
 </span><span id="line-88"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-var">compareGenoEntry</span></a></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><span class="hs-identifier hs-var">HomRef</span></span><span> </span><span id="local-6989586621679745688"><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745688"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745688"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span class="hs-identifier hs-var">HomRef</span></span><span> </span><span id="local-6989586621679746303"><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746303"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746303"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-89"></span><span>    </span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Het</span></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">GT</span></span><span>
@@ -450,9 +450,9 @@ forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">LT</span></span><span>
 </span><span id="line-92"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-var">compareGenoEntry</span></a></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><span class="hs-identifier hs-var">HomAlt</span></span><span> </span><span id="local-6989586621679745690"><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745690"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745690"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span class="hs-identifier hs-var">HomAlt</span></span><span> </span><span id="local-6989586621679746305"><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746305"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746305"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-93"></span><span>    </span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Het</span></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">GT</span></span><span>
@@ -466,9 +466,9 @@ forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">LT</span></span><span>
 </span><span id="line-97"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#compareGenoEntry"><span class="hs-identifier hs-var">compareGenoEntry</span></a></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><span class="hs-identifier hs-var">Missing</span></span><span> </span><span id="local-6989586621679745691"><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745691"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745691"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span class="hs-identifier hs-var">Missing</span></span><span> </span><span id="local-6989586621679746306"><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746306"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenoEntry
+</span><a href="#local-6989586621679746306"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">GenoEntry
 </span><span class="hs-identifier hs-var">Missing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span>
@@ -476,21 +476,21 @@ forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">GT</span></span><span>
 </span><span id="line-100"></span><span>
-</span><span id="line-101"></span><span id="local-6989586621679745439"><span id="local-6989586621679745440"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-type">sampleWeightedList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RandomGen</span></span><span> </span><span class="annot"><a href="#local-6989586621679745439"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679745439"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679745440"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679745440"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-101"></span><span id="local-6989586621679746054"><span id="local-6989586621679746055"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-type">sampleWeightedList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RandomGen</span></span><span> </span><span class="annot"><a href="#local-6989586621679746054"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679746054"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679746055"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679746055"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
 </span><span id="line-102"></span><span id="sampleWeightedList"><span class="annot"><span class="annottext">sampleWeightedList :: forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var hs-var">sampleWeightedList</span></a></span></span><span> </span><span id="local-6989586621679745695"><span class="annot"><span class="annottext">g
-</span><a href="#local-6989586621679745695"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span id="local-6989586621679745696"><span class="annot"><span class="annottext">[(a, Rational)]
-</span><a href="#local-6989586621679745696"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var hs-var">sampleWeightedList</span></a></span></span><span> </span><span id="local-6989586621679746310"><span class="annot"><span class="annottext">g
+</span><a href="#local-6989586621679746310"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span id="local-6989586621679746311"><span class="annot"><span class="annottext">[(a, Rational)]
+</span><a href="#local-6989586621679746311"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; a) -&gt; [a] -&gt; a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Rand g [a] -&gt; g -&gt; [a]
 forall g a. Rand g a -&gt; g -&gt; a
 </span><span class="hs-identifier hs-var">evalRand</span></span><span> </span><span class="annot"><span class="annottext">Rand g [a]
-</span><a href="#local-6989586621679745697"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">g
-</span><a href="#local-6989586621679745695"><span class="hs-identifier hs-var">gen</span></a></span><span>
-</span><span id="line-103"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679745697"><span class="annot"><span class="annottext">m :: Rand g [a]
-</span><a href="#local-6989586621679745697"><span class="hs-identifier hs-var hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[RandT g Identity a] -&gt; Rand g [a]
+</span><a href="#local-6989586621679746312"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">g
+</span><a href="#local-6989586621679746310"><span class="hs-identifier hs-var">gen</span></a></span><span>
+</span><span id="line-103"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679746312"><span class="annot"><span class="annottext">m :: Rand g [a]
+</span><a href="#local-6989586621679746312"><span class="hs-identifier hs-var hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[RandT g Identity a] -&gt; Rand g [a]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a.
 (Traversable t, Monad m) =&gt;
 t (m a) -&gt; m (t a)
@@ -512,7 +512,7 @@ forall (m :: * -&gt; *) a. MonadRandom m =&gt; [(a, Rational)] -&gt; m a
 </span><span class="hs-identifier hs-var">fromList</span></span><span> </span><span class="annot"><span class="annottext">([(a, Rational)] -&gt; Rand g [a]) -&gt; [(a, Rational)] -&gt; Rand g [a]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(a, Rational)]
-</span><a href="#local-6989586621679745696"><span class="hs-identifier hs-var">weights</span></a></span><span>
+</span><a href="#local-6989586621679746311"><span class="hs-identifier hs-var">weights</span></a></span><span>
 </span><span id="line-104"></span><span>
 </span><span id="line-105"></span><span class="hs-comment">-- spacetime</span><span>
 </span><span id="line-106"></span><span>
@@ -520,77 +520,77 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-108"></span><span id="sampleGenoForMultiplePOIs"><span class="annot"><span class="annottext">sampleGenoForMultiplePOIs :: [([Int], [Rational])]
 -&gt; (EigenstratSnpEntry, GenoLine)
 -&gt; SafeT IO (EigenstratSnpEntry, GenoLine)
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForMultiplePOIs"><span class="hs-identifier hs-var hs-var">sampleGenoForMultiplePOIs</span></a></span></span><span> </span><span id="local-6989586621679745716"><span class="annot"><span class="annottext">[([Int], [Rational])]
-</span><a href="#local-6989586621679745716"><span class="hs-identifier hs-var">infoForIndividualPOIs</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679745717"><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745717"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679745718"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745718"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-109"></span><span>    </span><span id="local-6989586621679745719"><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745719"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(([Int], [Rational]) -&gt; SafeT IO GenoEntry)
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForMultiplePOIs"><span class="hs-identifier hs-var hs-var">sampleGenoForMultiplePOIs</span></a></span></span><span> </span><span id="local-6989586621679746331"><span class="annot"><span class="annottext">[([Int], [Rational])]
+</span><a href="#local-6989586621679746331"><span class="hs-identifier hs-var">infoForIndividualPOIs</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679746332"><span class="annot"><span class="annottext">EigenstratSnpEntry
+</span><a href="#local-6989586621679746332"><span class="hs-identifier hs-var">snpEntry</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679746333"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746333"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-109"></span><span>    </span><span id="local-6989586621679746334"><span class="annot"><span class="annottext">[GenoEntry]
+</span><a href="#local-6989586621679746334"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(([Int], [Rational]) -&gt; SafeT IO GenoEntry)
 -&gt; [([Int], [Rational])] -&gt; SafeT IO [GenoEntry]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
 forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
-</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679745720"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745720"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679745721"><span class="annot"><span class="annottext">[Rational]
-</span><a href="#local-6989586621679745721"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; [Rational] -&gt; GenoLine -&gt; SafeT IO GenoEntry
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679746335"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746335"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679746336"><span class="annot"><span class="annottext">[Rational]
+</span><a href="#local-6989586621679746336"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; [Rational] -&gt; GenoLine -&gt; SafeT IO GenoEntry
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForOnePOI"><span class="hs-identifier hs-var">sampleGenoForOnePOI</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745720"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[Rational]
-</span><a href="#local-6989586621679745721"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745718"><span class="hs-identifier hs-var">genoLine</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Rational])]
-</span><a href="#local-6989586621679745716"><span class="hs-identifier hs-var">infoForIndividualPOIs</span></a></span><span>
+</span><a href="#local-6989586621679746335"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[Rational]
+</span><a href="#local-6989586621679746336"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746333"><span class="hs-identifier hs-var">genoLine</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Rational])]
+</span><a href="#local-6989586621679746331"><span class="hs-identifier hs-var">infoForIndividualPOIs</span></a></span><span>
 </span><span id="line-110"></span><span>    </span><span class="annot"><span class="annottext">(EigenstratSnpEntry, GenoLine)
 -&gt; SafeT IO (EigenstratSnpEntry, GenoLine)
 forall a. a -&gt; SafeT IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EigenstratSnpEntry
-</span><a href="#local-6989586621679745717"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
+</span><a href="#local-6989586621679746332"><span class="hs-identifier hs-var">snpEntry</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; GenoLine
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745719"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679746334"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-111"></span><span>
 </span><span id="line-112"></span><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForOnePOI"><span class="hs-identifier hs-type">sampleGenoForOnePOI</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoLine</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SafeT</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GenoEntry</span></span><span>
 </span><span id="line-113"></span><span id="sampleGenoForOnePOI"><span class="annot"><span class="annottext">sampleGenoForOnePOI :: [Int] -&gt; [Rational] -&gt; GenoLine -&gt; SafeT IO GenoEntry
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForOnePOI"><span class="hs-identifier hs-var hs-var">sampleGenoForOnePOI</span></a></span></span><span> </span><span id="local-6989586621679745723"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745723"><span class="hs-identifier hs-var">individualIndices</span></a></span></span><span> </span><span id="local-6989586621679745724"><span class="annot"><span class="annottext">[Rational]
-</span><a href="#local-6989586621679745724"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span id="local-6989586621679745725"><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745725"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-114"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745726"><span class="annot"><span class="annottext">relevantGenoEntries :: [GenoEntry]
-</span><a href="#local-6989586621679745726"><span class="hs-identifier hs-var hs-var">relevantGenoEntries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenoLine
-</span><a href="#local-6989586621679745725"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleGenoForOnePOI"><span class="hs-identifier hs-var hs-var">sampleGenoForOnePOI</span></a></span></span><span> </span><span id="local-6989586621679746338"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746338"><span class="hs-identifier hs-var">individualIndices</span></a></span></span><span> </span><span id="local-6989586621679746339"><span class="annot"><span class="annottext">[Rational]
+</span><a href="#local-6989586621679746339"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span id="local-6989586621679746340"><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746340"><span class="hs-identifier hs-var">genoLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746341"><span class="annot"><span class="annottext">relevantGenoEntries :: [GenoEntry]
+</span><a href="#local-6989586621679746341"><span class="hs-identifier hs-var hs-var">relevantGenoEntries</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GenoLine
+</span><a href="#local-6989586621679746340"><span class="hs-identifier hs-var">genoLine</span></a></span><span> </span><span class="annot"><span class="annottext">GenoLine -&gt; Int -&gt; GenoEntry
 forall a. Vector a -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">V.!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745727"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679745727"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745727"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745723"><span class="hs-identifier hs-var">individualIndices</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679746342"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679746342"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679746342"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746338"><span class="hs-identifier hs-var">individualIndices</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-115"></span><span>        </span><span class="hs-comment">-- count occurrence of GenoEntries</span><span>
-</span><span id="line-116"></span><span>        </span><span id="local-6989586621679745729"><span class="annot"><span class="annottext">genoEntryIndices :: [(GenoEntry, [Int])]
-</span><a href="#local-6989586621679745729"><span class="hs-identifier hs-var hs-var">genoEntryIndices</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; [(GenoEntry, [Int])]
+</span><span id="line-116"></span><span>        </span><span id="local-6989586621679746344"><span class="annot"><span class="annottext">genoEntryIndices :: [(GenoEntry, [Int])]
+</span><a href="#local-6989586621679746344"><span class="hs-identifier hs-var hs-var">genoEntryIndices</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GenoEntry] -&gt; [(GenoEntry, [Int])]
 forall a. Eq a =&gt; [a] -&gt; [(a, [Int])]
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenoIndices"><span class="hs-identifier hs-var">getGenoIndices</span></a></span><span> </span><span class="annot"><span class="annottext">[GenoEntry]
-</span><a href="#local-6989586621679745726"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
+</span><a href="#local-6989586621679746341"><span class="hs-identifier hs-var">relevantGenoEntries</span></a></span><span>
 </span><span id="line-117"></span><span>        </span><span class="hs-comment">-- sum distance-based weight for each GenoEntry</span><span>
-</span><span id="line-118"></span><span>        </span><span id="local-6989586621679745733"><span class="annot"><span class="annottext">weightsPerGenoEntry :: [(GenoEntry, Rational)]
-</span><a href="#local-6989586621679745733"><span class="hs-identifier hs-var hs-var">weightsPerGenoEntry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, [Int])] -&gt; [Rational] -&gt; [(GenoEntry, Rational)]
+</span><span id="line-118"></span><span>        </span><span id="local-6989586621679746348"><span class="annot"><span class="annottext">weightsPerGenoEntry :: [(GenoEntry, Rational)]
+</span><a href="#local-6989586621679746348"><span class="hs-identifier hs-var hs-var">weightsPerGenoEntry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, [Int])] -&gt; [Rational] -&gt; [(GenoEntry, Rational)]
 forall b a. Num b =&gt; [(a, [Int])] -&gt; [b] -&gt; [(a, b)]
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sumWeights"><span class="hs-identifier hs-var">sumWeights</span></a></span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, [Int])]
-</span><a href="#local-6989586621679745729"><span class="hs-identifier hs-var">genoEntryIndices</span></a></span><span> </span><span class="annot"><span class="annottext">[Rational]
-</span><a href="#local-6989586621679745724"><span class="hs-identifier hs-var">weights</span></a></span><span>
+</span><a href="#local-6989586621679746344"><span class="hs-identifier hs-var">genoEntryIndices</span></a></span><span> </span><span class="annot"><span class="annottext">[Rational]
+</span><a href="#local-6989586621679746339"><span class="hs-identifier hs-var">weights</span></a></span><span>
 </span><span id="line-119"></span><span>    </span><span class="hs-comment">-- sample GenoEntry based on weight</span><span>
-</span><span id="line-120"></span><span>    </span><span id="local-6989586621679745735"><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745735"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; SafeT IO StdGen
+</span><span id="line-120"></span><span>    </span><span id="local-6989586621679746350"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679746350"><span class="hs-identifier hs-var">gen</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; SafeT IO StdGen
 forall a. IO a -&gt; SafeT IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">IO StdGen
 forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 </span><span class="hs-identifier hs-var">getStdGen</span></span><span>
 </span><span id="line-121"></span><span>    </span><span class="hs-comment">-- liftIO $ hPutStrLn stderr (show gen)</span><span>
-</span><span id="line-122"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745737"><span class="annot"><span class="annottext">selectedGenoEntry :: GenoEntry
-</span><a href="#local-6989586621679745737"><span class="hs-identifier hs-var hs-var">selectedGenoEntry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
+</span><span id="line-122"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746352"><span class="annot"><span class="annottext">selectedGenoEntry :: GenoEntry
+</span><a href="#local-6989586621679746352"><span class="hs-identifier hs-var hs-var">selectedGenoEntry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdGen -&gt; [(GenoEntry, Rational)] -&gt; GenoEntry
 forall g a. RandomGen g =&gt; g -&gt; [(a, Rational)] -&gt; a
 </span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sampleWeightedList"><span class="hs-identifier hs-var">sampleWeightedList</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679745735"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, Rational)]
-</span><a href="#local-6989586621679745733"><span class="hs-identifier hs-var">weightsPerGenoEntry</span></a></span><span>
+</span><a href="#local-6989586621679746350"><span class="hs-identifier hs-var">gen</span></a></span><span> </span><span class="annot"><span class="annottext">[(GenoEntry, Rational)]
+</span><a href="#local-6989586621679746348"><span class="hs-identifier hs-var">weightsPerGenoEntry</span></a></span><span>
 </span><span id="line-123"></span><span>    </span><span class="annot"><span class="annottext">StdGen
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen -&gt; SafeT IO StdGen
 forall a. IO a -&gt; SafeT IO a
@@ -603,61 +603,61 @@ forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 forall a. a -&gt; SafeT IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">GenoEntry
-</span><a href="#local-6989586621679745737"><span class="hs-identifier hs-var">selectedGenoEntry</span></a></span><span>
+</span><a href="#local-6989586621679746352"><span class="hs-identifier hs-var">selectedGenoEntry</span></a></span><span>
 </span><span id="line-126"></span><span>
-</span><span id="line-127"></span><span id="local-6989586621679745495"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenoIndices"><span class="hs-identifier hs-type">getGenoIndices</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679745495"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679745495"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679745495"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span></span><span>
+</span><span id="line-127"></span><span id="local-6989586621679746110"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenoIndices"><span class="hs-identifier hs-type">getGenoIndices</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679746110"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679746110"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679746110"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span></span><span>
 </span><span id="line-128"></span><span id="getGenoIndices"><span class="annot"><span class="annottext">getGenoIndices :: forall a. Eq a =&gt; [a] -&gt; [(a, [Int])]
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenoIndices"><span class="hs-identifier hs-var hs-var">getGenoIndices</span></a></span></span><span> </span><span id="local-6989586621679745739"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745739"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-129"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679745741"><span class="annot"><span class="annottext">unique :: [a]
-</span><a href="#local-6989586621679745741"><span class="hs-identifier hs-var hs-var">unique</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a]
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#getGenoIndices"><span class="hs-identifier hs-var hs-var">getGenoIndices</span></a></span></span><span> </span><span id="local-6989586621679746354"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679746354"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-129"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679746356"><span class="annot"><span class="annottext">unique :: [a]
+</span><a href="#local-6989586621679746356"><span class="hs-identifier hs-var hs-var">unique</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a]
 forall a. Eq a =&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745739"><span class="hs-identifier hs-var">xs</span></a></span><span>
-</span><span id="line-130"></span><span>        </span><span id="local-6989586621679745744"><span class="annot"><span class="annottext">indices :: [[Int]]
-</span><a href="#local-6989586621679745744"><span class="hs-identifier hs-var hs-var">indices</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; [Int]) -&gt; [a] -&gt; [[Int]]
+</span><a href="#local-6989586621679746354"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-130"></span><span>        </span><span id="local-6989586621679746359"><span class="annot"><span class="annottext">indices :: [[Int]]
+</span><a href="#local-6989586621679746359"><span class="hs-identifier hs-var hs-var">indices</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; [Int]) -&gt; [a] -&gt; [[Int]]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [Int]
 forall a. Eq a =&gt; a -&gt; [a] -&gt; [Int]
 </span><span class="hs-operator hs-var">`elemIndices`</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745739"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745741"><span class="hs-identifier hs-var">unique</span></a></span><span>
+</span><a href="#local-6989586621679746354"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679746356"><span class="hs-identifier hs-var">unique</span></a></span><span>
 </span><span id="line-131"></span><span>    </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">[a] -&gt; [[Int]] -&gt; [(a, [Int])]
 forall a b. [a] -&gt; [b] -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745741"><span class="hs-identifier hs-var">unique</span></a></span><span> </span><span class="annot"><span class="annottext">[[Int]]
-</span><a href="#local-6989586621679745744"><span class="hs-identifier hs-var">indices</span></a></span><span>
+</span><a href="#local-6989586621679746356"><span class="hs-identifier hs-var">unique</span></a></span><span> </span><span class="annot"><span class="annottext">[[Int]]
+</span><a href="#local-6989586621679746359"><span class="hs-identifier hs-var">indices</span></a></span><span>
 </span><span id="line-132"></span><span>
-</span><span id="line-133"></span><span id="local-6989586621679745496"><span id="local-6989586621679745497"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sumWeights"><span class="hs-identifier hs-type">sumWeights</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679745496"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679745497"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679745496"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679745497"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679745496"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-133"></span><span id="local-6989586621679746111"><span id="local-6989586621679746112"><span class="annot"><a href="Poseidon.Analysis.Generator.SampleGeno.html#sumWeights"><span class="hs-identifier hs-type">sumWeights</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679746111"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679746112"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679746111"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679746112"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679746111"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span></span><span>
 </span><span id="line-134"></span><span id="sumWeights"><span class="annot"><span class="annottext">sumWeights :: forall b a. Num b =&gt; [(a, [Int])] -&gt; [b] -&gt; [(a, b)]
-</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sumWeights"><span class="hs-identifier hs-var hs-var">sumWeights</span></a></span></span><span> </span><span id="local-6989586621679745749"><span class="annot"><span class="annottext">[(a, [Int])]
-</span><a href="#local-6989586621679745749"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679745750"><span class="annot"><span class="annottext">[b]
-</span><a href="#local-6989586621679745750"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((a, [Int]) -&gt; (a, b)) -&gt; [(a, [Int])] -&gt; [(a, b)]
+</span><a href="Poseidon.Analysis.Generator.SampleGeno.html#sumWeights"><span class="hs-identifier hs-var hs-var">sumWeights</span></a></span></span><span> </span><span id="local-6989586621679746364"><span class="annot"><span class="annottext">[(a, [Int])]
+</span><a href="#local-6989586621679746364"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679746365"><span class="annot"><span class="annottext">[b]
+</span><a href="#local-6989586621679746365"><span class="hs-identifier hs-var">weights</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((a, [Int]) -&gt; (a, b)) -&gt; [(a, [Int])] -&gt; [(a, b)]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679745751"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679745751"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679745752"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745752"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679745751"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[b] -&gt; b
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679746366"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679746366"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679746367"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746367"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679746366"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[b] -&gt; b
 forall a. Num a =&gt; [a] -&gt; a
 forall (t :: * -&gt; *) a. (Foldable t, Num a) =&gt; t a -&gt; a
 </span><span class="hs-identifier hs-var">sum</span></span><span> </span><span class="annot"><span class="annottext">([b] -&gt; b) -&gt; [b] -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; [b] -&gt; [b]
 forall a. [Int] -&gt; [a] -&gt; [a]
-</span><a href="#local-6989586621679745754"><span class="hs-identifier hs-var">subset</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745752"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[b]
-</span><a href="#local-6989586621679745750"><span class="hs-identifier hs-var">weights</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(a, [Int])]
-</span><a href="#local-6989586621679745749"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><a href="#local-6989586621679746369"><span class="hs-identifier hs-var">subset</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746367"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[b]
+</span><a href="#local-6989586621679746365"><span class="hs-identifier hs-var">weights</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(a, [Int])]
+</span><a href="#local-6989586621679746364"><span class="hs-identifier hs-var">xs</span></a></span><span>
 </span><span id="line-135"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-136"></span><span>        </span><span id="local-6989586621679745504"><span class="annot"><a href="#local-6989586621679745754"><span class="hs-identifier hs-type">subset</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679745504"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679745504"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
-</span><span id="line-137"></span><span>        </span><span id="local-6989586621679745754"><span class="annot"><span class="annottext">subset :: forall a. [Int] -&gt; [a] -&gt; [a]
-</span><a href="#local-6989586621679745754"><span class="hs-identifier hs-var hs-var">subset</span></a></span></span><span> </span><span id="local-6989586621679745757"><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745757"><span class="hs-identifier hs-var">indices</span></a></span></span><span> </span><span id="local-6989586621679745758"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745758"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679745758"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int -&gt; a
+</span><span id="line-136"></span><span>        </span><span id="local-6989586621679746119"><span class="annot"><a href="#local-6989586621679746369"><span class="hs-identifier hs-type">subset</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679746119"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679746119"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-137"></span><span>        </span><span id="local-6989586621679746369"><span class="annot"><span class="annottext">subset :: forall a. [Int] -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679746369"><span class="hs-identifier hs-var hs-var">subset</span></a></span></span><span> </span><span id="local-6989586621679746372"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746372"><span class="hs-identifier hs-var">indices</span></a></span></span><span> </span><span id="local-6989586621679746373"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679746373"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679746373"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int -&gt; a
 forall a. HasCallStack =&gt; [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745760"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679745760"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679745760"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679745757"><span class="hs-identifier hs-var">indices</span></a></span><span class="hs-special">]</span><span>
+</span><a href="#local-6989586621679746375"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679746375"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679746375"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679746372"><span class="hs-identifier hs-var">indices</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-138"></span></pre></body></html>
