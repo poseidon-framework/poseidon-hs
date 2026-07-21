@@ -709,10 +709,15 @@ checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
     entries <- listDirectory baseDir
-    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
-    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
+    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") entries
+    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ filter (not . isHidden) entries
     morePosFiles <- fmap concat . mapM findAllPoseidonYmlFiles $ subDirs
     return $ posFiles ++ morePosFiles
+
+isHidden :: FilePath -> Bool
+isHidden p = case takeFileName p of
+    '.':_ -> True
+    _     -> False
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m =>
