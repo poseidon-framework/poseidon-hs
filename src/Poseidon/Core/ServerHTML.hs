@@ -238,7 +238,9 @@ archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
             H.th $ H.b "Package"
             H.th $ H.b "# Samples"
             H.th $ H.b "Last modified"
-            H.th $ H.b "Source"
+            case maybeArchiveSpecURL of
+                Just _  -> H.th $ H.b "Source"
+                Nothing -> return ()
             H.th $ H.b ".zip Archive"
       forM_ pacs $ \pac -> do
         let pacName = getPacName pac
@@ -253,8 +255,8 @@ archivePage archiveName maybeArchiveSpecURL excludeFromMap plotSamples pacs = do
             Nothing -> H.td $ H.string "n/a"
           -- archives with more info
           case maybeArchiveSpecURL of
-            Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("GitHub" :: String)
-            Nothing  -> H.td $ H.string "n/a"
+            Just url -> H.td $ H.a ! A.href (H.stringValue url <> "/" <> H.toValue pacName) $ H.toMarkup ("URL" :: String)
+            Nothing  -> return ()
           H.td $ H.a ! A.href ("/zip_file/" <> H.toValue pacName <> "?archive=" <> H.toValue archiveName) $ H.toMarkup ("Download" :: String)
 
 packageVersionPage ::
