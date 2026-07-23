@@ -159,10 +159,13 @@ mainPage pacsPerArchive = do
               H.a ! A.href ("/explorer/" <>  H.toValue archiveName <> "/" <> H.toValue pacName) $ H.toMarkup pacNameVersion
               H.toMarkup $ H.string $ " (" ++  maybe "?" show (posPacLastModified pac) ++ "); "
         -- archives with more info
-        case (maybeDescription,maybeURL) of
-          (Just desc, Just url) -> do
+        case maybeDescription of
+          Just desc -> do
             H.br
             H.p $ H.toMarkup desc
+          _ -> return ()
+        case maybeURL of
+          Just url -> do
             H.footer $ H.p $ H.a
               ! A.href (H.stringValue url)
               ! A.style "float: right; font-size: 0.8em;" $
