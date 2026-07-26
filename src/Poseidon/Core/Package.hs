@@ -82,6 +82,8 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  PackageInfo (..))
 import           Poseidon.Core.Utils            (LogA, PoseidonException (..),
                                                  PoseidonIO, checkFile,
+                                                 checkLineEnding,
+                                                 checkLineEndingIfNotZipped,
                                                  envErrorLength, envLogAction,
                                                  logDebug, logError, logInfo,
                                                  logWarning, logWithEnv,
@@ -443,7 +445,7 @@ readPoseidonPackage opts ymlPath = do
     checkYML yml
 
     -- file existence and checksum test
-    liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
+    checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
 
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
@@ -552,7 +554,7 @@ validateForge pacs strandcheck = do
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
 
 -- throws exception if any file is missing or checksum is incorrect
-checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
+checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> PoseidonIO ()
 checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     -- Check README File
     case poseidonReadmeFilePath baseDir yml of
@@ -567,19 +569,25 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlBibFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlBibFileChkSum yml
     -- Check Janno File
     case poseidonJannoFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlJannoFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlJannoFileChkSum yml
     -- Check SeqSource File
     case poseidonSeqSourceFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlSeqSourceFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlSeqSourceFileChkSum yml
     -- Check Genotype files
     unless ignoreGenotypeFilesMissing $ do
         let gd = _posYamlGenotypeData yml
@@ -592,8 +600,11 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                     checkFile (d </> snpF)  Nothing
                     checkFile (d </> indF)  Nothing
                 else do
+                    checkLineEndingIfNotZipped (d </> genoF)
                     checkFile (d </> genoF) genoFc
+                    checkLineEndingIfNotZipped (d </> snpF)
                     checkFile (d </> snpF)  snpFc
+                    checkLineEndingIfNotZipped (d </> indF)
                     checkFile (d </> indF)  indFc
             GenotypePlink genoF genoFc snpF snpFc indF indFc -> do
                 if ignoreChecksums
@@ -603,12 +614,16 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                     checkFile (d </> indF)  Nothing
                 else do
                     checkFile (d </> genoF) genoFc
+                    checkLineEndingIfNotZipped (d </> snpF)
                     checkFile (d </> snpF)  snpFc
+                    checkLineEndingIfNotZipped (d </> indF)
                     checkFile (d </> indF)  indFc
             GenotypeVCF genoF genoFc -> do
                 if ignoreChecksums
                 then checkFile (d </> genoF) Nothing
-                else checkFile (d </> genoF) genoFc
+                else do
+                    checkLineEndingIfNotZipped (d </> genoF)
+                    checkFile (d </> genoF) genoFc
 
 -- the last flag is important for reading VCFs, which can lack group and sex information.
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()

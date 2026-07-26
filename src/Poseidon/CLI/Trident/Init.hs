@@ -43,7 +43,7 @@ runInit (InitOptions genotypeDataIn outPathRaw maybeOutName minimal) = do
             GenotypePlink      genoFile _ snpFile _ indFile _ -> [genoFile, snpFile, indFile]
             GenotypeVCF        vcfFile  _                     -> [vcfFile]
     forM_ sourceFiles $ \sourceFile -> do
-        liftIO $ checkFile sourceFile Nothing
+        checkFile sourceFile Nothing
         let targetFile = outPath </> takeFileName sourceFile
         liftIO $ copyFile sourceFile targetFile
     -- create new package
