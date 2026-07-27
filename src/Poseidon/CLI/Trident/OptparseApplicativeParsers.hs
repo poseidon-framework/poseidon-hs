@@ -234,7 +234,7 @@ parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorStri
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"." <>
+            \ in the form \"[Firstname Lastname](Email address)<ORCID>;...\". The ORCIDs are optional." <>
     OP.value Nothing
     )
 
@@ -243,7 +243,7 @@ parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
     OP.metavar "DSL" <>
     OP.help "Contributors to add to the POSEIDON.yml file \
-            \ in the form \"[Firstname Lastname](Email address);...\"."
+            \ in the form \"[Firstname Lastname](Email address)<ORCID>;...\". The ORCIDs are optional."
     )
 
 readContributorString :: String -> Either String [ContributorSpec]
