@@ -456,7 +456,7 @@ testPipelineList testDir checkFilePath = do
             _listListEntity = ListBibliography AddColAll
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts7) "list" 7
-
+    
     let listOpts8 = listOpts1 {
           _listRepoLocation  = RepoLocal [testPacsDirOther </> "Schmid_2028_utf8"]
         , _listListEntity    = ListIndividuals (AddColList ["起司蛋糕"])
@@ -1365,6 +1365,9 @@ archives = Left $ ArchiveConfig [
         "test/testDat/testPackages/ancient/Schiffels_2016"
       , "test/testDat/testPackages/ancient/Schmid_2028"
       ] Nothing Nothing Nothing [] Nothing
+    , ArchiveSpec "testArchive3" [
+        "test/testDat/testPackages/other_test_packages/Schmid_2028_utf8"
+      ] Nothing Nothing Nothing [] Nothing
     ]
 
  -- Note: We here use our test server (no SSL and different port). The reason is that
@@ -1505,6 +1508,14 @@ testPipelineListRemote testDir checkFilePath = do
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "listRemote" 5
+        
+        -- list with non-ascii unicode characters
+        let listOpts6 = listOpts1 {
+              _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" (Just "testArchive3"))
+            , _listListEntity   = ListIndividuals (AddColList ["起司蛋糕"])
+            , _listRawOutput    = True
+            }
+        runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts6) "listRemote" 6
         ) (
         killThread threadID
         )
