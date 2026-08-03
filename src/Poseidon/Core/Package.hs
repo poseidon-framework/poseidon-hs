@@ -111,7 +111,8 @@ import           Data.List                      (elemIndex, group, groupBy,
                                                  (\\))
 import           Data.Maybe                     (catMaybes, fromMaybe,
                                                  isNothing, mapMaybe)
-import           Data.Text                      (unpack)
+import qualified Data.Text                      as T
+import qualified Data.Text.Encoding             as TE
 import           Data.Time                      (Day, UTCTime (..),
                                                  getCurrentTime)
 import qualified Data.Vector                    as V
@@ -1012,10 +1013,14 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
     let name = show $ jPoseidonID jannoRow
         groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
-            AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
+            AddColAll    -> map T.pack jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
             AddColList c -> c
-        additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
+        -- additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
+        additionalColumnEntries = [
+              (T.unpack k, T.unpack . TE.decodeUtf8 <$> HM.lookup (TE.encodeUtf8 k) (toNamedRecord jannoRow))
+            | k <- colNames
+            ]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
     return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
@@ -1038,14 +1043,14 @@ getBibliographyInfo allPackages addColSpec = do
                 jannoRow <- jointJanno
                 let bibKeys = case jPublication jannoRow of
                         Nothing -> []
-                        Just jannoPubList -> map (\(JannoPublication p) -> unpack p) $ getListColumn jannoPubList
+                        Just jannoPubList -> map (\(JannoPublication p) -> T.unpack p) $ getListColumn jannoPubList
                 True <- return $ bibId `elem` bibKeys
                 return ()
         let addBibEntries = case addColSpec of
                 -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
                 AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
                 -- with a selecton of colNames we just query the bib-fields for those exact fields.
-                AddColList colNames -> [(colName, colName `lookup` bibFields) | colName <- colNames]
+                AddColList colNames -> [(T.unpack colName, T.unpack colName `lookup` bibFields) | colName <- colNames]
         return $ BibliographyInfo nrSamples bibId ("title" `lookup` bibFields)
             ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
             ("doi" `lookup` bibFields) addBibEntries

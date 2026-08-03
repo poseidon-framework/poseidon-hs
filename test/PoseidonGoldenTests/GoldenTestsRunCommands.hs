@@ -457,6 +457,13 @@ testPipelineList testDir checkFilePath = do
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts7) "list" 7
 
+    let listOpts8 = listOpts1 {
+          _listRepoLocation  = RepoLocal [testPacsDirOther </> "Schmid_2028_utf8"]
+        , _listListEntity    = ListIndividuals (AddColList ["起司蛋糕"])
+        , _listRawOutput     = True
+        }
+    runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts8) "list" 8
+
 
 testPipelineSummarise :: FilePath -> FilePath -> IO ()
 testPipelineSummarise testDir checkFilePath = do

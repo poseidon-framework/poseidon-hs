@@ -31,6 +31,7 @@ import           Data.Aeson                (FromJSON, ToJSON (..), Value (..),
                                             toJSON, withObject, (.:), (.:?),
                                             (.=))
 import qualified Data.Aeson.KeyMap         (filter)
+import qualified Data.Text                 as T
 import           Data.Time                 (Day)
 import           Data.Version              (Version, showVersion)
 import           Network.HTTP.Conduit      (simpleHttp)
@@ -259,7 +260,7 @@ extIndInfo2IndInfoCollection extIndInfos =
     in  (indInfos, areLatest)
 
 -- type needed to specify additional Janno Columns to be queried from packages
-data AddColSpec = AddColList [String] | AddColAll
+data AddColSpec = AddColList [T.Text] | AddColAll
 
 data BibliographyInfo = BibliographyInfo {
     bibInfoNrSamples :: Int,
