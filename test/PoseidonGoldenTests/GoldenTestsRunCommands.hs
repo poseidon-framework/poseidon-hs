@@ -456,7 +456,7 @@ testPipelineList testDir checkFilePath = do
             _listListEntity = ListBibliography AddColAll
         }
     runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts7) "list" 7
-    
+
     let listOpts8 = listOpts1 {
           _listRepoLocation  = RepoLocal [testPacsDirOther </> "Schmid_2028_utf8"]
         , _listListEntity    = ListIndividuals (AddColList ["起司蛋糕"])
@@ -1508,7 +1508,7 @@ testPipelineListRemote testDir checkFilePath = do
             , _listRawOutput     = True
             }
         runAndChecksumStdOut checkFilePath testDir (testLog $ runList listOpts5) "listRemote" 5
-        
+
         -- list with non-ascii unicode characters
         let listOpts6 = listOpts1 {
               _listRepoLocation = RepoRemote (ArchiveEndpoint "http://localhost:3001" (Just "testArchive3"))
