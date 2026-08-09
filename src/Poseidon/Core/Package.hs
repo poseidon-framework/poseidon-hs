@@ -10,6 +10,7 @@ module Poseidon.Core.Package (
     LicenseSpec (..),
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
+    checkGenoFiles,
     readPoseidonPackageCollection,
     readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
@@ -591,40 +592,35 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
                        checkFile fn $ _posYamlSeqSourceFileChkSum yml
     -- Check Genotype files
     unless ignoreGenotypeFilesMissing $ do
-        let gd = _posYamlGenotypeData yml
-            d = baseDir
-        case genotypeFileSpec gd of
-            GenotypeEigenstrat genoF genoFc snpF snpFc indF indFc -> do
-                if ignoreChecksums
-                then do
-                    checkFile (d </> genoF) Nothing
-                    checkFile (d </> snpF)  Nothing
-                    checkFile (d </> indF)  Nothing
-                else do
-                    checkLineEndingIfNotZipped (d </> genoF)
-                    checkFile (d </> genoF) genoFc
-                    checkLineEndingIfNotZipped (d </> snpF)
-                    checkFile (d </> snpF)  snpFc
-                    checkLineEndingIfNotZipped (d </> indF)
-                    checkFile (d </> indF)  indFc
-            GenotypePlink genoF genoFc snpF snpFc indF indFc -> do
-                if ignoreChecksums
-                then do
-                    checkFile (d </> genoF) Nothing
-                    checkFile (d </> snpF)  Nothing
-                    checkFile (d </> indF)  Nothing
-                else do
-                    checkFile (d </> genoF) genoFc
-                    checkLineEndingIfNotZipped (d </> snpF)
-                    checkFile (d </> snpF)  snpFc
-                    checkLineEndingIfNotZipped (d </> indF)
-                    checkFile (d </> indF)  indFc
-            GenotypeVCF genoF genoFc -> do
-                if ignoreChecksums
-                then checkFile (d </> genoF) Nothing
-                else do
-                    checkLineEndingIfNotZipped (d </> genoF)
-                    checkFile (d </> genoF) genoFc
+        checkGenoFiles ignoreChecksums baseDir (genotypeFileSpec (_posYamlGenotypeData yml))
+
+checkGenoFiles :: Bool -> FilePath -> GenotypeFileSpec -> PoseidonIO ()
+checkGenoFiles True d (GenotypeEigenstrat genoF _ snpF _ indF _) = do
+    checkFile (d </> genoF) Nothing
+    checkFile (d </> snpF)  Nothing
+    checkFile (d </> indF)  Nothing
+checkGenoFiles False d (GenotypeEigenstrat genoF genoFc snpF snpFc indF indFc) = do
+    checkLineEndingIfNotZipped (d </> genoF)
+    checkFile (d </> genoF) genoFc
+    checkLineEndingIfNotZipped (d </> snpF)
+    checkFile (d </> snpF)  snpFc
+    checkLineEndingIfNotZipped (d </> indF)
+    checkFile (d </> indF)  indFc
+checkGenoFiles True d (GenotypePlink genoF _ snpF _ indF _) = do
+    checkFile (d </> genoF) Nothing
+    checkFile (d </> snpF)  Nothing
+    checkFile (d </> indF)  Nothing
+checkGenoFiles False d (GenotypePlink genoF genoFc snpF snpFc indF indFc) = do
+    checkFile (d </> genoF) genoFc
+    checkLineEndingIfNotZipped (d </> snpF)
+    checkFile (d </> snpF)  snpFc
+    checkLineEndingIfNotZipped (d </> indF)
+    checkFile (d </> indF)  indFc
+checkGenoFiles True d (GenotypeVCF genoF _) = do
+    checkFile (d </> genoF) Nothing
+checkGenoFiles False d (GenotypeVCF genoF genoFc) = do
+    checkLineEndingIfNotZipped (d </> genoF)
+    checkFile (d </> genoF) genoFc
 
 -- the last flag is important for reading VCFs, which can lack group and sex information.
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
