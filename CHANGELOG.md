@@ -1,3 +1,9 @@
+- V 2.2.1.0:
+    - Made the display of description and source url in the explorer page of the of the server's html API indendent of each other.
+    - Made the source column hide when the necessary URL is missing on the archive page.
+    - Added a input validation feature that checks line endings of the first (!) row in text files in packages.
+    - Made it possible to give ORCIDs with `--newContributors` in rectify.
+    - Fixed encoding issues in `trident list` when additional .janno columns are requested.
 - V 2.2.0.1:
     - By default only show the first five samples on the package page of the server's html API.
 - V 2.2.0.0:
