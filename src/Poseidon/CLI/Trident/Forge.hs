@@ -4,8 +4,7 @@ module Poseidon.CLI.Trident.Forge where
 
 import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
                                                  writeBibTeXFile)
-import           Poseidon.Core.ColumnTypesJanno (JannoLibraryBuilt (DS),
-                                                 JannoNrSNPs (..),
+import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..),
                                                  PoseidonID (..))
 import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord (..),
                                                  ListColumn (..), getCsvNR,
