@@ -180,10 +180,10 @@ runForge (
             let sourcePac = indInfoPac $ fst indInfoCollection !! i
             let jannoRow = jannoRows !! i
             let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
-            let newTraceEntry = case HM.lookup "ForgeTrace" addColsHM of
+            let newTraceEntry = case HM.lookup "SourcePackage" addColsHM of
                     Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
                     Nothing -> BC.pack $ renderNameWithVersion sourcePac
-            let addColsHMwithTrace = HM.insert "ForgeTrace" newTraceEntry addColsHM
+            let addColsHMwithTrace = HM.insert "SourcePackage" newTraceEntry addColsHM
             return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
 
     -- seqSource

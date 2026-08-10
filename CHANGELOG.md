@@ -1,5 +1,5 @@
 - V 2.2.1.0:
-    - Forged packages now contain a new column `ForgeTrace`, which records which original package (and version) a sample originally came from.
+    - Forged packages now contain a new column `SourcePackage`, which records which original package (and version) a sample originally came from.
 - V 2.2.0.1:
     - By default only show the first five samples on the package page of the server's html API.
 - V 2.2.0.0:
