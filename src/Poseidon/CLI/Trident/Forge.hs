@@ -184,8 +184,7 @@ runForge (
                     Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
                     Nothing -> BC.pack $ renderNameWithVersion sourcePac
             let addColsHMwithTrace = HM.insert "ForgeTrace" newTraceEntry addColsHM
-            let newJannoRow = jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
-            return newJannoRow
+            return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
 
     -- seqSource
     let seqSourceRows = mconcat $ map posPacSeqSource relevantPackages

@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             2.2.0.1
+version:             2.2.1.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -13,7 +13,7 @@ extra-source-files:  README.md,
                      CHANGELOG.md
 
 library
-    exposed-modules:    
+    exposed-modules:
                         -- core
                         Poseidon.Core.Package, Poseidon.Core.GenotypeData, Poseidon.Core.BibFile,
                         Poseidon.Core.Janno, Poseidon.Core.ColumnTypesJanno, Poseidon.Core.ColumnTypesSSF,
@@ -54,7 +54,7 @@ executable trident
                         filepath, co-log
     other-modules:      Paths_poseidon_hs
     default-language:   Haskell2010
-    
+
 executable poseidon-server
     main-is:            Main-server.hs
     hs-source-dirs:     src-executables
@@ -76,7 +76,7 @@ Test-Suite poseidon-tools-tests
                         filepath, pipes, pipes-safe, pipes-ordered-zip,
                         unordered-containers, cassava, containers, process, country,
                         optparse-applicative, parsec
-    other-modules:      
+    other-modules:
                         -- golden
                         PoseidonGoldenTests.GoldenTestsValidateChecksumsSpec,
                         PoseidonGoldenTests.GoldenTestsRunCommands,
