@@ -4,10 +4,14 @@ module Poseidon.CLI.Trident.Forge where
 
 import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
                                                  writeBibTeXFile)
-import           Poseidon.Core.ColumnTypesJanno (PoseidonID (..))
-import           Poseidon.Core.ColumnTypesUtils (ListColumn (..),
+import           Poseidon.Core.ColumnTypesJanno (JannoLibraryBuilt (DS),
+                                                 JannoNrSNPs (..),
+                                                 PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord (..),
+                                                 ListColumn (..), getCsvNR,
                                                  getMaybeListColumn)
 import           Poseidon.Core.EntityTypes      (EntityInput,
+                                                 IndividualInfo (..),
                                                  PacNameAndVersion (..),
                                                  PoseidonEntity (..),
                                                  SignedEntity (..),
@@ -15,6 +19,7 @@ import           Poseidon.Core.EntityTypes      (EntityInput,
                                                  isLatestInCollection,
                                                  makePacNameAndVersion,
                                                  readEntityInputs,
+                                                 renderNameWithVersion,
                                                  resolveUniqueEntityIndices)
 import           Poseidon.Core.GenotypeData     (GenoDataSource (..),
                                                  GenotypeDataSpec (..),
@@ -53,6 +58,8 @@ import           Control.Exception              (catch, throwIO)
 import           Control.Monad                  (filterM, forM, forM_, unless,
                                                  when)
 import qualified Data.ByteString                as B
+import qualified Data.ByteString.Char8          as BC
+import qualified Data.HashMap.Strict            as HM
 import           Data.List                      (intercalate, nub)
 import           Data.Maybe                     (catMaybes, mapMaybe)
 import           Data.Time                      (getCurrentTime)
@@ -62,7 +69,6 @@ import qualified Data.Vector.Unboxed.Mutable    as VUM
 import           Pipes                          (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude                  as P
 import           Pipes.Safe                     (SafeT, runSafeT)
-import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
                                                  GenoEntry (..), GenoLine,
                                                  writeEigenstrat)
@@ -170,7 +176,17 @@ runForge (
     -- collect data --
     -- janno
     let (JannoRows jannoRows) = getJointJanno relevantPackages
-        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (jannoRows !!) relevantIndices
+        newJanno@(JannoRows relevantJannoRows) = JannoRows $ do --list monad
+            i <- relevantIndices
+            let sourcePac = indInfoPac $ fst indInfoCollection !! i
+            let jannoRow = jannoRows !! i
+            let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
+            let newTraceEntry = case HM.lookup "ForgeTrace" addColsHM of
+                    Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
+                    Nothing -> BC.pack $ renderNameWithVersion sourcePac
+            let addColsHMwithTrace = HM.insert "ForgeTrace" newTraceEntry addColsHM
+            let newJannoRow = jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
+            return newJannoRow
 
     -- seqSource
     let seqSourceRows = mconcat $ map posPacSeqSource relevantPackages
