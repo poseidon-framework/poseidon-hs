@@ -133,11 +133,7 @@ ad7e56177aad0a720f0bde13d47f2ac1 forge forge/ForgePac19/CHANGELOG.md
 9b22cab26cdae87bd79d24c289e48433 forge forge/ForgePac19/ForgePac19.fam
 504775c8994e25615b7662fc0495ff12 forge forge/ForgePac19/ForgePac19.janno
 3288b6ff2d7b02eec0f34a8434e4b7e3 forge forge/ForgePac20/POSEIDON.yml
-<<<<<<< HEAD
-d332590d738770986791b2b3cc9ee124 forge forge/ForgePac20/ForgePac20.janno
-=======
-589e62622e1ee6f0ad6268935dd540ba forge forge/ForgePac20/ForgePac20.janno
->>>>>>> master
+2957d88d1fc24e4de8100c5ee4cb5806 forge forge/ForgePac20/ForgePac20.janno
 ef1646043331ed9d67e4072ee46eb9f4 forge forge/ForgePac21/POSEIDON.yml
 8b8e1852b1e3cdd0ab0176dddce13bba forge forge/ForgePac21/ForgePac21.vcf
 29301e7d9cc37b2a5f889c244b691d17 forge forge/ForgePac21/ForgePac21.janno
