@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.2.0.1
+@version 2.2.1.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -1182,7 +1182,9 @@ SimpleLog :: LogMode
 DefaultLog :: LogMode
 ServerLog :: LogMode
 VerboseLog :: LogMode
-checkFile :: FilePath -> Maybe String -> IO ()
+checkFile :: FilePath -> Maybe String -> PoseidonIO ()
+checkLineEnding :: FilePath -> PoseidonIO ()
+checkLineEndingIfNotZipped :: FilePath -> PoseidonIO ()
 getChecksum :: FilePath -> IO String
 logWarning :: String -> PoseidonIO ()
 logInfo :: String -> PoseidonIO ()
@@ -1727,7 +1729,7 @@ BibliographyInfo :: Int -> String -> Maybe String -> Maybe String -> Maybe Strin
 [bibInfoDoi] :: BibliographyInfo -> Maybe String
 [bibInfoAddCols] :: BibliographyInfo -> [(String, Maybe String)]
 data AddColSpec
-AddColList :: [String] -> AddColSpec
+AddColList :: [Text] -> AddColSpec
 AddColAll :: AddColSpec
 instance GHC.Classes.Ord Poseidon.Core.ServerClient.PackageInfo
 instance GHC.Classes.Eq Poseidon.Core.ServerClient.PackageInfo
@@ -1972,6 +1974,7 @@ LicenseSpec :: String -> Maybe String -> Maybe FilePath -> LicenseSpec
 [licenseFile] :: LicenseSpec -> Maybe FilePath
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
+checkGenoFiles :: Bool -> FilePath -> GenotypeFileSpec -> PoseidonIO ()
 readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
 
 -- | a utility function to load all poseidon packages found recursively in
