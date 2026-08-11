@@ -114,7 +114,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     let addJannoColFlag = case addJannoColSpec of
                             AddColAll -> "&additionalJannoColumns=ALL"
                             AddColList [] -> ""
-                            AddColList moreJannoColumns -> "&additionalJannoColumns=" ++ intercalate "," moreJannoColumns
+                            AddColList moreJannoColumns -> "&additionalJannoColumns=" ++ T.unpack (T.intercalate "," moreJannoColumns)
                     apiReturn <- processApiResponse (remoteURL ++ "/individuals" ++ qDefault archive ++ addJannoColFlag) False
                     case apiReturn of
                         ApiReturnExtIndividualInfo indInfo -> return indInfo
@@ -153,7 +153,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     let addJannoColFlag = case addColSpec of
                             AddColAll -> "&additionalBibColumns=ALL"
                             AddColList [] -> ""
-                            AddColList moreBibFields -> "&additionalBibColumns=" ++ intercalate "," moreBibFields
+                            AddColList moreBibFields -> "&additionalBibColumns=" ++ T.unpack (T.intercalate "," moreBibFields)
                     apiReturn <- processApiResponse (remoteURL ++ "/bibliography" ++ qDefault archive ++ addJannoColFlag) False
                     case apiReturn of
                         ApiReturnBibInfo bibInfo -> return bibInfo
@@ -164,7 +164,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
 
             let addBibFieldNames = case addColSpec of
                     AddColAll -> nub . concatMap (map fst . bibInfoAddCols) $ bibInfos
-                    AddColList names -> names
+                    AddColList names -> map T.unpack names
 
             -- warning in case the additional Columns do not exist in the entire janno dataset,
             -- we only output this warning if the columns were requested explicitly. Not if

@@ -44,14 +44,14 @@ instance ToJSON ContributorSpec where
         ]
 
 contributorSpecParser :: P.Parser [ContributorSpec]
-contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P.spaces))
+contributorSpecParser = P.try (P.sepBy oneContributorSpecParser (P.char ';' <* P.spaces)) <* P.spaces <* P.eof
 
 oneContributorSpecParser :: P.Parser ContributorSpec
 oneContributorSpecParser = do
     name <- P.between (P.char '[') (P.char ']') (P.manyTill P.anyChar (P.lookAhead (P.char ']')))
     email <- P.between (P.char '(') (P.char ')') (P.manyTill P.anyChar (P.lookAhead (P.char ')')))
-    -- TODO: add option to add ORCID here
-    return (ContributorSpec name email Nothing)
+    orcid <- P.optionMaybe $ P.between (P.char '<') (P.char '>') parseORCID
+    return (ContributorSpec name email orcid)
 
 -- | A data type to represent an ORCID
 -- see https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
@@ -62,7 +62,7 @@ data ORCID = ORCID
     deriving (Show, Eq, Ord)
 
 instance FromJSON ORCID where
-    parseJSON (String s) = case P.runParser parseORCID () "" (unpack s) of
+    parseJSON (String s) = case P.runParser (parseORCID <* P.eof) () "" (unpack s) of
         Left err -> fail $ showParsecErr err
         Right x  -> pure x
     parseJSON _          = mzero
@@ -76,7 +76,7 @@ parseORCID = do
             fourBlock <* m
         <*> fourBlock <* m
         <*> fourBlock <* m
-        <*> threeBlock <*> checksumDigit <* P.eof
+        <*> threeBlock <*> checksumDigit
     guard (validateORCID orcid) P.<?> "ORCID is not valid"
     return orcid
   where

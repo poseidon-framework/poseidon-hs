@@ -287,7 +287,7 @@ runForge (
                 (Just path) -> do
                     logInfo "Copying README file from source package"
                     let fullSourcePath = posPacBaseDir pacSource </> path
-                    liftIO $ checkFile fullSourcePath Nothing
+                    checkFile fullSourcePath Nothing
                     liftIO $ copyFile fullSourcePath $ outPath </> path
         copyCHANGELOGFile :: FilePath -> PoseidonPackage -> PoseidonIO ()
         copyCHANGELOGFile outPath pacSource = do
@@ -296,7 +296,7 @@ runForge (
                 (Just path) -> do
                     logInfo "Copying CHANGELOG file from source package"
                     let fullSourcePath = posPacBaseDir pacSource </> path
-                    liftIO $ checkFile fullSourcePath Nothing
+                    checkFile fullSourcePath Nothing
                     liftIO $ copyFile fullSourcePath $ outPath </> path
         compileGenotypeData :: FilePath -> GenotypeFileSpec -> [PoseidonPackage] -> [Int] -> PoseidonIO (VUM.IOVector Int)
         compileGenotypeData outPath gFileSpec relevantPackages relevantIndices = do

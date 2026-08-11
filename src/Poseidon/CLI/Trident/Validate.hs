@@ -10,6 +10,7 @@ import           Poseidon.Core.Janno            (JannoRows (..), readJannoFile)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  PoseidonException (..),
                                                  PoseidonYamlStruct (..),
+                                                 checkGenoFiles,
                                                  defaultPackageReadOptions,
                                                  getJointIndividualInfo,
                                                  makePseudoPackageFromGenotypeData,
@@ -17,7 +18,8 @@ import           Poseidon.Core.Package          (PackageReadOptions (..),
                                                  validateForge, validateGeno)
 import           Poseidon.Core.SequencingSource (SeqSourceRows (..),
                                                  readSeqSourceFile)
-import           Poseidon.Core.Utils            (PoseidonIO, logError, logInfo)
+import           Poseidon.Core.Utils            (PoseidonIO, checkFile,
+                                                 logError, logInfo)
 
 import           Control.Monad                  (forM_, unless, when)
 import           Control.Monad.Catch            (throwM)
@@ -96,6 +98,7 @@ runValidate (ValidateOptions
     conclude (not packagesSkipped) noExitCode
 runValidate (ValidateOptions (ValPlanPoseidonYaml path) _ _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
+    checkFile path Nothing
     bs <- liftIO $ B.readFile path
     yml <- case decodeEither' bs of
         Left err  -> throwM $ PoseidonYamlParseException path err
@@ -108,21 +111,25 @@ runValidate (ValidateOptions (ValPlanGeno geno) _ _ noExitCode _) = do
             GenotypePlink      gf _ _ _ _ _ -> gf
             GenotypeVCF        gf _         -> gf
     logInfo $ "Validating: " ++ gFile
+    checkGenoFiles True "" (genotypeFileSpec geno)
     pac <- makePseudoPackageFromGenotypeData geno
     validateGeno pac True
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanJanno (VersionedFile pv path)) mandatoryJannoCols _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
+    checkFile path Nothing
     (_,JannoRows entries) <- readJannoFile pv mandatoryJannoCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanSSF (VersionedFile pv path)) _ mandatorySSFCols noExitCode _) = do
     logInfo $ "Validating: " ++ path
+    checkFile path Nothing
     (SeqSourceRows entries) <- readSeqSourceFile pv mandatorySSFCols path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 runValidate (ValidateOptions (ValPlanBib path) _ _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
+    checkFile path Nothing
     entries <- liftIO $ readBibTeXFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode

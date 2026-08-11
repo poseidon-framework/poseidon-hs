@@ -12,6 +12,8 @@ module Poseidon.Core.Utils (
     envErrorLength,
     LogMode (..),
     checkFile,
+    checkLineEnding,
+    checkLineEndingIfNotZipped,
     getChecksum,
     logWarning,
     logInfo,
@@ -38,17 +40,20 @@ import           Colog                  (HasLog (..), LogAction (..), Message,
                                          msgText, showSeverity)
 import           Control.Exception      (Exception (..), throwIO)
 import           Control.Exception.Base (SomeException)
-import           Control.Monad          (when)
+import           Control.Monad          (unless, when)
 import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
+import qualified Data.ByteString        as BS
 import qualified Data.ByteString.Lazy   as LB
 import           Data.Digest.Pure.MD5   (md5)
+import           Data.List              (isSuffixOf)
 import qualified Data.Set               as Set
 import           Data.Text              (Text, pack)
 import           Data.Time              (defaultTimeLocale, formatTime,
                                          getCurrentTime, utcToLocalZonedTime)
 import           Data.Version           (showVersion)
+import           Data.Word              (Word8)
 import           Data.Yaml              (ParseException,
                                          prettyPrintParseException)
 import           GHC.Stack              (callStack, withFrozenCallStack)
@@ -56,8 +61,8 @@ import           Network.HTTP.Conduit   (HttpException (..))
 import           SequenceFormats.Plink  (PlinkPopNameMode (..))
 import           System.Directory       (doesFileExist)
 import           System.FilePath.Posix  (takeBaseName)
+import           System.IO              (IOMode (..), withBinaryFile)
 import qualified Text.Parsec.Error      as P
-
 
 type LogA = LogAction IO Message
 
@@ -279,16 +284,16 @@ renderPoseidonException PoseidonCantPreserveException =
     "Can't use --preserve if there is more than one relevant source package."
 
 -- helper function to check if a file exists
-checkFile :: FilePath -> Maybe String -> IO ()
+checkFile :: FilePath -> Maybe String -> PoseidonIO ()
 checkFile fn maybeChkSum = do
-    fe <- doesFileExist fn
+    fe <- liftIO $ doesFileExist fn
     if not fe
     then throwM (PoseidonFileExistenceException fn)
     else
         case maybeChkSum of
             Nothing -> return ()
             Just chkSum -> do
-                fnChkSum <- getChecksum fn
+                fnChkSum <- liftIO $ getChecksum fn
                 when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
 
 -- helper functions to get the checksum of a file
@@ -297,6 +302,34 @@ getChecksum f = do
     fileContent <- LB.readFile f
     let md5Digest = md5 fileContent
     return $ show md5Digest
+
+-- helper function to check line endings of text files
+-- only considers the first line:
+-- if the byte immediately before the first LF is CR,
+-- then the first line uses CRLF; otherwise it uses plain Unix LF
+checkLineEnding :: FilePath -> PoseidonIO ()
+checkLineEnding fn =
+  liftIO (withBinaryFile fn ReadMode $ \h -> go h Nothing) >>= \isCRLF ->
+    when isCRLF $ logWarning $ "File " <> fn <> " appears to use CRLF (Windows) line endings."
+  where
+    go h prev = do
+      chunk <- BS.hGetSome h 8192
+      if BS.null chunk
+        then pure False
+        else case BS.elemIndex lf chunk of
+          Just i ->
+              if i > 0
+              then pure $ BS.index chunk (i - 1) == cr
+              else pure $ prev == Just cr
+          Nothing ->
+            go h (Just $ BS.last chunk)
+
+lf, cr :: Word8
+lf = 10 -- '\n'
+cr = 13 -- '\r'
+
+checkLineEndingIfNotZipped :: FilePath -> PoseidonIO ()
+checkLineEndingIfNotZipped fn = unless (".gz" `isSuffixOf` fn) $ checkLineEnding fn
 
 -- helper functions to pad and cut strings
 padRight :: Int -> String -> String
