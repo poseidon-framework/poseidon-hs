@@ -10,6 +10,7 @@ module Poseidon.Core.Package (
     LicenseSpec (..),
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
+    checkGenoFiles,
     readPoseidonPackageCollection,
     readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
@@ -82,6 +83,8 @@ import           Poseidon.Core.ServerClient     (AddColSpec (..),
                                                  PackageInfo (..))
 import           Poseidon.Core.Utils            (LogA, PoseidonException (..),
                                                  PoseidonIO, checkFile,
+                                                 checkLineEnding,
+                                                 checkLineEndingIfNotZipped,
                                                  envErrorLength, envLogAction,
                                                  logDebug, logError, logInfo,
                                                  logWarning, logWithEnv,
@@ -109,7 +112,8 @@ import           Data.List                      (elemIndex, group, groupBy,
                                                  (\\))
 import           Data.Maybe                     (catMaybes, fromMaybe,
                                                  isNothing, mapMaybe)
-import           Data.Text                      (unpack)
+import qualified Data.Text                      as T
+import qualified Data.Text.Encoding             as TE
 import           Data.Time                      (Day, UTCTime (..),
                                                  getCurrentTime)
 import qualified Data.Vector                    as V
@@ -443,7 +447,7 @@ readPoseidonPackage opts ymlPath = do
     checkYML yml
 
     -- file existence and checksum test
-    liftIO $ checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
+    checkFiles baseDir (_readOptIgnoreChecksums opts) (_readOptIgnoreGeno opts) yml
 
     -- read janno (or fill with empty dummy object)
     indEntries <- loadIndividuals baseDir geno
@@ -552,7 +556,7 @@ validateForge pacs strandcheck = do
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
 
 -- throws exception if any file is missing or checksum is incorrect
-checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> IO ()
+checkFiles :: FilePath -> Bool -> Bool -> PoseidonYamlStruct -> PoseidonIO ()
 checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
     -- Check README File
     case poseidonReadmeFilePath baseDir yml of
@@ -567,48 +571,56 @@ checkFiles baseDir ignoreChecksums ignoreGenotypeFilesMissing yml = do
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlBibFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlBibFileChkSum yml
     -- Check Janno File
     case poseidonJannoFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlJannoFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlJannoFileChkSum yml
     -- Check SeqSource File
     case poseidonSeqSourceFilePath baseDir yml of
         Nothing -> return ()
         Just fn -> if ignoreChecksums
                    then checkFile fn Nothing
-                   else checkFile fn $ _posYamlSeqSourceFileChkSum yml
+                   else do
+                       checkLineEnding fn
+                       checkFile fn $ _posYamlSeqSourceFileChkSum yml
     -- Check Genotype files
     unless ignoreGenotypeFilesMissing $ do
-        let gd = _posYamlGenotypeData yml
-            d = baseDir
-        case genotypeFileSpec gd of
-            GenotypeEigenstrat genoF genoFc snpF snpFc indF indFc -> do
-                if ignoreChecksums
-                then do
-                    checkFile (d </> genoF) Nothing
-                    checkFile (d </> snpF)  Nothing
-                    checkFile (d </> indF)  Nothing
-                else do
-                    checkFile (d </> genoF) genoFc
-                    checkFile (d </> snpF)  snpFc
-                    checkFile (d </> indF)  indFc
-            GenotypePlink genoF genoFc snpF snpFc indF indFc -> do
-                if ignoreChecksums
-                then do
-                    checkFile (d </> genoF) Nothing
-                    checkFile (d </> snpF)  Nothing
-                    checkFile (d </> indF)  Nothing
-                else do
-                    checkFile (d </> genoF) genoFc
-                    checkFile (d </> snpF)  snpFc
-                    checkFile (d </> indF)  indFc
-            GenotypeVCF genoF genoFc -> do
-                if ignoreChecksums
-                then checkFile (d </> genoF) Nothing
-                else checkFile (d </> genoF) genoFc
+        checkGenoFiles ignoreChecksums baseDir (genotypeFileSpec (_posYamlGenotypeData yml))
+
+checkGenoFiles :: Bool -> FilePath -> GenotypeFileSpec -> PoseidonIO ()
+checkGenoFiles True d (GenotypeEigenstrat genoF _ snpF _ indF _) = do
+    checkFile (d </> genoF) Nothing
+    checkFile (d </> snpF)  Nothing
+    checkFile (d </> indF)  Nothing
+checkGenoFiles False d (GenotypeEigenstrat genoF genoFc snpF snpFc indF indFc) = do
+    checkLineEndingIfNotZipped (d </> genoF)
+    checkFile (d </> genoF) genoFc
+    checkLineEndingIfNotZipped (d </> snpF)
+    checkFile (d </> snpF)  snpFc
+    checkLineEndingIfNotZipped (d </> indF)
+    checkFile (d </> indF)  indFc
+checkGenoFiles True d (GenotypePlink genoF _ snpF _ indF _) = do
+    checkFile (d </> genoF) Nothing
+    checkFile (d </> snpF)  Nothing
+    checkFile (d </> indF)  Nothing
+checkGenoFiles False d (GenotypePlink genoF genoFc snpF snpFc indF indFc) = do
+    checkFile (d </> genoF) genoFc
+    checkLineEndingIfNotZipped (d </> snpF)
+    checkFile (d </> snpF)  snpFc
+    checkLineEndingIfNotZipped (d </> indF)
+    checkFile (d </> indF)  indFc
+checkGenoFiles True d (GenotypeVCF genoF _) = do
+    checkFile (d </> genoF) Nothing
+checkGenoFiles False d (GenotypeVCF genoF genoFc) = do
+    checkLineEndingIfNotZipped (d </> genoF)
+    checkFile (d </> genoF) genoFc
 
 -- the last flag is important for reading VCFs, which can lack group and sex information.
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
@@ -709,10 +721,15 @@ checkJannoBibConsistency pacName (JannoRows rows) bibtex = do
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 findAllPoseidonYmlFiles baseDir = do
     entries <- listDirectory baseDir
-    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") $ map takeFileName entries
-    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ entries
+    let posFiles = map (baseDir </>) $ filter (=="POSEIDON.yml") entries
+    subDirs <- filterM doesDirectoryExist . map (baseDir </>) $ filter (not . isHidden) entries
     morePosFiles <- fmap concat . mapM findAllPoseidonYmlFiles $ subDirs
     return $ posFiles ++ morePosFiles
+
+isHidden :: FilePath -> Bool
+isHidden p = case takeFileName p of
+    '.':_ -> True
+    _     -> False
 
 -- | A function to read genotype data jointly from multiple packages
 getJointGenotypeData :: MonadSafe m =>
@@ -992,10 +1009,14 @@ getExtendedIndividualInfo allPackages addJannoColSpec = sequence $ do -- list mo
     let name = show $ jPoseidonID jannoRow
         groups = map show $ getListColumn . jGroupName $ jannoRow
         colNames = case addJannoColSpec of
-            AddColAll    -> jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
+            AddColAll    -> map T.pack jannoHeaderString \\ ["Poseidon_ID", "Group_Name"] -- Nothing means all Janno columns
                                                                           -- except for these two which are already explicit
             AddColList c -> c
-        additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
+        -- additionalColumnEntries = [(k, Bchs.unpack <$> toNamedRecord jannoRow HM.!? Bchs.pack k) | k <- colNames]
+        additionalColumnEntries = [
+              (T.unpack k, T.unpack . TE.decodeUtf8 <$> HM.lookup (TE.encodeUtf8 k) (toNamedRecord jannoRow))
+            | k <- colNames
+            ]
     isLatest <- isLatestInCollection allPackages pac -- this lives in monad m
     -- double-return for m and then list.
     return . return $ ExtendedIndividualInfo name groups (makePacNameAndVersion pac) isLatest additionalColumnEntries
@@ -1018,14 +1039,14 @@ getBibliographyInfo allPackages addColSpec = do
                 jannoRow <- jointJanno
                 let bibKeys = case jPublication jannoRow of
                         Nothing -> []
-                        Just jannoPubList -> map (\(JannoPublication p) -> unpack p) $ getListColumn jannoPubList
+                        Just jannoPubList -> map (\(JannoPublication p) -> T.unpack p) $ getListColumn jannoPubList
                 True <- return $ bibId `elem` bibKeys
                 return ()
         let addBibEntries = case addColSpec of
                 -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
                 AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
                 -- with a selecton of colNames we just query the bib-fields for those exact fields.
-                AddColList colNames -> [(colName, colName `lookup` bibFields) | colName <- colNames]
+                AddColList colNames -> [(T.unpack colName, T.unpack colName `lookup` bibFields) | colName <- colNames]
         return $ BibliographyInfo nrSamples bibId ("title" `lookup` bibFields)
             ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
             ("doi" `lookup` bibFields) addBibEntries

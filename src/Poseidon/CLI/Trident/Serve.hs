@@ -33,9 +33,9 @@ import           Control.Monad                  (forM)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Data.Coerce                    (coerce)
 import           Data.List                      (groupBy, intercalate, sortOn)
-import           Data.List.Split                (splitOn)
 import           Data.Maybe                     (isJust)
 import           Data.Scientific                (toRealFloat)
+import qualified Data.Text                      as T
 import           Data.Text.Lazy                 (pack)
 import           Data.Time                      (Day)
 import           Data.Version                   (Version, parseVersion,
@@ -227,7 +227,7 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
             indInfo <- case maybeAdditionalColumnsString of
                     Just "ALL" -> getExtendedIndividualInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalColumnsString ->
-                        let additionalColumnNames = splitOn "," additionalColumnsString
+                        let additionalColumnNames = T.splitOn "," additionalColumnsString
                         in  getExtendedIndividualInfo pacs (AddColList additionalColumnNames)
                     Nothing -> getExtendedIndividualInfo pacs (AddColList [])
             let retData = ApiReturnExtIndividualInfo indInfo
@@ -241,7 +241,7 @@ runServer (ServeOptions archBaseDirs port ignoreChecksums certFiles) serverReady
             bibInfo <- case maybeAdditionalBibFieldsString of
                     Just "ALL" -> getBibliographyInfo pacs AddColAll -- Nothing means all Janno Columns
                     Just additionalBibFieldsString ->
-                        let additionalBibFields = splitOn "," additionalBibFieldsString
+                        let additionalBibFields = T.splitOn "," additionalBibFieldsString
                         in  getBibliographyInfo pacs (AddColList additionalBibFields)
                     Nothing -> getBibliographyInfo pacs (AddColList [])
             let retData = ApiReturnBibInfo bibInfo

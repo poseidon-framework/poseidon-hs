@@ -34,6 +34,7 @@ d6eafec9087c88ed6a95e4a22f1f306c list list/list3
 bc636b9c03ea9359acd254a9911e5af3 list list/list5
 32c841b67d2995cdc1312f3721df5916 list list/list6
 35689d85d4ac5da9a4189b728403f16b list list/list7
+848800d4b2604248f2e606a2f192994a list list/list8
 b197fb8dd883c7469a4791e4a677f1c0 summarise summarise/summarise1
 d9e4b3f15d4e129a365d2064198d95b6 summarise summarise/summarise2
 5a5ff1b07bcc6ba917d5e492b886b71c survey survey/survey1
@@ -132,7 +133,7 @@ ad7e56177aad0a720f0bde13d47f2ac1 forge forge/ForgePac19/CHANGELOG.md
 9b22cab26cdae87bd79d24c289e48433 forge forge/ForgePac19/ForgePac19.fam
 504775c8994e25615b7662fc0495ff12 forge forge/ForgePac19/ForgePac19.janno
 3288b6ff2d7b02eec0f34a8434e4b7e3 forge forge/ForgePac20/POSEIDON.yml
-100405d0cc3bf72c1c3d7b87b7a22029 forge forge/ForgePac20/ForgePac20.janno
+589e62622e1ee6f0ad6268935dd540ba forge forge/ForgePac20/ForgePac20.janno
 ef1646043331ed9d67e4072ee46eb9f4 forge forge/ForgePac21/POSEIDON.yml
 8b8e1852b1e3cdd0ab0176dddce13bba forge forge/ForgePac21/ForgePac21.vcf
 848cf0fab32e4078a88cc17ad8ec3381 forge forge/ForgePac21/ForgePac21.janno
@@ -160,6 +161,7 @@ b43da4d5734371c0648553120f812466 fetch fetch/multi_packages_2/Lamnidis_2018-1.0.
 ed1d1343a7ff26274690c530a03cd070 listRemote listRemote/listRemote3
 0433b2a80ee5a2eb5bf8c6404130e562 listRemote listRemote/listRemote4
 e8be7325d86f75c8df826f91421e0239 listRemote listRemote/listRemote5
+848800d4b2604248f2e606a2f192994a listRemote listRemote/listRemote6
 3ea2b421436a1be5cb631eaf6aa39546 jannocoalesce jannocoalesce/target1.janno
 e429b08154988f73c502921beb7b0842 jannocoalesce jannocoalesce/target2.janno
 a7983b6a2537513c43e5dc8105f6cec9 jannocoalesce jannocoalesce/target3.janno
