@@ -1,3 +1,41 @@
+### V 2.2.1.0:
+
+This is a large omnibus release with many minor bug fixes, new features, and interface changes.
+
+#### Potentially breaking changes
+
+We finally activated ploidy checks for packages with PoseidonVersion 3.0.0 or greater, after planning to add such a feature for a long time. When packages are read in a way that involves parsing the genotype data, in particular when running `trident validate`, reading fails now if any individual with the value `haploid` in the .janno column `Genotype_Ploidy` has heterozygote genotypes. This is helpful, as xerxes makes use of the column for some applications and relies on it being correct.
+
+Another breaking change replaces the old `trident forge` feature `--preservePyml` with a more general `--preserve` mode. `--preserve` is available for forge operations on a single input package and aims to keep the diff between input and output minimal. It i) copies stable information from the input POSEIDON.yml file to the output (as already with `--preservePyml`), ii) uses the input's order of columns in the .janno file in the output, and iii) maintains the input's order of bibtex entries in the .bib file.
+
+#### New features
+
+Especially useful for automatic tooling around Poseidon packages: It is now possible to give ORCIDs with `--newContributors` in `rectify`. The syntax is a bit clunky (`[Firstname Lastname](Email address)<ORCID>`), but as ORCIDs remain optional its easy to ignore the feature.
+
+`Poseidon_ID`s and `Group_Names` that contained special characters used in trident's selection language for `forge` and `fetch` have long been an issue. This concerns for example group names that indicate age relationships like `Belgium_<1000BC`, as they occure in various versions of the AADR dataset. This name contains a `<`, which is a reserved character of the language, and thus broke the parser. Other reserved characters are `':', ',', '<', '>', '*'`. This release finally introduces a quoting feature to safely handle such entity names by wrapping them in `"`s (or `'`s), e.g. `"Belgium_<1000BC"` or `<"Individual3,4">`.
+
+#### Minor improvements
+
+- Removed tedious `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning.
+- Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
+- Changed `Double` types in the .janno file representation to `Scientific` and improved the writing of these values to avoid floating point precision issues. These numbers are now always printed in standard decimal notation.
+- Nicer error messages in case of missing input files in `validate`.
+- Added a input validation feature that checks line endings of the first (!) row in text files in packages. Only runs when checksums are present, because only then a difference in line endings can lead to unexpected behaviour.
+
+#### Bug fixes
+
+- Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
+- Fixed encoding issues in `trident list` when additional .janno columns are requested.
+
+#### Changes of the webserver and the HTML API (server.poseidon-adna.org)
+
+- Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.
+- Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
+- Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
+- By default only show the first five samples on the package page of the server's html API.
+- Made the source column hide when the necessary URL is missing on the archive page.
+- Made the display of description and source url in the explorer page of the of the server's html API indendent of each other.
+
 ### V 2.1.0.0
 
 This release adds some new intelligence for merging genotypes across packages, and reworks the download of .zip archives from the webserver.
