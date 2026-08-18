@@ -8,6 +8,8 @@ We finally activated ploidy checks for packages with PoseidonVersion 3.0.0 or gr
 
 Another breaking change replaces the old `trident forge` feature `--preservePyml` with a more general `--preserve` mode. `--preserve` is available for forge operations on a single input package and aims to keep the diff between input and output minimal. It i) copies stable information from the input POSEIDON.yml file to the output (as already with `--preservePyml`), ii) uses the input's order of columns in the .janno file in the output, and iii) maintains the input's order of bibtex entries in the .bib file.
 
+Related to that is a change in the inner representation of numbers read from .janno files. We switched from the default `Double` type for floating point numbers to a more explicit type `Scientific`. The most obvious effect of this may be, that the writing of numeric values is more dependable now. Rendering `Scientific` avoids floating point precision issues we frequently ran into previously when writing .janno files. Numbers are now preferably printed in standard decimal notation.
+
 #### New features
 
 Especially useful for automatic tooling around Poseidon packages: It is now possible to give ORCIDs with `--newContributors` in `rectify`. The syntax is a bit clunky (`[Firstname Lastname](Email address)<ORCID>`), but as ORCIDs remain optional its easy to ignore the feature.
@@ -16,25 +18,21 @@ Especially useful for automatic tooling around Poseidon packages: It is now poss
 
 #### Minor improvements
 
-- Removed tedious `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning.
-- Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
-- Changed `Double` types in the .janno file representation to `Scientific` and improved the writing of these values to avoid floating point precision issues. These numbers are now always printed in standard decimal notation.
-- Nicer error messages in case of missing input files in `validate`.
-- Added a input validation feature that checks line endings of the first (!) row in text files in packages. Only runs when checksums are present, because only then a difference in line endings can lead to unexpected behaviour.
+Maybe most obviously we removed the `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning in this release. While the Poseidon schema (v3.0) still recommends names with only characters from a subset of the 7-bit ASCII code set, we decided to remove this verbose command line output. We rather want to make trident as flexible as possible regarding character encoding. Quoting in the `forge` language, as mentioned above, was an important milestone on this path. 
+
+We received a bug report about failing genotype data parsing for a plink .bim file that was accepted by other tools. It encoded `N` with `.`, which was previously not allowed in our parsing. We now switched to a newer version of sequence-formats, which introduces a more lenient Plink BIM parser, allowing `.`s as allele characters.
+
+When validating package submissions for the public Poseidon archives we sometimes ran into issues with DOS vs. UNIX line endings in text files. While trident can read both, the checksums in the POSEIDON.yml file are sensitive to this change. Combined with Git's `core.autocrlf` that automatically adjusts line endings, this lead to unexpected and confusing error cases where the validation ran through on one, but failed on another system. To make it easier to detect such issues in the future, we added an input validation feature that checks line endings of the first (!) row in text files in packages. To save loading time this only runs when checksums are present in the POSEIDON.yml file, because only then a difference in line endings can lead to unexpected behaviour.
 
 #### Bug fixes
 
-- Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
-- Fixed encoding issues in `trident list` when additional .janno columns are requested.
+`trident rectify --jannoRemoveEmpty` uses a special writing process for .janno files. This process generated broken output in combination with certain unicode characters. We fixed this now, using a better .tsv encoding and quoting workflow.
+
+Another unicode encoding issue concerned `trident list` when additional .janno columns were requested with `--jannoColumn`. This was also fixed.
 
 #### Changes of the webserver and the HTML API (server.poseidon-adna.org)
 
-- Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.
-- Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
-- Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
-- By default only show the first five samples on the package page of the server's html API.
-- Made the source column hide when the necessary URL is missing on the archive page.
-- Made the display of description and source url in the explorer page of the of the server's html API indendent of each other.
+We slightly changed the behaviour when the server starts, so that genotype data is not validated any more. We think this is not necessary, and it speeds up the loading procedure tremendously. Beyond that we changed various little details about the website, among which only a new plot to show the temporal data distribution on top of the leaflet map is worth mentioning. We also refactored the website code to make changes to the javascript and stylesheet easier in the future.
 
 ### V 2.1.0.0
 
