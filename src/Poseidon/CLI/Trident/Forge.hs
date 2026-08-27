@@ -96,6 +96,7 @@ data ForgeOptions = ForgeOptions
     , _forgePackageWise         :: Bool
     , _forgeOutputPlinkPopMode  :: PlinkPopNameMode
     , _forgeOutputOrdered       :: Bool
+    , _forgeAddTrace            :: Bool
     }
 
 -- | Different output modes ordered from more minimal to more complete
@@ -124,7 +125,7 @@ runForge (
                  skipIncongruentSNPs
                  outFormat outMode outZip outPathRaw maybeOutName
                  packageWise outPlinkPopMode
-                 outputOrdered
+                 outputOrdered addTrace
     ) = do
 
     -- load packages --
@@ -177,14 +178,17 @@ runForge (
     let (JannoRows jannoRows) = getJointJanno relevantPackages
         newJanno@(JannoRows relevantJannoRows) = JannoRows $ do --list monad
             i <- relevantIndices
-            let sourcePac = indInfoPac $ fst indInfoCollection !! i
             let jannoRow = jannoRows !! i
-            let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
-            let newTraceEntry = case HM.lookup "SourcePackage" addColsHM of
-                    Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
-                    Nothing -> BC.pack $ renderNameWithVersion sourcePac
-            let addColsHMwithTrace = HM.insert "SourcePackage" newTraceEntry addColsHM
-            return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
+            if addTrace then do
+                let sourcePac = indInfoPac $ fst indInfoCollection !! i
+                let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
+                let newTraceEntry = case HM.lookup "Source_Package" addColsHM of
+                        Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
+                        Nothing -> BC.pack $ renderNameWithVersion sourcePac
+                let addColsHMwithTrace = HM.insert "Source_Package" newTraceEntry addColsHM
+                return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
+            else
+                return jannoRow
 
     -- seqSource
     let seqSourceRows = mconcat $ map posPacSeqSource relevantPackages
