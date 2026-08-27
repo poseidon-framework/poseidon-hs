@@ -1296,6 +1296,7 @@ testPipelineForge testDir checkFilePath = do
           _forgeOutFormat    = GenotypeOutFormatVCF
         , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac21"
         , _forgeOutPacName   = Just "ForgePac21"
+        , _forgeAddTrace     = True
     }
     let action21 = testLog (runForge forgeOpts21) >>
             patchLastModified testDir ("forge" </> "ForgePac21" </> "POSEIDON.yml") >>
