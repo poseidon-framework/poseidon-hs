@@ -19,8 +19,8 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 readPoseidonPackageCollection,
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChecksum, getChk,
-                                                logDebug, logInfo, logWarning)
+import           Poseidon.Core.Utils           (PoseidonIO, getChk, logDebug,
+                                                logInfo, logWarning)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
 

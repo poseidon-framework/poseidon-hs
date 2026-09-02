@@ -4,40 +4,25 @@ module Poseidon.CLI.Trident.Rectify (
     runRectify, RectifyOptions (..)
     ) where
 
-import           Poseidon.CLI.Trident.Modify   (ChecksumsToModify (..),
-                                                PackageVersionUpdate (..),
-                                                addContributors,
-                                                completeAndWritePackage,
-                                                updateChecksums)
-import           Poseidon.Core.Contributor     (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
-                                                PacNameAndVersion (..),
-                                                renderNameWithVersion)
-import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
-                                                GenotypeFileSpec (..))
-import           Poseidon.Core.Janno           (makeJannoHeader,
-                                                writeJannoFileWithoutEmptyCols)
-import           Poseidon.Core.Package         (PackageReadOptions (..),
-                                                PoseidonPackage (..),
-                                                defaultPackageReadOptions,
-                                                readPoseidonPackageCollection,
-                                                writePoseidonPackage)
-import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChecksum, getChk,
-                                                logDebug, logInfo, logWarning)
-import           Poseidon.Core.Version         (VersionComponent (..),
-                                                updateThreeComponentVersion)
+import           Poseidon.CLI.Trident.Modify (ChecksumsToModify (..),
+                                              PackageVersionUpdate (..),
+                                              addContributors,
+                                              completeAndWritePackage,
+                                              updateChecksums)
+import           Poseidon.Core.Contributor   (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes   (renderNameWithVersion)
+import           Poseidon.Core.GenotypeData  (GenotypeDataSpec (..),
+                                              GenotypeFileSpec (..))
+import           Poseidon.Core.Package       (PackageReadOptions (..),
+                                              PoseidonPackage (..),
+                                              defaultPackageReadOptions,
+                                              readPoseidonPackageCollection)
+import           Poseidon.Core.Utils         (PoseidonIO, getChk, logInfo)
 
-import           Control.DeepSeq               ((<$!!>))
-import           Control.Monad                 (filterM, when)
-import           Control.Monad.IO.Class        (MonadIO, liftIO)
-import           Data.List                     (nub)
-import           Data.Maybe                    (fromJust)
-import           Data.Time                     (UTCTime (..), getCurrentTime)
-import           Data.Version                  (Version (..), makeVersion,
-                                                showVersion)
-import           System.Directory              (doesFileExist, removeFile)
-import           System.FilePath               ((</>))
+import           Control.Monad               (filterM)
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
+import           System.Directory            (doesFileExist)
+import           System.FilePath             ((</>))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs             :: [FilePath]
