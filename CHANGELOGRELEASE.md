@@ -1,32 +1,46 @@
 ### V 2.2.2.0
 
-This release bundles a number of smaller improvements, most notably a new, optional way to trace the provenance of samples in forged packages.
+This release adds a new, optional way to trace the provenance of samples in forged packages.
 
 #### Tracking sample provenance with `Source_Package`
 
 Forged packages can now optionally contain a new `.janno` column, `Source_Package`, which records which original package (and version) each sample originally came from. This makes it possible to trace a sample back to its origin even after it has passed through one or more rounds of `forge`. The feature is opt-in via the new `--addTrace` option.
 
-#### Changes to the html API
+### V 2.2.1.0:
 
-The server's html API saw several smaller improvements: the display of the description and source URL on the explorer page are now independent of each other, the source column is hidden when the URL is missing on the archive page, only the first five samples are shown by default on a package's page, plots are now hidden behind a button to speed up normal browsing, and a new plot visualises the temporal distribution of samples on top of the existing leaflet map.
+This is a large omnibus release with many minor bug fixes, new features, and interface changes.
 
-#### Better handling of the forge selection language
+#### Potentially breaking changes
 
-The `forge` selection language now supports quoting, so entity names containing characters that would otherwise break the parser -- `':'`, `','`, `'<'`, `'>'`, `'*'` -- can be used safely. We also removed the tedious warning that used to fire whenever a `Poseidon_ID` or `Group_Name` contained non-alphanumeric characters.
+We finally activated ploidy checks for packages with PoseidonVersion 3.0.0 or greater, after planning to add such a feature for a long time. When packages are read in a way that involves parsing the genotype data, in particular when running `trident validate`, reading fails now if any individual with the value `haploid` in the .janno column `Genotype_Ploidy` has heterozygote genotypes. This is helpful, as xerxes makes use of the column for some applications and relies on it being correct.
 
-#### Stricter validation and better error messages
+Another breaking change replaces the old `trident forge` feature `--preservePyml` with a more general `--preserve` mode. `--preserve` is available for forge operations on a single input package and aims to keep the diff between input and output minimal. It i) copies stable information from the input POSEIDON.yml file to the output (as already with `--preservePyml`), ii) uses the input's order of columns in the .janno file in the output, and iii) maintains the input's order of bibtex entries in the .bib file.
 
-`validate` now also checks the line endings of the first row of text files in packages (only when checksums are present, since only then can a difference in line endings cause unexpected behaviour), and reports nicer error messages when input files are missing. We also fixed an encoding issue in `trident list` when additional .janno columns are requested, and `rectify --newContributors` can now be given ORCIDs.
+Related to that is a change in the inner representation of numbers read from .janno files. We switched from the default `Double` type for floating point numbers to a more explicit type `Scientific`. The most obvious effect of this may be, that the writing of numeric values is more dependable now. Rendering `Scientific` avoids floating point precision issues we frequently ran into previously when writing .janno files. Numbers are now preferably printed in standard decimal notation.
 
-#### Stricter ploidy checks and a faster server startup
+#### New features
 
-Packages with `PoseidonVersion` 3.0.0 or greater now have their genotype data checked for ploidy consistency whenever it is scanned, in particular in `trident validate` (with or without `--fullGeno`). Validation now fails if an individual marked `haploid` in the `Genotype_Ploidy` column carries heterozygote genotypes.
+Especially useful for automatic tooling around Poseidon packages: It is now possible to give ORCIDs with `--newContributors` in `rectify`. The syntax is a bit clunky (`[Firstname Lastname](Email address)<ORCID>`), but as ORCIDs remain optional its easy to ignore the feature.
 
-At the same time, `serve` no longer checks genotype data upon server startup, since we consider this unnecessary, and it noticeably speeds up starting the server.
+`Poseidon_ID`s and `Group_Names` that contained special characters used in trident's selection language for `forge` and `fetch` have long been an issue. This concerns for example group names that indicate age relationships like `Belgium_<1000BC`, as they occure in various versions of the AADR dataset. This name contains a `<`, which is a reserved character of the language, and thus broke the parser. Other reserved characters are `':', ',', '<', '>', '*'`. This release finally introduces a quoting feature to safely handle such entity names by wrapping them in `"`s (or `'`s), e.g. `"Belgium_<1000BC"` or `<"Individual3,4">`.
 
-#### Other minor fixes
+#### Minor improvements
 
-`Double` values in the internal `.janno` representation were changed to `Scientific`, and the way these numbers are written was improved to avoid floating point precision issues; they are now always printed in standard decimal notation. We also fixed the .tsv encoding and quoting used by `rectify --jannoRemoveEmpty`, which previously produced broken output for certain unicode characters, and bumped the dependency on `sequence-formats`, which introduces a more lenient Plink BIM parser that now accepts dots (`.`) as allele characters, interpreting them as `N`.
+Maybe most obviously we removed the `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning in this release. While the Poseidon schema (v3.0) still recommends names with only characters from a subset of the 7-bit ASCII code set, we decided to remove this verbose command line output. We rather want to make trident as flexible as possible regarding character encoding. Quoting in the `forge` language, as mentioned above, was an important milestone on this path. 
+
+We received a bug report about failing genotype data parsing for a plink .bim file that was accepted by other tools. It encoded `N` with `.`, which was previously not allowed in our parsing. We now switched to a newer version of sequence-formats, which introduces a more lenient Plink BIM parser, allowing `.`s as allele characters.
+
+When validating package submissions for the public Poseidon archives we sometimes ran into issues with DOS vs. UNIX line endings in text files. While trident can read both, the checksums in the POSEIDON.yml file are sensitive to this change. Combined with Git's `core.autocrlf` that automatically adjusts line endings, this lead to unexpected and confusing error cases where the validation ran through on one, but failed on another system. To make it easier to detect such issues in the future, we added an input validation feature that checks line endings of the first (!) row in text files in packages. To save loading time this only runs when checksums are present in the POSEIDON.yml file, because only then a difference in line endings can lead to unexpected behaviour.
+
+#### Bug fixes
+
+`trident rectify --jannoRemoveEmpty` uses a special writing process for .janno files. This process generated broken output in combination with certain unicode characters. We fixed this now, using a better .tsv encoding and quoting workflow.
+
+Another unicode encoding issue concerned `trident list` when additional .janno columns were requested with `--jannoColumn`. This was also fixed.
+
+#### Changes of the webserver and the HTML API (server.poseidon-adna.org)
+
+We slightly changed the behaviour when the server starts, so that genotype data is not validated any more. We think this is not necessary, and it speeds up the loading procedure tremendously. Beyond that we changed various little details about the website, among which only a new plot to show the temporal data distribution on top of the leaflet map is worth mentioning. We also refactored the website code to make changes to the javascript and stylesheet easier in the future.
 
 ### V 2.1.0.0
 
