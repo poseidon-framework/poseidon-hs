@@ -45,8 +45,10 @@ import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
 import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Lazy   as LB
-import           Data.Digest.Pure.MD5   (md5)
+import qualified Data.ByteString.Lazy   as BL
+import Crypto.Hash.MD5 as MD5
+import Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Char8 as B8
 import           Data.List              (isSuffixOf)
 import qualified Data.Set               as Set
 import           Data.Text              (Text, pack)
@@ -301,9 +303,9 @@ getChk :: (MonadIO m) => FilePath -> m String
 getChk = liftIO . getChecksum
 getChecksum :: FilePath -> IO String
 getChecksum f = do
-    fileContent <- LB.readFile f
-    let md5Digest = md5 fileContent
-    return $ show md5Digest
+    fileContent <- BL.readFile f
+    let md5Digest = B16.encode $ MD5.hashlazy fileContent
+    return $ B8.unpack md5Digest
 
 -- helper function to check line endings of text files
 -- only considers the first line:
