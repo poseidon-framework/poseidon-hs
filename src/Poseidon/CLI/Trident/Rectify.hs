@@ -37,19 +37,18 @@ import           System.FilePath               ((</>))
 
 data RectifyOptions = RectifyOptions
     { _rectifyBaseDirs              :: [FilePath]
-    , _rectifyIgnorePoseidonVersion :: Bool
     , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _rectifyNewContributors       :: Maybe [ContributorSpec]
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions baseDirs ignorePosVer pacVerUpdate newContributors) = do
+runRectify (RectifyOptions baseDirs pacVerUpdate newContributors) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = True
         , _readOptGenoCheck        = False
         , _readOptOnlyLatest       = False
-        , _readOptIgnorePosVersion = ignorePosVer
+        , _readOptIgnorePosVersion = True
     }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
     logInfo "Find packages that need rectification"
@@ -85,10 +84,10 @@ needsRectification pac = do
         logDebug "Checking .janno file checksum"
         checkChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
     chkSeqSource <- do
-        logDebug "Updating .ssf file checksums"
+        logDebug "Checking .ssf file checksum"
         checkChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
     chkBib <- do
-        logDebug "Updating .bib file checksums"
+        logDebug "Checking .bib file checksum"
         checkChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
     return $ and [chkGeno, chkJanno, chkSeqSource, chkBib]
 
@@ -96,9 +95,10 @@ checkChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m 
 checkChecksum _ Nothing _ = return True
 checkChecksum _ _ Nothing = return True
 checkChecksum baseDir (Just file) (Just expectedCheckSum) = do
-    exists <- liftIO . doesFileExist $ baseDir </> file
+    let f = baseDir </> file
+    exists <- liftIO . doesFileExist $ f
     if exists
     then do
-        realChecksum <- getChk $ baseDir </> file
+        realChecksum <- getChk f
         return $ realChecksum == expectedCheckSum
     else return True

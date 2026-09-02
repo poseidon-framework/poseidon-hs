@@ -250,7 +250,6 @@ surveyOptParser = SurveyOptions <$> parseBasePaths
 
 rectifyOptParser :: OP.Parser RectifyOptions
 rectifyOptParser = RectifyOptions <$> parseBasePaths
-                                  <*> parseIgnorePoseidonVersion
                                   <*> parseMaybePackageVersionUpdate
                                   <*> parseMaybeContributors
 
