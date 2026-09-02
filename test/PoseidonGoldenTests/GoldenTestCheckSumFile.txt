@@ -139,6 +139,11 @@ ef1646043331ed9d67e4072ee46eb9f4 forge forge/ForgePac21/POSEIDON.yml
 55f0d35f550beb76505304ab012cdd26 forge forge/ForgePac21/ForgePac21.janno
 a1daaa1ebc9c93405acb4a0f24ffa355 forge forge/ForgePac21/ForgePac21.ssf
 b4f71aff4fbc11594008c3811781cc43 forge forge/ForgePac21/ForgePac21.bib
+d73f55f3f529d4bc4699d8c29773c5b3 forge forge/ForgePac22/POSEIDON.yml
+8b8e1852b1e3cdd0ab0176dddce13bba forge forge/ForgePac22/ForgePac22.vcf
+27f1067dfeddf389cebac63f664bccca forge forge/ForgePac22/ForgePac22.janno
+a1daaa1ebc9c93405acb4a0f24ffa355 forge forge/ForgePac22/ForgePac22.ssf
+b4f71aff4fbc11594008c3811781cc43 forge forge/ForgePac22/ForgePac22.bib
 d4a05cfef045648238a94a9d621cf667 chronicle chronicle/chronicle1.yml
 b43da4d5734371c0648553120f812466 timetravel timetravel/Lamnidis_2018-1.0.0/POSEIDON.yml
 8d57ce1a1ab28c0d8a5f391dd790a59c timetravel timetravel/Lamnidis_2018-1.0.1/POSEIDON.yml

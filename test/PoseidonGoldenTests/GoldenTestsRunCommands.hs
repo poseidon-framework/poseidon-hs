@@ -1309,6 +1309,26 @@ testPipelineForge testDir checkFilePath = do
         , "forge" </> "ForgePac21" </> "ForgePac21.bib"
         ]
 
+    -- forge test 22: forging again from the ForgePac21 output (which already carries a
+    -- Source_Package trace column) to test that --addTrace extends an existing trace
+    -- entry instead of overwriting it
+    let forgeOpts22 = forgeOpts21 {
+          _forgeGenoSources  = [PacBaseDir $ testDir </> "forge" </> "ForgePac21"]
+        , _forgeEntityInput  = [EntitiesDirect (fromRight [] $ readEntitiesFromString "*ForgePac21*")]
+        , _forgeOutPacPath   = testDir </> "forge" </> "ForgePac22"
+        , _forgeOutPacName   = Just "ForgePac22"
+    }
+    let action22 = testLog (runForge forgeOpts22) >>
+            patchLastModified testDir ("forge" </> "ForgePac22" </> "POSEIDON.yml") >>
+            patchVCFTridentVersion testDir ("forge" </> "ForgePac22" </> "ForgePac22.vcf")
+    runAndChecksumFiles checkFilePath testDir action22 "forge" [
+          "forge" </> "ForgePac22" </> "POSEIDON.yml"
+        , "forge" </> "ForgePac22" </> "ForgePac22.vcf"
+        , "forge" </> "ForgePac22" </> "ForgePac22.janno"
+        , "forge" </> "ForgePac22" </> "ForgePac22.ssf"
+        , "forge" </> "ForgePac22" </> "ForgePac22.bib"
+        ]
+
 
 testPipelineChronicleAndTimetravel :: FilePath -> FilePath -> IO ()
 testPipelineChronicleAndTimetravel testDir checkFilePath = do
