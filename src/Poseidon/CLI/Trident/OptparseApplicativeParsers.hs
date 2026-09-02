@@ -8,7 +8,7 @@ import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..
                                                      JannoSourceSpec (..))
 import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                                      RepoLocationSpec (..))
-import           Poseidon.CLI.Trident.Rectify       (ChecksumsToModify (..),
+import           Poseidon.CLI.Trident.Modify       (ChecksumsToModify (..),
                                                      PackageVersionUpdate (..))
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
                                                      ArchiveSpec (..))

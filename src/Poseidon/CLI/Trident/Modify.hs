@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Trident.Modify (
-    runModify, ModifyOptions (..), PackageVersionUpdate (..), ChecksumsToModify (..)
+    runModify, ModifyOptions (..), PackageVersionUpdate (..), ChecksumsToModify (..),
+    updateChecksums, addContributors, completeAndWritePackage
     ) where
 
 import           Poseidon.Core.Contributor     (ContributorSpec (..))
