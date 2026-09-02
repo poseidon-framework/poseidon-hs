@@ -77,7 +77,6 @@ runModify (ModifyOptions
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
-    logInfo "Starting per-package update procedure"
     mapM_ modifyOnePackage allPackages
     logInfo "Done"
     where
@@ -178,12 +177,12 @@ updateChecksums checksumSetting pac = do
 
 completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
 completeAndWritePackage Nothing pac = do
-    logDebug "Writing rectified POSEIDON.yml file"
+    logDebug "Writing modified POSEIDON.yml file"
     liftIO $ writePoseidonPackage pac
 completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
     updatedPacPacVer <- updatePackageVersion component pac
     updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
-    logDebug "Writing rectified POSEIDON.yml file"
+    logDebug "Writing modified POSEIDON.yml file"
     liftIO $ writePoseidonPackage updatePacChangeLog
 
 updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage

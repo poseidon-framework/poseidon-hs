@@ -51,45 +51,35 @@ runRectify (RectifyOptions baseDirs pacVerUpdate newContributors) = do
         , _readOptIgnorePosVersion = True
     }
     allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
-    logInfo "Find packages that need rectification"
+    logInfo "Searching packages that need rectification"
     toRectifyPackages <- filterM needsRectification allPackages
     case toRectifyPackages of
-        [] -> do
-            logInfo "Nothing to rectify"
-        xs -> do
-            logInfo "Starting per-package update procedure"
-            mapM_ rectifyOnePackage xs
+        [] -> logInfo "Nothing to rectify"
+        xs -> mapM_ rectifyOnePackage xs
     logInfo "Done"
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         rectifyOnePackage inPac = do
             logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
-            updatedPackage <- updateChecksums ChecksumAll inPac >>= addContributors newContributors
-            completeAndWritePackage pacVerUpdate updatedPackage
+            pure inPac >>=
+              updateChecksums ChecksumAll >>=
+              addContributors newContributors >>=
+              completeAndWritePackage pacVerUpdate
 
 needsRectification :: PoseidonPackage -> PoseidonIO Bool
 needsRectification pac = do
     let d = posPacBaseDir pac
-    let gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
-    chkGeno <- do
-        logDebug "Checking genotype data checksums"
-        case gFileSpec of
-            GenotypeEigenstrat gf gfc sf sfc if_ ifc -> do
-                and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
-            GenotypePlink gf gfc sf sfc if_ ifc -> do
-                and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
-            GenotypeVCF gf gfc -> do
-                checkChecksum d (Just gf) gfc
-    chkJanno <- do
-        logDebug "Checking .janno file checksum"
-        checkChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
-    chkSeqSource <- do
-        logDebug "Checking .ssf file checksum"
-        checkChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
-    chkBib <- do
-        logDebug "Checking .bib file checksum"
-        checkChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
-    return $ and [chkGeno, chkJanno, chkSeqSource, chkBib]
+        gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
+    chkGeno <- case gFileSpec of
+        GenotypeEigenstrat gf gfc sf sfc if_ ifc ->
+            and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+        GenotypePlink gf gfc sf sfc if_ ifc ->
+            and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+        GenotypeVCF gf gfc -> checkChecksum d (Just gf) gfc
+    chkJanno <- checkChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
+    chkSeqSo <- checkChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
+    chkBib   <- checkChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
+    return $ and [chkGeno, chkJanno, chkSeqSo, chkBib]
 
 checkChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
 checkChecksum _ Nothing _ = return True
