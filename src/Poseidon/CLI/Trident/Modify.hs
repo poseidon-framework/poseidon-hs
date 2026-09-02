@@ -20,7 +20,7 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
 import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
-                                                logDebug, logInfo, logWarning)
+                                                logDebug, logInfo, logWarning, getChk)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
 
@@ -170,8 +170,6 @@ updateChecksums checksumSetting pac = do
                     posPacSeqSourceFileChkSum = newSeqSourceChkSum,
                     posPacBibFileChkSum = newBibChkSum
                 }
-        getChk :: (MonadIO m) => FilePath -> m String
-        getChk = liftIO . getChecksum
         testAndGetChecksum :: (MonadIO m) => FilePath -> Maybe String -> m (Maybe String)
         testAndGetChecksum file defaultChkSum = do
             e <- liftIO . doesFileExist $ file

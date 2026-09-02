@@ -14,7 +14,7 @@ module Poseidon.Core.Utils (
     checkFile,
     checkLineEnding,
     checkLineEndingIfNotZipped,
-    getChecksum,
+    getChecksum, getChk,
     logWarning,
     logInfo,
     logDebug,
@@ -297,6 +297,8 @@ checkFile fn maybeChkSum = do
                 when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
 
 -- helper functions to get the checksum of a file
+getChk :: (MonadIO m) => FilePath -> m String
+getChk = liftIO . getChecksum
 getChecksum :: FilePath -> IO String
 getChecksum f = do
     fileContent <- LB.readFile f

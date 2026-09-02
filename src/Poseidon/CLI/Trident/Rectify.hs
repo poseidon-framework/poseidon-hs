@@ -19,7 +19,7 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
 import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
-                                                logDebug, logInfo, logWarning)
+                                                logDebug, logInfo, logWarning, getChk)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
 import Poseidon.CLI.Trident.Modify (PackageVersionUpdate (..), ChecksumsToModify (..), updateChecksums, addContributors, completeAndWritePackage)
@@ -69,4 +69,36 @@ runRectify (RectifyOptions baseDirs ignorePosVer pacVerUpdate newContributors) =
             completeAndWritePackage pacVerUpdate updatedPackage
 
 needsRectification :: PoseidonPackage -> PoseidonIO Bool
-needsRectification = undefined
+needsRectification pac = do
+    let d = posPacBaseDir pac
+    let gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
+    chkGeno <- do
+        logDebug "Checking genotype data checksums"
+        case gFileSpec of
+            GenotypeEigenstrat gf gfc sf sfc if_ ifc -> do
+                and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+            GenotypePlink gf gfc sf sfc if_ ifc -> do
+                and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+            GenotypeVCF gf gfc -> do
+                checkChecksum d (Just gf) gfc
+    chkJanno <- do
+        logDebug "Checking .janno file checksum"
+        checkChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
+    chkSeqSource <- do
+        logDebug "Updating .ssf file checksums"
+        checkChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
+    chkBib <- do
+        logDebug "Updating .bib file checksums"
+        checkChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
+    return $ and [chkGeno, chkJanno, chkSeqSource, chkBib]
+
+checkChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
+checkChecksum _ Nothing _ = return True
+checkChecksum _ _ Nothing = return True
+checkChecksum baseDir (Just file) (Just expectedCheckSum) = do
+    exists <- liftIO . doesFileExist $ baseDir </> file
+    if exists
+    then do
+        realChecksum <- getChk $ baseDir </> file
+        return $ realChecksum == expectedCheckSum
+    else return True
