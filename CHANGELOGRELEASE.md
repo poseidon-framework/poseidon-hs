@@ -1,23 +1,32 @@
 ### V 2.2.2.0
-- Forged packages now optionally contain a new column `Source_Package`, which records which original package (and version) a sample originally came from. This feature is controlled by the `--addTrace` option.
 
-- Some changes to the server, in particular: 
-    - Made the display of description and source url in the explorer page of the of the server's html API indendent of each other.
-    - Made the source column hide when the necessary URL is missing on the archive page.
-- Added a input validation feature that checks line endings of the first (!) row in text files in packages. Only runs when checksums are present, because only then a difference in line endings can lead to unexpected behaviour.
-- Made it possible to give ORCIDs with `--newContributors` in rectify.
-- Fixed encoding issues in `trident list` when additional .janno columns are requested.
-- Nicer error messages in case of missing input files in `validate`.
-- By default only show the first five samples on the package page of the server's html API.
-- Changed `Double` types in the .janno file representation to `Scientific` and improved the writing of these values to avoid floating point precision issues. These numbers are now always printed in standard decimal notation.
-- Removed tedious `PoseidonID/Group_Name should only contain alphanumeric characters ...` warning.
-- Introduced a quoting feature for the forge language to handle entity names that would usually break the parser, e.g. names containing `':', ',', '<', '>', '*'`.
-- Better .tsv encoding and quoting for `writeJannoFileWithoutEmptyCols`, so in `trident rectify --jannoRemoveEmpty`. The previous solution generated broken output in combination with certain unicode characters.
-- Further refactoring of the html API to increase responsiveness. Hid plots behind a button to speed up the normal browsing loop.
-- Improved the implementation of the html API and added a new plot to show the temporal data distribution on top of the leaflet map.
-- Activated Ploidy checks for packages with PoseidonVersion 3.0.0 or greater, whenever genotype data is scanned upon general package input, in particular when running `trident validate` with or without `--fullGeno`. Validation now fails if an individual with `haploid` in column `Genotype_Ploidy` has heterozygote genotypes.
-- Changed behaviour of server startup, so that genotype data is _not_ checked upon server startup. We think this is not necessary, and it speeds up things.
-- Bumped dependency on sequence-formats, introducing a more lenient Plink BIM parser, allowing dots (`.`) to be allowed as allele characters (which are then interpreted as `N`).
+This release bundles a number of smaller improvements, most notably a new, optional way to trace the provenance of samples in forged packages.
+
+#### Tracking sample provenance with `Source_Package`
+
+Forged packages can now optionally contain a new `.janno` column, `Source_Package`, which records which original package (and version) each sample originally came from. This makes it possible to trace a sample back to its origin even after it has passed through one or more rounds of `forge`. The feature is opt-in via the new `--addTrace` option.
+
+#### Changes to the html API
+
+The server's html API saw several smaller improvements: the display of the description and source URL on the explorer page are now independent of each other, the source column is hidden when the URL is missing on the archive page, only the first five samples are shown by default on a package's page, plots are now hidden behind a button to speed up normal browsing, and a new plot visualises the temporal distribution of samples on top of the existing leaflet map.
+
+#### Better handling of the forge selection language
+
+The `forge` selection language now supports quoting, so entity names containing characters that would otherwise break the parser -- `':'`, `','`, `'<'`, `'>'`, `'*'` -- can be used safely. We also removed the tedious warning that used to fire whenever a `Poseidon_ID` or `Group_Name` contained non-alphanumeric characters.
+
+#### Stricter validation and better error messages
+
+`validate` now also checks the line endings of the first row of text files in packages (only when checksums are present, since only then can a difference in line endings cause unexpected behaviour), and reports nicer error messages when input files are missing. We also fixed an encoding issue in `trident list` when additional .janno columns are requested, and `rectify --newContributors` can now be given ORCIDs.
+
+#### Stricter ploidy checks and a faster server startup
+
+Packages with `PoseidonVersion` 3.0.0 or greater now have their genotype data checked for ploidy consistency whenever it is scanned, in particular in `trident validate` (with or without `--fullGeno`). Validation now fails if an individual marked `haploid` in the `Genotype_Ploidy` column carries heterozygote genotypes.
+
+At the same time, `serve` no longer checks genotype data upon server startup, since we consider this unnecessary, and it noticeably speeds up starting the server.
+
+#### Other minor fixes
+
+`Double` values in the internal `.janno` representation were changed to `Scientific`, and the way these numbers are written was improved to avoid floating point precision issues; they are now always printed in standard decimal notation. We also fixed the .tsv encoding and quoting used by `rectify --jannoRemoveEmpty`, which previously produced broken output for certain unicode characters, and bumped the dependency on `sequence-formats`, which introduces a more lenient Plink BIM parser that now accepts dots (`.`) as allele characters, interpreting them as `N`.
 
 ### V 2.1.0.0
 
