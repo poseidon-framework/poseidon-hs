@@ -20,9 +20,9 @@ import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                                      ListOptions (..),
                                                      RepoLocationSpec (..),
                                                      runList)
-import           Poseidon.CLI.Trident.Modify       (ChecksumsToModify (..),
-                                                     PackageVersionUpdate (..),
+import           Poseidon.CLI.Trident.Modify        (ChecksumsToModify (..),
                                                      ModifyOptions (..),
+                                                     PackageVersionUpdate (..),
                                                      runModify)
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
                                                      ArchiveSpec (..),

@@ -15,11 +15,11 @@ import           Poseidon.CLI.Trident.Jannocoalesce              (JannoCoalesceO
                                                                   runJannocoalesce)
 import           Poseidon.CLI.Trident.List                       (ListOptions (..),
                                                                   runList)
+import           Poseidon.CLI.Trident.Modify                     (ModifyOptions (..),
+                                                                  runModify)
 import           Poseidon.CLI.Trident.OptparseApplicativeParsers
 import           Poseidon.CLI.Trident.Rectify                    (RectifyOptions (..),
                                                                   runRectify)
-import           Poseidon.CLI.Trident.Modify                     (ModifyOptions (..),
-                                                                  runModify)
 import           Poseidon.CLI.Trident.Serve                      (ServeOptions (..),
                                                                   runServerMainThread)
 import           Poseidon.CLI.Trident.Summarise                  (SummariseOptions (..),

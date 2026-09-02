@@ -44,11 +44,11 @@ import           Control.Monad          (unless, when)
 import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
+import           Crypto.Hash.MD5        as MD5
 import qualified Data.ByteString        as BS
+import           Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Char8  as B8
 import qualified Data.ByteString.Lazy   as BL
-import Crypto.Hash.MD5 as MD5
-import Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Char8 as B8
 import           Data.List              (isSuffixOf)
 import qualified Data.Set               as Set
 import           Data.Text              (Text, pack)

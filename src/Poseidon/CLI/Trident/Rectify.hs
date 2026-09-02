@@ -4,6 +4,11 @@ module Poseidon.CLI.Trident.Rectify (
     runRectify, RectifyOptions (..)
     ) where
 
+import           Poseidon.CLI.Trident.Modify   (ChecksumsToModify (..),
+                                                PackageVersionUpdate (..),
+                                                addContributors,
+                                                completeAndWritePackage,
+                                                updateChecksums)
 import           Poseidon.Core.Contributor     (ContributorSpec (..))
 import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
                                                 PacNameAndVersion (..),
@@ -18,14 +23,13 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 readPoseidonPackageCollection,
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
-                                                logDebug, logInfo, logWarning, getChk)
+import           Poseidon.Core.Utils           (PoseidonIO, getChecksum, getChk,
+                                                logDebug, logInfo, logWarning)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
-import Poseidon.CLI.Trident.Modify (PackageVersionUpdate (..), ChecksumsToModify (..), updateChecksums, addContributors, completeAndWritePackage)
 
 import           Control.DeepSeq               ((<$!!>))
-import           Control.Monad                 (when, filterM)
+import           Control.Monad                 (filterM, when)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Data.List                     (nub)
 import           Data.Maybe                    (fromJust)
@@ -36,9 +40,9 @@ import           System.Directory              (doesFileExist, removeFile)
 import           System.FilePath               ((</>))
 
 data RectifyOptions = RectifyOptions
-    { _rectifyBaseDirs              :: [FilePath]
-    , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
-    , _rectifyNewContributors       :: Maybe [ContributorSpec]
+    { _rectifyBaseDirs             :: [FilePath]
+    , _rectifyPackageVersionUpdate :: Maybe PackageVersionUpdate
+    , _rectifyNewContributors      :: Maybe [ContributorSpec]
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
