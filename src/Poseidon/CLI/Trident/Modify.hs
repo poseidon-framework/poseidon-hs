@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Poseidon.CLI.Trident.Rectify (
-    runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToModify (..)
+module Poseidon.CLI.Trident.Modify (
+    runModify, ModifyOptions (..), PackageVersionUpdate (..), ChecksumsToModify (..)
     ) where
 
 import           Poseidon.Core.Contributor     (ContributorSpec (..))
@@ -22,7 +22,6 @@ import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
                                                 logDebug, logInfo, logWarning)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
-import Poseidon.CLI.Trident.Modify (PackageVersionUpdate (..), ChecksumsToModify (..))
 
 import           Control.DeepSeq               ((<$!!>))
 import           Control.Monad                 (when)
@@ -35,19 +34,34 @@ import           Data.Version                  (Version (..), makeVersion,
 import           System.Directory              (doesFileExist, removeFile)
 import           System.FilePath               ((</>))
 
-data RectifyOptions = RectifyOptions
-    { _rectifyBaseDirs              :: [FilePath]
-    , _rectifyIgnorePoseidonVersion :: Bool
-    , _rectifyPoseidonVersion       :: Maybe Version
-    , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
-    , _rectifyChecksums             :: ChecksumsToModify
-    , _rectifyNewContributors       :: Maybe [ContributorSpec]
-    , _rectifyJannoRemoveEmptyCols  :: Bool
-    , _rectifyOnlyLatest            :: Bool
+data ModifyOptions = ModifyOptions
+    { _modifyBaseDirs              :: [FilePath]
+    , _modifyIgnorePoseidonVersion :: Bool
+    , _modifyPoseidonVersion       :: Maybe Version
+    , _modifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
+    , _modifyChecksums             :: ChecksumsToModify
+    , _modifyNewContributors       :: Maybe [ContributorSpec]
+    , _modifyJannoRemoveEmptyCols  :: Bool
+    , _modifyOnlyLatest            :: Bool
     }
 
-runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions
+data PackageVersionUpdate = PackageVersionUpdate
+    { _pacVerUpVersionComponent :: VersionComponent
+    , _pacVerUpLog              :: Maybe String
+    }
+
+data ChecksumsToModify =
+    ChecksumNone |
+    ChecksumAll |
+    ChecksumsDetail
+    { _modifyChecksumGeno  :: Bool
+    , _modifyChecksumJanno :: Bool
+    , _modifyChecksumSSF   :: Bool
+    , _modifyChecksumBib   :: Bool
+    }
+
+runModify :: ModifyOptions -> PoseidonIO ()
+runModify (ModifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
                 jannoRemoveEmptyCols
@@ -63,12 +77,12 @@ runRectify (RectifyOptions
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
     logInfo "Starting per-package update procedure"
-    mapM_ rectifyOnePackage allPackages
+    mapM_ modifyOnePackage allPackages
     logInfo "Done"
     where
-        rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
-        rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
+        modifyOnePackage :: PoseidonPackage -> PoseidonIO ()
+        modifyOnePackage inPac = do
+            logInfo $ "Modifying package: " ++ renderNameWithVersion inPac
             when jannoRemoveEmptyCols $ do
                 case posPacJannoFile inPac of
                     Nothing   -> do

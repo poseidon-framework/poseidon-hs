@@ -28,7 +28,7 @@ library
                         Poseidon.CLI.Trident.Survey, Poseidon.CLI.Trident.Forge, Poseidon.CLI.Trident.Init,
                         Poseidon.CLI.Trident.Rectify, Poseidon.CLI.Trident.Fetch, Poseidon.CLI.Trident.Genoconvert,
                         Poseidon.CLI.Trident.OptparseApplicativeParsers, Poseidon.CLI.Trident.Timetravel,
-                        Poseidon.CLI.Trident.Jannocoalesce,
+                        Poseidon.CLI.Trident.Jannocoalesce, Poseidon.CLI.Trident.Modify
                         -- analysis
                         Poseidon.Analysis.FStatsConfig, Poseidon.Analysis.RASconfig, Poseidon.Analysis.Utils,
                         Poseidon.Analysis.Generator.Parsers, Poseidon.Analysis.Generator.Types,

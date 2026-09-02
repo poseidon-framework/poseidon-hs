@@ -8,7 +8,7 @@ import           Poseidon.CLI.Trident.Jannocoalesce (CoalesceJannoColumnSpec (..
                                                      JannoSourceSpec (..))
 import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                                      RepoLocationSpec (..))
-import           Poseidon.CLI.Trident.Rectify       (ChecksumsToRectify (..),
+import           Poseidon.CLI.Trident.Rectify       (ChecksumsToModify (..),
                                                      PackageVersionUpdate (..))
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
                                                      ArchiveSpec (..))
@@ -171,17 +171,17 @@ parseRemoveOld = OP.switch (
     OP.help "Remove the old genotype files when creating the new ones."
     )
 
-parseChecksumsToRectify :: OP.Parser ChecksumsToRectify
+parseChecksumsToRectify :: OP.Parser ChecksumsToModify
 parseChecksumsToRectify = parseChecksumNone <|> parseChecksumAll <|> parseChecksumsDetail
     where
-        parseChecksumNone :: OP.Parser ChecksumsToRectify
+        parseChecksumNone :: OP.Parser ChecksumsToModify
         parseChecksumNone = pure ChecksumNone
-        parseChecksumAll :: OP.Parser ChecksumsToRectify
+        parseChecksumAll :: OP.Parser ChecksumsToModify
         parseChecksumAll = ChecksumAll <$
             OP.flag' () (
                 OP.long "checksumAll" <>
                 OP.help "Update all checksums.")
-        parseChecksumsDetail :: OP.Parser ChecksumsToRectify
+        parseChecksumsDetail :: OP.Parser ChecksumsToModify
         parseChecksumsDetail = ChecksumsDetail <$>
             parseChecksumGeno <*>
             parseChecksumJanno <*>
