@@ -1006,7 +1006,7 @@ parseOutputOrdered = OP.switch (
 parseAddTrace :: OP.Parser Bool
 parseAddTrace = OP.switch (
     OP.long "addTrace" <>
-    OP.help "Add or extend the Source_Package entry in the Janno with the source package for each row in the new Janno."
+    OP.help "This option will add a field named Source_Package to the .janno file, containing the source package from which a given sample was derived. If the field already exists, it will be extended with the new source package using semicolons as separators."
     )
 
 parseZipOut :: OP.Parser Bool

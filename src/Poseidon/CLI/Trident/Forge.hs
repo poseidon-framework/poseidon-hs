@@ -183,7 +183,9 @@ runForge (
                 let sourcePac = indInfoPac $ fst indInfoCollection !! i
                 let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
                 let newTraceEntry = case HM.lookup "Source_Package" addColsHM of
-                        Just ft -> ft <> ";" <> BC.pack (renderNameWithVersion sourcePac)
+                        Just ft ->
+                            let prevTraces = filter (/= "n/a") . BC.splitOn ";" $ ft
+                            in  BC.intercalate ";" (prevTraces ++ [BC.pack (renderNameWithVersion sourcePac)])
                         Nothing -> BC.pack $ renderNameWithVersion sourcePac
                 let addColsHMwithTrace = HM.insert "Source_Package" newTraceEntry addColsHM
                 return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
