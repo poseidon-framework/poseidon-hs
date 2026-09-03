@@ -43,14 +43,16 @@ runRectify (RectifyOptions baseDirs pacVerUpdate newContributors) = do
     logInfo "Searching packages that need rectification"
     toRectifyPackages <- filterM needsRectification allPackages
     case toRectifyPackages of
-        [] -> logInfo "Nothing to rectify"
-        xs -> mapM_ rectifyOnePackage xs
+        [] -> logInfo "No packages need rectification"
+        xs -> do
+            logInfo $ show (length xs) ++ " packages need rectification"
+            mapM_ rectifyOnePackage xs
     logInfo "Done"
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
-        rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
-            pure inPac >>=
+        rectifyOnePackage pac = do
+            logInfo $ "Rectifying package: " ++ renderNameWithVersion pac
+            pure pac >>=
               updateChecksums ChecksumAll >>=
               addContributors newContributors >>=
               completeAndWritePackage pacVerUpdate
@@ -68,7 +70,9 @@ needsRectification pac = do
     goodJanno <- goodChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
     goodSeqSo <- goodChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
     goodBib   <- goodChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
-    return $ not $ and [goodGeno, goodJanno, goodSeqSo, goodBib]
+    let needsRect = not $ and [goodGeno, goodJanno, goodSeqSo, goodBib]
+    logInfo $ (if needsRect then "CHANGED " else "OK      ") ++ renderNameWithVersion pac
+    return needsRect
 
 goodChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
 goodChecksum _ Nothing _ = return True
