@@ -74,21 +74,21 @@
 </span><span id="line-61"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-type">runValidate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Core.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-62"></span><span id="runValidate"><span class="annot"><span class="annottext">runValidate :: ValidateOptions -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var hs-var">runValidate</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span>
-</span><span id="line-63"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanBaseDirs"><span class="hs-identifier hs-type">ValPlanBaseDirs</span></a></span><span> </span><span id="local-6989586621679758491"><span class="annot"><span class="annottext">[[Char]]
-</span><a href="#local-6989586621679758491"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679758492"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758492"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span> </span><span id="local-6989586621679758493"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758493"><span class="hs-identifier hs-var">fullGeno</span></a></span></span><span> </span><span id="local-6989586621679758494"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758494"><span class="hs-identifier hs-var">forgeTest</span></a></span></span><span> </span><span id="local-6989586621679758495"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758495"><span class="hs-identifier hs-var">strandcheck</span></a></span></span><span> </span><span id="local-6989586621679758496"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758496"><span class="hs-identifier hs-var">ignoreDup</span></a></span></span><span> </span><span id="local-6989586621679758497"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758497"><span class="hs-identifier hs-var">ignoreChecksums</span></a></span></span><span> </span><span id="local-6989586621679758498"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758498"><span class="hs-identifier hs-var">ignorePosVersion</span></a></span></span><span class="hs-special">)</span><span>
-</span><span id="line-64"></span><span>    </span><span id="local-6989586621679758499"><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758499"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span></span><span> </span><span id="local-6989586621679758500"><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758500"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span></span><span>
-</span><span id="line-65"></span><span>    </span><span id="local-6989586621679758501"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758501"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span id="local-6989586621679758502"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758502"><span class="hs-identifier hs-var">onlyLatest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanBaseDirs"><span class="hs-identifier hs-type">ValPlanBaseDirs</span></a></span><span> </span><span id="local-6989586621679758781"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679758781"><span class="hs-identifier hs-var">baseDirs</span></a></span></span><span> </span><span id="local-6989586621679758782"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758782"><span class="hs-identifier hs-var">ignoreGeno</span></a></span></span><span> </span><span id="local-6989586621679758783"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758783"><span class="hs-identifier hs-var">fullGeno</span></a></span></span><span> </span><span id="local-6989586621679758784"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758784"><span class="hs-identifier hs-var">forgeTest</span></a></span></span><span> </span><span id="local-6989586621679758785"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758785"><span class="hs-identifier hs-var">strandcheck</span></a></span></span><span> </span><span id="local-6989586621679758786"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758786"><span class="hs-identifier hs-var">ignoreDup</span></a></span></span><span> </span><span id="local-6989586621679758787"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758787"><span class="hs-identifier hs-var">ignoreChecksums</span></a></span></span><span> </span><span id="local-6989586621679758788"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758788"><span class="hs-identifier hs-var">ignorePosVersion</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>    </span><span id="local-6989586621679758789"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758789"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span></span><span> </span><span id="local-6989586621679758790"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758790"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span></span><span>
+</span><span id="line-65"></span><span>    </span><span id="local-6989586621679758791"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758791"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span id="local-6989586621679758792"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758792"><span class="hs-identifier hs-var">onlyLatest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-66"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -99,44 +99,44 @@ forall a. [a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; [[a]] -&gt; [a]
 </span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
-</span><a href="#local-6989586621679758491"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
-</span><span id="line-67"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758503"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
-</span><a href="#local-6989586621679758503"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><a href="#local-6989586621679758781"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758793"><span class="annot"><span class="annottext">pacReadOpts :: PackageReadOptions
+</span><a href="#local-6989586621679758793"><span class="hs-identifier hs-var hs-var">pacReadOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 </span><a href="Poseidon.Core.Package.html#defaultPackageReadOptions"><span class="hs-identifier hs-var">defaultPackageReadOptions</span></a></span><span> </span><span class="hs-special">{</span><span>
-</span><span id="line-68"></span><span>          </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnoreChecksums"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758497"><span class="hs-identifier hs-type">ignoreChecksums</span></a></span><span>
+</span><span id="line-68"></span><span>          </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnoreChecksums"><span class="hs-identifier hs-var">_readOptIgnoreChecksums</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758787"><span class="hs-identifier hs-type">ignoreChecksums</span></a></span><span>
 </span><span id="line-69"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptGenoCheck"><span class="hs-identifier hs-var">_readOptGenoCheck</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">True</span></span><span>
-</span><span id="line-70"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnoreGeno"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758492"><span class="hs-identifier hs-type">ignoreGeno</span></a></span><span>
-</span><span id="line-71"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptFullGeno"><span class="hs-identifier hs-var">_readOptFullGeno</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758493"><span class="hs-identifier hs-type">fullGeno</span></a></span><span>
-</span><span id="line-72"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnorePosVersion"><span class="hs-identifier hs-var">_readOptIgnorePosVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758498"><span class="hs-identifier hs-type">ignorePosVersion</span></a></span><span>
-</span><span id="line-73"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptOnlyLatest"><span class="hs-identifier hs-var">_readOptOnlyLatest</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758502"><span class="hs-identifier hs-type">onlyLatest</span></a></span><span>
-</span><span id="line-74"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptMandatoryJannoCols"><span class="hs-identifier hs-var">_readOptMandatoryJannoCols</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758499"><span class="hs-identifier hs-type">mandatoryJannoCols</span></a></span><span>
-</span><span id="line-75"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptMandatorySSFCols"><span class="hs-identifier hs-var">_readOptMandatorySSFCols</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758500"><span class="hs-identifier hs-type">mandatorySSFCols</span></a></span><span>
+</span><span id="line-70"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnoreGeno"><span class="hs-identifier hs-var">_readOptIgnoreGeno</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758782"><span class="hs-identifier hs-type">ignoreGeno</span></a></span><span>
+</span><span id="line-71"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptFullGeno"><span class="hs-identifier hs-var">_readOptFullGeno</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758783"><span class="hs-identifier hs-type">fullGeno</span></a></span><span>
+</span><span id="line-72"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptIgnorePosVersion"><span class="hs-identifier hs-var">_readOptIgnorePosVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758788"><span class="hs-identifier hs-type">ignorePosVersion</span></a></span><span>
+</span><span id="line-73"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptOnlyLatest"><span class="hs-identifier hs-var">_readOptOnlyLatest</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758792"><span class="hs-identifier hs-type">onlyLatest</span></a></span><span>
+</span><span id="line-74"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptMandatoryJannoCols"><span class="hs-identifier hs-var">_readOptMandatoryJannoCols</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758789"><span class="hs-identifier hs-type">mandatoryJannoCols</span></a></span><span>
+</span><span id="line-75"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#_readOptMandatorySSFCols"><span class="hs-identifier hs-var">_readOptMandatorySSFCols</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679758790"><span class="hs-identifier hs-type">mandatorySSFCols</span></a></span><span>
 </span><span id="line-76"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-77"></span><span>    </span><span class="hs-comment">-- load all packages</span><span>
-</span><span id="line-78"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679758512"><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679758512"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679758513"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758513"><span class="hs-identifier hs-var">packagesSkipped</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
+</span><span id="line-78"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679758802"><span class="annot"><span class="annottext">[PoseidonPackage]
+</span><a href="#local-6989586621679758802"><span class="hs-identifier hs-var">allPackages</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679758803"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758803"><span class="hs-identifier hs-var">packagesSkipped</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
 -&gt; [[Char]] -&gt; PoseidonIO ([PoseidonPackage], Bool)
 </span><a href="Poseidon.Core.Package.html#readPoseidonPackageCollectionWithSkipIndicator"><span class="hs-identifier hs-var">readPoseidonPackageCollectionWithSkipIndicator</span></a></span><span> </span><span class="annot"><span class="annottext">PackageReadOptions
-</span><a href="#local-6989586621679758503"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[[Char]]
-</span><a href="#local-6989586621679758491"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
+</span><a href="#local-6989586621679758793"><span class="hs-identifier hs-var">pacReadOpts</span></a></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679758781"><span class="hs-identifier hs-var">baseDirs</span></a></span><span>
 </span><span id="line-79"></span><span>    </span><span class="hs-comment">-- stop on duplicates</span><span>
 </span><span id="line-80"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758496"><span class="hs-identifier hs-var">ignoreDup</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679758786"><span class="hs-identifier hs-var">ignoreDup</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-81"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679758514"><span class="annot"><span class="annottext">[IndividualInfo]
-</span><a href="#local-6989586621679758514"><span class="hs-identifier hs-var">allInds</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Bool]
+</span><span id="line-81"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679758804"><span class="annot"><span class="annottext">[IndividualInfo]
+</span><a href="#local-6989586621679758804"><span class="hs-identifier hs-var">allInds</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Bool]
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; ReaderT Env IO ([IndividualInfo], [Bool])
 forall (m :: * -&gt; *).
 MonadThrow m =&gt;
 [PoseidonPackage] -&gt; m ([IndividualInfo], [Bool])
 </span><a href="Poseidon.Core.Package.html#getJointIndividualInfo"><span class="hs-identifier hs-var">getJointIndividualInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679758512"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
-</span><span id="line-82"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758528"><span class="annot"><span class="annottext">duplicateGroups :: [[IndividualInfo]]
-</span><a href="#local-6989586621679758528"><span class="hs-identifier hs-var hs-var">duplicateGroups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>   </span><span class="annot"><span class="annottext">([IndividualInfo] -&gt; Bool)
+</span><a href="#local-6989586621679758802"><span class="hs-identifier hs-var">allPackages</span></a></span><span>
+</span><span id="line-82"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758818"><span class="annot"><span class="annottext">duplicateGroups :: [[IndividualInfo]]
+</span><a href="#local-6989586621679758818"><span class="hs-identifier hs-var hs-var">duplicateGroups</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>   </span><span class="annot"><span class="annottext">([IndividualInfo] -&gt; Bool)
 -&gt; [[IndividualInfo]] -&gt; [[IndividualInfo]]
 forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
@@ -157,15 +157,15 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(IndividualInfo -&gt; IndividualInfo -&gt; Bool)
 -&gt; [IndividualInfo] -&gt; [[IndividualInfo]]
 forall a. (a -&gt; a -&gt; Bool) -&gt; [a] -&gt; [[a]]
-</span><span class="hs-identifier hs-var">groupBy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679758532"><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758532"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679758533"><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758533"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IndividualInfo -&gt; [Char]
+</span><span class="hs-identifier hs-var">groupBy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679758822"><span class="annot"><span class="annottext">IndividualInfo
+</span><a href="#local-6989586621679758822"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679758823"><span class="annot"><span class="annottext">IndividualInfo
+</span><a href="#local-6989586621679758823"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IndividualInfo -&gt; [Char]
 </span><a href="Poseidon.Core.EntityTypes.html#indInfoName"><span class="hs-identifier hs-var">indInfoName</span></a></span><span> </span><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758532"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Bool
+</span><a href="#local-6989586621679758822"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">IndividualInfo -&gt; [Char]
 </span><a href="Poseidon.Core.EntityTypes.html#indInfoName"><span class="hs-identifier hs-var">indInfoName</span></a></span><span> </span><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758533"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679758823"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-84"></span><span>                              </span><span class="annot"><span class="annottext">([IndividualInfo] -&gt; [[IndividualInfo]])
 -&gt; ([IndividualInfo] -&gt; [IndividualInfo])
 -&gt; [IndividualInfo]
@@ -178,14 +178,14 @@ forall b a. Ord b =&gt; (a -&gt; b) -&gt; [a] -&gt; [a]
 -&gt; [IndividualInfo] -&gt; [[IndividualInfo]]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[IndividualInfo]
-</span><a href="#local-6989586621679758514"><span class="hs-identifier hs-var">allInds</span></a></span><span>
+</span><a href="#local-6989586621679758804"><span class="hs-identifier hs-var">allInds</span></a></span><span>
 </span><span id="line-85"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[IndividualInfo]] -&gt; Bool
 forall a. [a] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[[IndividualInfo]]
-</span><a href="#local-6989586621679758528"><span class="hs-identifier hs-var">duplicateGroups</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679758818"><span class="hs-identifier hs-var">duplicateGroups</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-86"></span><span>            </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
@@ -198,11 +198,11 @@ forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[[IndividualInfo]]
-</span><a href="#local-6989586621679758528"><span class="hs-identifier hs-var">duplicateGroups</span></a></span><span> </span><span class="annot"><span class="annottext">(([IndividualInfo] -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
+</span><a href="#local-6989586621679758818"><span class="hs-identifier hs-var">duplicateGroups</span></a></span><span> </span><span class="annot"><span class="annottext">(([IndividualInfo] -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
 -&gt; ([IndividualInfo] -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679758536"><span class="annot"><span class="annottext">[IndividualInfo]
-</span><a href="#local-6989586621679758536"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679758826"><span class="annot"><span class="annottext">[IndividualInfo]
+</span><a href="#local-6989586621679758826"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-89"></span><span>                </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logError"><span class="hs-identifier hs-var">logError</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -217,18 +217,18 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[IndividualInfo] -&gt; IndividualInfo
 forall a. HasCallStack =&gt; [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[IndividualInfo]
-</span><a href="#local-6989586621679758536"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679758826"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-90"></span><span>                </span><span class="annot"><span class="annottext">[IndividualInfo]
 -&gt; (IndividualInfo -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Foldable t, Monad m) =&gt;
 t a -&gt; (a -&gt; m b) -&gt; m ()
 </span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[IndividualInfo]
-</span><a href="#local-6989586621679758536"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">((IndividualInfo -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
+</span><a href="#local-6989586621679758826"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">((IndividualInfo -&gt; PoseidonIO ()) -&gt; PoseidonIO ())
 -&gt; (IndividualInfo -&gt; PoseidonIO ()) -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679758539"><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758539"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679758829"><span class="annot"><span class="annottext">IndividualInfo
+</span><a href="#local-6989586621679758829"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-91"></span><span>                    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logError"><span class="hs-identifier hs-var">logError</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -238,7 +238,7 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">IndividualInfo -&gt; [Char]
 forall a. Show a =&gt; a -&gt; [Char]
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">IndividualInfo
-</span><a href="#local-6989586621679758539"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679758829"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-92"></span><span>            </span><span class="annot"><span class="annottext">PoseidonException -&gt; PoseidonIO ()
 forall e a. (HasCallStack, Exception e) =&gt; e -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) e a.
@@ -256,7 +256,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758494"><span class="hs-identifier hs-var">forgeTest</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679758784"><span class="hs-identifier hs-var">forgeTest</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-95"></span><span>        </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
@@ -264,19 +264,19 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Attempting full forge:&quot;</span></span><span>
 </span><span id="line-96"></span><span>        </span><span class="annot"><span class="annottext">[PoseidonPackage] -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Package.html#validateForge"><span class="hs-identifier hs-var">validateForge</span></a></span><span> </span><span class="annot"><span class="annottext">[PoseidonPackage]
-</span><a href="#local-6989586621679758512"><span class="hs-identifier hs-var">allPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758495"><span class="hs-identifier hs-var">strandcheck</span></a></span><span>
+</span><a href="#local-6989586621679758802"><span class="hs-identifier hs-var">allPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758785"><span class="hs-identifier hs-var">strandcheck</span></a></span><span>
 </span><span id="line-97"></span><span>    </span><span class="hs-comment">-- fail the validation if not all POSEIDON.yml files yielded a clean package</span><span>
 </span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758513"><span class="hs-identifier hs-var">packagesSkipped</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758501"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
-</span><span id="line-99"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanPoseidonYaml"><span class="hs-identifier hs-type">ValPlanPoseidonYaml</span></a></span><span> </span><span id="local-6989586621679758543"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758543"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758803"><span class="hs-identifier hs-var">packagesSkipped</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758791"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><span id="line-99"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanPoseidonYaml"><span class="hs-identifier hs-type">ValPlanPoseidonYaml</span></a></span><span> </span><span id="local-6989586621679758833"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758833"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758544"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758544"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758834"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758834"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
@@ -285,14 +285,14 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Validating: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758543"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758833"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-101"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; Maybe [Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#checkFile"><span class="hs-identifier hs-var">checkFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758543"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758833"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-102"></span><span>    </span><span id="local-6989586621679758545"><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679758545"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; ReaderT Env IO ByteString
+</span><span id="line-102"></span><span>    </span><span id="local-6989586621679758835"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679758835"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO ByteString -&gt; ReaderT Env IO ByteString
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO ByteString -&gt; ReaderT Env IO ByteString)
@@ -300,14 +300,14 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; IO ByteString
 </span><span class="hs-identifier hs-var">B.readFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758543"><span class="hs-identifier hs-var">path</span></a></span><span>
-</span><span id="line-103"></span><span>    </span><span id="local-6989586621679758547"><span class="annot"><span class="annottext">PoseidonYamlStruct
-</span><a href="#local-6989586621679758547"><span class="hs-identifier hs-var">yml</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either ParseException PoseidonYamlStruct
+</span><a href="#local-6989586621679758833"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-103"></span><span>    </span><span id="local-6989586621679758837"><span class="annot"><span class="annottext">PoseidonYamlStruct
+</span><a href="#local-6989586621679758837"><span class="hs-identifier hs-var">yml</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either ParseException PoseidonYamlStruct
 forall a. FromJSON a =&gt; ByteString -&gt; Either ParseException a
 </span><span class="hs-identifier hs-var">decodeEither'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
-</span><a href="#local-6989586621679758545"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-104"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679758548"><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679758548"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; ReaderT Env IO PoseidonYamlStruct
+</span><a href="#local-6989586621679758835"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-104"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679758838"><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679758838"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonException -&gt; ReaderT Env IO PoseidonYamlStruct
 forall e a. (HasCallStack, Exception e) =&gt; e -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) e a.
 (MonadThrow m, HasCallStack, Exception e) =&gt;
@@ -317,14 +317,14 @@ e -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ParseException -&gt; PoseidonException
 </span><a href="Poseidon.Core.Utils.html#PoseidonYamlParseException"><span class="hs-identifier hs-var">PoseidonYamlParseException</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758543"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">ParseException
-</span><a href="#local-6989586621679758548"><span class="hs-identifier hs-var">err</span></a></span><span>
-</span><span id="line-105"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679758550"><span class="annot"><span class="annottext">PoseidonYamlStruct
-</span><a href="#local-6989586621679758550"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonYamlStruct -&gt; ReaderT Env IO PoseidonYamlStruct
+</span><a href="#local-6989586621679758833"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">ParseException
+</span><a href="#local-6989586621679758838"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-105"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679758840"><span class="annot"><span class="annottext">PoseidonYamlStruct
+</span><a href="#local-6989586621679758840"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PoseidonYamlStruct -&gt; ReaderT Env IO PoseidonYamlStruct
 forall a. a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PoseidonYamlStruct
-</span><a href="#local-6989586621679758550"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#PoseidonYamlStruct"><span class="hs-identifier hs-type">PoseidonYamlStruct</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679758840"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Poseidon.Core.Package.html#PoseidonYamlStruct"><span class="hs-identifier hs-type">PoseidonYamlStruct</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-106"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -333,41 +333,41 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">PoseidonYamlStruct -&gt; [Char]
 </span><a href="Poseidon.Core.Package.html#_posYamlTitle"><span class="hs-identifier hs-var">_posYamlTitle</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonYamlStruct
-</span><a href="#local-6989586621679758547"><span class="hs-identifier hs-var">yml</span></a></span><span>
+</span><a href="#local-6989586621679758837"><span class="hs-identifier hs-var">yml</span></a></span><span>
 </span><span id="line-107"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758544"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
-</span><span id="line-108"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanGeno"><span class="hs-identifier hs-type">ValPlanGeno</span></a></span><span> </span><span id="local-6989586621679758552"><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679758552"><span class="hs-identifier hs-var">geno</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758834"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanGeno"><span class="hs-identifier hs-type">ValPlanGeno</span></a></span><span> </span><span id="local-6989586621679758842"><span class="annot"><span class="annottext">GenotypeDataSpec
+</span><a href="#local-6989586621679758842"><span class="hs-identifier hs-var">geno</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758553"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758553"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758843"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758843"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-109"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758554"><span class="annot"><span class="annottext">gFile :: [Char]
-</span><a href="#local-6989586621679758554"><span class="hs-identifier hs-var hs-var">gFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
+</span><span id="line-109"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679758844"><span class="annot"><span class="annottext">gFile :: [Char]
+</span><a href="#local-6989586621679758844"><span class="hs-identifier hs-var hs-var">gFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
 </span><a href="Poseidon.Core.GenotypeData.html#genotypeFileSpec"><span class="hs-identifier hs-var">genotypeFileSpec</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679758552"><span class="hs-identifier hs-var">geno</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-110"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeEigenstrat"><span class="hs-identifier hs-type">GenotypeEigenstrat</span></a></span><span> </span><span id="local-6989586621679758557"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758557"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758842"><span class="hs-identifier hs-var">geno</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-110"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeEigenstrat"><span class="hs-identifier hs-type">GenotypeEigenstrat</span></a></span><span> </span><span id="local-6989586621679758847"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758847"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758557"><span class="hs-identifier hs-var">gf</span></a></span><span>
-</span><span id="line-111"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypePlink"><span class="hs-identifier hs-type">GenotypePlink</span></a></span><span>      </span><span id="local-6989586621679758559"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758559"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758847"><span class="hs-identifier hs-var">gf</span></a></span><span>
+</span><span id="line-111"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypePlink"><span class="hs-identifier hs-type">GenotypePlink</span></a></span><span>      </span><span id="local-6989586621679758849"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758849"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758559"><span class="hs-identifier hs-var">gf</span></a></span><span>
-</span><span id="line-112"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeVCF"><span class="hs-identifier hs-type">GenotypeVCF</span></a></span><span>        </span><span id="local-6989586621679758561"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758561"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758849"><span class="hs-identifier hs-var">gf</span></a></span><span>
+</span><span id="line-112"></span><span>            </span><span class="annot"><a href="Poseidon.Core.GenotypeData.html#GenotypeVCF"><span class="hs-identifier hs-type">GenotypeVCF</span></a></span><span>        </span><span id="local-6989586621679758851"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758851"><span class="hs-identifier hs-var">gf</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 </span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758561"><span class="hs-identifier hs-var">gf</span></a></span><span>
+</span><a href="#local-6989586621679758851"><span class="hs-identifier hs-var">gf</span></a></span><span>
 </span><span id="line-113"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -375,31 +375,31 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Validating: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758554"><span class="hs-identifier hs-var">gFile</span></a></span><span>
+</span><a href="#local-6989586621679758844"><span class="hs-identifier hs-var">gFile</span></a></span><span>
 </span><span id="line-114"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; [Char] -&gt; GenotypeFileSpec -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Package.html#checkGenoFiles"><span class="hs-identifier hs-var">checkGenoFiles</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; GenotypeFileSpec
 </span><a href="Poseidon.Core.GenotypeData.html#genotypeFileSpec"><span class="hs-identifier hs-var">genotypeFileSpec</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679758552"><span class="hs-identifier hs-var">geno</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-115"></span><span>    </span><span id="local-6989586621679758562"><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679758562"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; PoseidonIO PoseidonPackage
+</span><a href="#local-6989586621679758842"><span class="hs-identifier hs-var">geno</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>    </span><span id="local-6989586621679758852"><span class="annot"><span class="annottext">PoseidonPackage
+</span><a href="#local-6989586621679758852"><span class="hs-identifier hs-var">pac</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec -&gt; PoseidonIO PoseidonPackage
 </span><a href="Poseidon.Core.Package.html#makePseudoPackageFromGenotypeData"><span class="hs-identifier hs-var">makePseudoPackageFromGenotypeData</span></a></span><span> </span><span class="annot"><span class="annottext">GenotypeDataSpec
-</span><a href="#local-6989586621679758552"><span class="hs-identifier hs-var">geno</span></a></span><span>
+</span><a href="#local-6989586621679758842"><span class="hs-identifier hs-var">geno</span></a></span><span>
 </span><span id="line-116"></span><span>    </span><span class="annot"><span class="annottext">PoseidonPackage -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Package.html#validateGeno"><span class="hs-identifier hs-var">validateGeno</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonPackage
-</span><a href="#local-6989586621679758562"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758852"><span class="hs-identifier hs-var">pac</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span>
 </span><span id="line-117"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758553"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
-</span><span id="line-118"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanJanno"><span class="hs-identifier hs-type">ValPlanJanno</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.PoseidonVersion.html#VersionedFile"><span class="hs-identifier hs-type">VersionedFile</span></a></span><span> </span><span id="local-6989586621679758564"><span class="annot"><span class="annottext">PoseidonVersion
-</span><a href="#local-6989586621679758564"><span class="hs-identifier hs-var">pv</span></a></span></span><span> </span><span id="local-6989586621679758565"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758565"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span id="local-6989586621679758566"><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758566"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758567"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758567"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758843"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><span id="line-118"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanJanno"><span class="hs-identifier hs-type">ValPlanJanno</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.PoseidonVersion.html#VersionedFile"><span class="hs-identifier hs-type">VersionedFile</span></a></span><span> </span><span id="local-6989586621679758854"><span class="annot"><span class="annottext">PoseidonVersion
+</span><a href="#local-6989586621679758854"><span class="hs-identifier hs-var">pv</span></a></span></span><span> </span><span id="local-6989586621679758855"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758855"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span id="local-6989586621679758856"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758856"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758857"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758857"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-119"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
@@ -408,20 +408,20 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Validating: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758565"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758855"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-120"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; Maybe [Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#checkFile"><span class="hs-identifier hs-var">checkFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758565"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758855"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
 </span><span id="line-121"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><a href="Poseidon.Core.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span id="local-6989586621679758569"><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679758569"><span class="hs-identifier hs-var">entries</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span class="annot"><a href="Poseidon.Core.Janno.html#JannoRows"><span class="hs-identifier hs-type">JannoRows</span></a></span><span> </span><span id="local-6989586621679758859"><span class="annot"><span class="annottext">[JannoRow]
+</span><a href="#local-6989586621679758859"><span class="hs-identifier hs-var">entries</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
 -&gt; [ByteString] -&gt; [Char] -&gt; PoseidonIO ([ByteString], JannoRows)
 </span><a href="Poseidon.Core.Janno.html#readJannoFile"><span class="hs-identifier hs-var">readJannoFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
-</span><a href="#local-6989586621679758564"><span class="hs-identifier hs-var">pv</span></a></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758566"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758565"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758854"><span class="hs-identifier hs-var">pv</span></a></span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758856"><span class="hs-identifier hs-var">mandatoryJannoCols</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758855"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -434,20 +434,20 @@ forall a. Show a =&gt; a -&gt; [Char]
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[JannoRow]
-</span><a href="#local-6989586621679758569"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679758859"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot; entries are valid&quot;</span></span><span>
 </span><span id="line-123"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758567"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
-</span><span id="line-124"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanSSF"><span class="hs-identifier hs-type">ValPlanSSF</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.PoseidonVersion.html#VersionedFile"><span class="hs-identifier hs-type">VersionedFile</span></a></span><span> </span><span id="local-6989586621679758570"><span class="annot"><span class="annottext">PoseidonVersion
-</span><a href="#local-6989586621679758570"><span class="hs-identifier hs-var">pv</span></a></span></span><span> </span><span id="local-6989586621679758571"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758571"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758572"><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758572"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span></span><span> </span><span id="local-6989586621679758573"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758573"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758857"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><span id="line-124"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanSSF"><span class="hs-identifier hs-type">ValPlanSSF</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.PoseidonVersion.html#VersionedFile"><span class="hs-identifier hs-type">VersionedFile</span></a></span><span> </span><span id="local-6989586621679758860"><span class="annot"><span class="annottext">PoseidonVersion
+</span><a href="#local-6989586621679758860"><span class="hs-identifier hs-var">pv</span></a></span></span><span> </span><span id="local-6989586621679758861"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758861"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758862"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758862"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span></span><span> </span><span id="local-6989586621679758863"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758863"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-125"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
@@ -456,19 +456,19 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Validating: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758571"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758861"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-126"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; Maybe [Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#checkFile"><span class="hs-identifier hs-var">checkFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758571"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758861"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-127"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.SequencingSource.html#SeqSourceRows"><span class="hs-identifier hs-type">SeqSourceRows</span></a></span><span> </span><span id="local-6989586621679758575"><span class="annot"><span class="annottext">[SeqSourceRow]
-</span><a href="#local-6989586621679758575"><span class="hs-identifier hs-var">entries</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
+</span><span id="line-127"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.Core.SequencingSource.html#SeqSourceRows"><span class="hs-identifier hs-type">SeqSourceRows</span></a></span><span> </span><span id="local-6989586621679758865"><span class="annot"><span class="annottext">[SeqSourceRow]
+</span><a href="#local-6989586621679758865"><span class="hs-identifier hs-var">entries</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
 -&gt; [ByteString] -&gt; [Char] -&gt; PoseidonIO SeqSourceRows
 </span><a href="Poseidon.Core.SequencingSource.html#readSeqSourceFile"><span class="hs-identifier hs-var">readSeqSourceFile</span></a></span><span> </span><span class="annot"><span class="annottext">PoseidonVersion
-</span><a href="#local-6989586621679758570"><span class="hs-identifier hs-var">pv</span></a></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><a href="#local-6989586621679758572"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758571"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758860"><span class="hs-identifier hs-var">pv</span></a></span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758862"><span class="hs-identifier hs-var">mandatorySSFCols</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758861"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -481,19 +481,19 @@ forall a. Show a =&gt; a -&gt; [Char]
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[SeqSourceRow]
-</span><a href="#local-6989586621679758575"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679758865"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot; entries are valid&quot;</span></span><span>
 </span><span id="line-129"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758573"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
-</span><span id="line-130"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanBib"><span class="hs-identifier hs-type">ValPlanBib</span></a></span><span> </span><span id="local-6989586621679758576"><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758576"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679758863"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#runValidate"><span class="hs-identifier hs-var">runValidate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValidateOptions"><span class="hs-identifier hs-type">ValidateOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#ValPlanBib"><span class="hs-identifier hs-type">ValPlanBib</span></a></span><span> </span><span id="local-6989586621679758866"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679758866"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ByteString]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758577"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758577"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679758867"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758867"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-131"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
@@ -502,14 +502,14 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-string">&quot;Validating: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758576"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758866"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-132"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; Maybe [Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#checkFile"><span class="hs-identifier hs-var">checkFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758576"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
+</span><a href="#local-6989586621679758866"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [Char]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-133"></span><span>    </span><span id="local-6989586621679758578"><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679758578"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO BibTeX -&gt; ReaderT Env IO BibTeX
+</span><span id="line-133"></span><span>    </span><span id="local-6989586621679758868"><span class="annot"><span class="annottext">BibTeX
+</span><a href="#local-6989586621679758868"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO BibTeX -&gt; ReaderT Env IO BibTeX
 forall a. IO a -&gt; ReaderT Env IO a
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO BibTeX -&gt; ReaderT Env IO BibTeX)
@@ -517,7 +517,7 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; IO BibTeX
 </span><a href="Poseidon.Core.BibFile.html#readBibTeXFile"><span class="hs-identifier hs-var">readBibTeXFile</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
-</span><a href="#local-6989586621679758576"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><a href="#local-6989586621679758866"><span class="hs-identifier hs-var">path</span></a></span><span>
 </span><span id="line-134"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; PoseidonIO ()) -&gt; [Char] -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -530,27 +530,27 @@ forall a. Show a =&gt; a -&gt; [Char]
 forall a. [a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">BibTeX
-</span><a href="#local-6989586621679758578"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><a href="#local-6989586621679758868"><span class="hs-identifier hs-var">entries</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot; entries are valid&quot;</span></span><span>
 </span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758577"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
+</span><a href="#local-6989586621679758867"><span class="hs-identifier hs-var">noExitCode</span></a></span><span>
 </span><span id="line-136"></span><span>
 </span><span id="line-137"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-type">conclude</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Poseidon.Core.Utils.html#PoseidonIO"><span class="hs-identifier hs-type">PoseidonIO</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-138"></span><span id="conclude"><span class="annot"><span class="annottext">conclude :: Bool -&gt; Bool -&gt; PoseidonIO ()
 </span><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var hs-var">conclude</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span> </span><span id="local-6989586621679758579"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758579"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span id="local-6989586621679758869"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758869"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logInfo"><span class="hs-identifier hs-var">logInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;Validation passed&quot;</span></span><span>
 </span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758579"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679758869"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a
@@ -559,15 +559,15 @@ forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 forall a. IO a
 </span><span class="hs-identifier hs-var">exitSuccess</span></span><span>
 </span><span id="line-141"></span><span class="annot"><a href="Poseidon.CLI.Trident.Validate.html#conclude"><span class="hs-identifier hs-var">conclude</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">False</span></span><span> </span><span id="local-6989586621679758580"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758580"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span id="local-6989586621679758870"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679758870"><span class="hs-identifier hs-var">noExitCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-142"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; PoseidonIO ()
 </span><a href="Poseidon.Core.Utils.html#logError"><span class="hs-identifier hs-var">logError</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
 </span><span class="hs-string">&quot;Validation failed&quot;</span></span><span>
 </span><span id="line-143"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
 </span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679758580"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
+</span><a href="#local-6989586621679758870"><span class="hs-identifier hs-var">noExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">(PoseidonIO () -&gt; PoseidonIO ()) -&gt; PoseidonIO () -&gt; PoseidonIO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IO () -&gt; PoseidonIO ()
 forall a. IO a -&gt; ReaderT Env IO a

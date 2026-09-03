@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.2.1.0
+@version 2.2.2.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -2298,7 +2298,7 @@ module Poseidon.CLI.Trident.Forge
 
 -- | A datatype representing command line options for the survey command
 data ForgeOptions
-ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> Bool -> Bool -> GenotypeOutFormatSpec -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> ForgeOptions
+ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath -> Bool -> Bool -> Bool -> GenotypeOutFormatSpec -> ForgeOutMode -> Bool -> FilePath -> Maybe String -> Bool -> PlinkPopNameMode -> Bool -> Bool -> ForgeOptions
 [_forgeGenoSources] :: ForgeOptions -> [GenoDataSource]
 [_forgeEntityInput] :: ForgeOptions -> [EntityInput SignedEntity]
 [_forgeSnpFile] :: ForgeOptions -> Maybe FilePath
@@ -2313,6 +2313,7 @@ ForgeOptions :: [GenoDataSource] -> [EntityInput SignedEntity] -> Maybe FilePath
 [_forgePackageWise] :: ForgeOptions -> Bool
 [_forgeOutputPlinkPopMode] :: ForgeOptions -> PlinkPopNameMode
 [_forgeOutputOrdered] :: ForgeOptions -> Bool
+[_forgeAddTrace] :: ForgeOptions -> Bool
 
 -- | Different output modes ordered from more minimal to more complete
 data ForgeOutMode
@@ -2633,6 +2634,7 @@ parseJannocoalSourceKey :: Parser String
 parseJannocoalTargetKey :: Parser String
 parseJannocoalIdStripRegex :: Parser (Maybe String)
 parseOutputOrdered :: Parser Bool
+parseAddTrace :: Parser Bool
 parseZipOut :: Parser Bool
 
 module Poseidon.Analysis.FStatsConfig
