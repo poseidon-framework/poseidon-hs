@@ -38,7 +38,7 @@ import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception (..), throwIO, evaluate)
+import           Control.Exception      (Exception (..), evaluate, throwIO)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (unless, when)
 import           Control.Monad.Catch    (throwM)
