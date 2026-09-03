@@ -1003,6 +1003,12 @@ parseOutputOrdered = OP.switch (
     OP.help "With this option, the output of forge is ordered according to the entities given."
     )
 
+parseAddTrace :: OP.Parser Bool
+parseAddTrace = OP.switch (
+    OP.long "addTrace" <>
+    OP.help "This option will add a field named Source_Package to the .janno file, containing the source package from which a given sample was derived. If the field already exists, it will be extended with the new source package using semicolons as separators."
+    )
+
 parseZipOut :: OP.Parser Bool
 parseZipOut = OP.switch (
     OP.long "zip" <>

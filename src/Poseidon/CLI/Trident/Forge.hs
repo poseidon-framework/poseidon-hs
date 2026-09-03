@@ -4,10 +4,13 @@ module Poseidon.CLI.Trident.Forge where
 
 import           Poseidon.Core.BibFile          (BibEntry (..), BibTeX,
                                                  writeBibTeXFile)
-import           Poseidon.Core.ColumnTypesJanno (PoseidonID (..))
-import           Poseidon.Core.ColumnTypesUtils (ListColumn (..),
+import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..),
+                                                 PoseidonID (..))
+import           Poseidon.Core.ColumnTypesUtils (CsvNamedRecord (..),
+                                                 ListColumn (..), getCsvNR,
                                                  getMaybeListColumn)
 import           Poseidon.Core.EntityTypes      (EntityInput,
+                                                 IndividualInfo (..),
                                                  PacNameAndVersion (..),
                                                  PoseidonEntity (..),
                                                  SignedEntity (..),
@@ -15,6 +18,7 @@ import           Poseidon.Core.EntityTypes      (EntityInput,
                                                  isLatestInCollection,
                                                  makePacNameAndVersion,
                                                  readEntityInputs,
+                                                 renderNameWithVersion,
                                                  resolveUniqueEntityIndices)
 import           Poseidon.Core.GenotypeData     (GenoDataSource (..),
                                                  GenotypeDataSpec (..),
@@ -53,6 +57,8 @@ import           Control.Exception              (catch, throwIO)
 import           Control.Monad                  (filterM, forM, forM_, unless,
                                                  when)
 import qualified Data.ByteString                as B
+import qualified Data.ByteString.Char8          as BC
+import qualified Data.HashMap.Strict            as HM
 import           Data.List                      (intercalate, nub)
 import           Data.Maybe                     (catMaybes, mapMaybe)
 import           Data.Time                      (getCurrentTime)
@@ -62,7 +68,6 @@ import qualified Data.Vector.Unboxed.Mutable    as VUM
 import           Pipes                          (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude                  as P
 import           Pipes.Safe                     (SafeT, runSafeT)
-import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
 import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
                                                  GenoEntry (..), GenoLine,
                                                  writeEigenstrat)
@@ -91,6 +96,7 @@ data ForgeOptions = ForgeOptions
     , _forgePackageWise         :: Bool
     , _forgeOutputPlinkPopMode  :: PlinkPopNameMode
     , _forgeOutputOrdered       :: Bool
+    , _forgeAddTrace            :: Bool
     }
 
 -- | Different output modes ordered from more minimal to more complete
@@ -119,7 +125,7 @@ runForge (
                  skipIncongruentSNPs
                  outFormat outMode outZip outPathRaw maybeOutName
                  packageWise outPlinkPopMode
-                 outputOrdered
+                 outputOrdered addTrace
     ) = do
 
     -- load packages --
@@ -170,7 +176,21 @@ runForge (
     -- collect data --
     -- janno
     let (JannoRows jannoRows) = getJointJanno relevantPackages
-        newJanno@(JannoRows relevantJannoRows) = JannoRows $ map (jannoRows !!) relevantIndices
+        newJanno@(JannoRows relevantJannoRows) = JannoRows $ do --list monad
+            i <- relevantIndices
+            let jannoRow = jannoRows !! i
+            if addTrace then do
+                let sourcePac = indInfoPac $ fst indInfoCollection !! i
+                let addColsHM = getCsvNR . jAdditionalColumns $ jannoRow
+                let newTraceEntry = case HM.lookup "Source_Package" addColsHM of
+                        Just ft ->
+                            let prevTraces = filter (/= "n/a") . BC.split ';' $ ft
+                            in  BC.intercalate ";" (prevTraces ++ [BC.pack (renderNameWithVersion sourcePac)])
+                        Nothing -> BC.pack $ renderNameWithVersion sourcePac
+                let addColsHMwithTrace = HM.insert "Source_Package" newTraceEntry addColsHM
+                return $ jannoRow {jAdditionalColumns = CsvNamedRecord addColsHMwithTrace}
+            else
+                return jannoRow
 
     -- seqSource
     let seqSourceRows = mconcat $ map posPacSeqSource relevantPackages

@@ -1,3 +1,5 @@
+- V 2.2.2.0:
+    - Forged packages now contain a new column `Source_Package`, which records which original package (and version) a sample originally came from.
 - V 2.2.1.0:
     - Made the display of description and source url in the explorer page of the of the server's html API indendent of each other.
     - Made the source column hide when the necessary URL is missing on the archive page.

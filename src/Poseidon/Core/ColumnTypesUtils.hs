@@ -186,4 +186,3 @@ renderCsvParseError (CsvParseError expected actual leftover) =
     "expected data type: " ++ expected ++ ", " ++
     "broken value: " ++ actual ++ ", " ++
     "problematic characters: " ++ show leftover ++ ")"
-
