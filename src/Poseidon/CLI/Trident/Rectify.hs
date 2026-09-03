@@ -59,21 +59,21 @@ needsRectification :: PoseidonPackage -> PoseidonIO Bool
 needsRectification pac = do
     let d = posPacBaseDir pac
         gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
-    chkGeno <- case gFileSpec of
+    goodGeno <- case gFileSpec of
         GenotypeEigenstrat gf gfc sf sfc if_ ifc ->
-            and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+            and <$> sequence [goodChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
         GenotypePlink gf gfc sf sfc if_ ifc ->
-            and <$> sequence [checkChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
-        GenotypeVCF gf gfc -> checkChecksum d (Just gf) gfc
-    chkJanno <- checkChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
-    chkSeqSo <- checkChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
-    chkBib   <- checkChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
-    return $ and [chkGeno, chkJanno, chkSeqSo, chkBib]
+            and <$> sequence [goodChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+        GenotypeVCF gf gfc -> goodChecksum d (Just gf) gfc
+    goodJanno <- goodChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
+    goodSeqSo <- goodChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
+    goodBib   <- goodChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
+    return $ not $ and [goodGeno, goodJanno, goodSeqSo, goodBib]
 
-checkChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
-checkChecksum _ Nothing _ = return True
-checkChecksum _ _ Nothing = return True
-checkChecksum baseDir (Just file) (Just expectedCheckSum) = do
+goodChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
+goodChecksum _ Nothing _ = return True
+goodChecksum _ _ Nothing = return True
+goodChecksum baseDir (Just file) (Just expectedCheckSum) = do
     let f = baseDir </> file
     exists <- liftIO . doesFileExist $ f
     if exists

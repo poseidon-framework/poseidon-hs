@@ -38,7 +38,7 @@ import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception (..), throwIO)
+import           Control.Exception      (Exception (..), throwIO, evaluate)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (unless, when)
 import           Control.Monad.Catch    (throwM)
@@ -302,10 +302,11 @@ checkFile fn maybeChkSum = do
 getChk :: (MonadIO m) => FilePath -> m String
 getChk = liftIO . getChecksum
 getChecksum :: FilePath -> IO String
-getChecksum f = do
-    fileContent <- BL.readFile f
-    let md5Digest = B16.encode $ MD5.hashlazy fileContent
-    return $ B8.unpack md5Digest
+getChecksum f =
+    withBinaryFile f ReadMode $ \h -> do
+        contents <- BL.hGetContents h
+        digest <- evaluate (MD5.hashlazy contents)
+        pure $ B8.unpack $ B16.encode digest
 
 -- helper function to check line endings of text files
 -- only considers the first line:
