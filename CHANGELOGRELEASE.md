@@ -1,13 +1,5 @@
 ### V 2.2.2.0
 
-This release adds a new, optional way to trace the provenance of samples in forged packages.
-
-#### Tracking sample provenance with `Source_Package`
-
-Forged packages can now optionally contain a new `.janno` column, `Source_Package`, which records which original package (and version) each sample originally came from. This makes it possible to trace a sample back to its origin even after it has passed through one or more rounds of `forge`. The feature is opt-in via the new `--addTrace` option.
-
-### V 2.2.1.0:
-
 This is a large omnibus release with many minor bug fixes, new features, and interface changes.
 
 #### Potentially breaking changes
@@ -23,6 +15,8 @@ Related to that is a change in the inner representation of numbers read from .ja
 Especially useful for automatic tooling around Poseidon packages: It is now possible to give ORCIDs with `--newContributors` in `rectify`. The syntax is a bit clunky (`[Firstname Lastname](Email address)<ORCID>`), but as ORCIDs remain optional its easy to ignore the feature.
 
 `Poseidon_ID`s and `Group_Names` that contained special characters used in trident's selection language for `forge` and `fetch` have long been an issue. This concerns for example group names that indicate age relationships like `Belgium_<1000BC`, as they occure in various versions of the AADR dataset. This name contains a `<`, which is a reserved character of the language, and thus broke the parser. Other reserved characters are `':', ',', '<', '>', '*'`. This release finally introduces a quoting feature to safely handle such entity names by wrapping them in `"`s (or `'`s), e.g. `"Belgium_<1000BC"` or `<"Individual3,4">`.
+
+Forged packages can now optionally contain a new `.janno` column, `Source_Package`, which records which original package (and version) each sample originally came from. This makes it possible to trace a sample back to its origin even after it has passed through one or more rounds of `forge`. The feature is opt-in via the new `--addTrace` option.
 
 #### Minor improvements
 
