@@ -1,3 +1,5 @@
+- V 2.2.2.1:
+    - Update of the sequence-formats dependency because of a purely technical build issue on windows, caused by a non-standard directory name.
 - V 2.2.2.0:
     - Forged packages now contain a new column `Source_Package`, which records which original package (and version) a sample originally came from.
 - V 2.2.1.0:
