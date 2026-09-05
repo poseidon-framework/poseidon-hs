@@ -20,7 +20,7 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
 import           Poseidon.Core.Utils           (PoseidonIO, getChk, logDebug,
-                                                logInfo, logWarning, logError)
+                                                logError, logInfo, logWarning)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
 
@@ -33,8 +33,8 @@ import           Data.Time                     (UTCTime (..), getCurrentTime)
 import           Data.Version                  (Version (..), makeVersion,
                                                 showVersion)
 import           System.Directory              (doesFileExist, removeFile)
+import           System.Exit                   (exitFailure)
 import           System.FilePath               ((</>))
-import           System.Exit                    (exitFailure)
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
