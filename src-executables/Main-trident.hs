@@ -263,6 +263,7 @@ modifyOptParser = ModifyOptions <$> parseBasePaths
                                 <*> parseMaybeContributors
                                 <*> parseJannoRemoveEmptyCols
                                 <*> parseOnlyLatest
+                                <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan

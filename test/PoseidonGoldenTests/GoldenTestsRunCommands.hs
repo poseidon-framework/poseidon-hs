@@ -656,6 +656,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = False
         , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
     let action1 = testLog (runModify modifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action1 "modify" [
@@ -671,6 +672,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = False
         , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
     let action2 = testLog (runModify modifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "modify" [
@@ -689,6 +691,7 @@ testPipelineModify testDir checkFilePath = do
             ]
         , _modifyJannoRemoveEmptyCols = False
         , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
     let action3 = testLog (runModify modifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "modify" [
@@ -704,6 +707,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = True
         , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
     let action4 = testLog (runModify modifyOpts4) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "modify" [

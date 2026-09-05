@@ -278,10 +278,8 @@ parseLog = OP.strOption (
 parseForce :: OP.Parser Bool
 parseForce = OP.switch (
     OP.long "force" <>
-    OP.help "Normally the POSEIDON.yml files are only changed if the \
-            \poseidonVersion is adjusted or any of the checksums change. \
-            \With --force a package version update can be triggered even \
-            \if this is not the case."
+    OP.help "To prevent accidental changes to many packages, modify does not run when it is applied \
+            \to more than one package. --force allows to overwrite this safeguard."
     )
 
 -- this will also parse an empty list, which means "forge everything".

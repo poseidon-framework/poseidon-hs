@@ -20,7 +20,7 @@ import           Poseidon.Core.Package         (PackageReadOptions (..),
                                                 writePoseidonPackage)
 import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
 import           Poseidon.Core.Utils           (PoseidonIO, getChk, logDebug,
-                                                logInfo, logWarning)
+                                                logInfo, logWarning, logError)
 import           Poseidon.Core.Version         (VersionComponent (..),
                                                 updateThreeComponentVersion)
 
@@ -34,6 +34,7 @@ import           Data.Version                  (Version (..), makeVersion,
                                                 showVersion)
 import           System.Directory              (doesFileExist, removeFile)
 import           System.FilePath               ((</>))
+import           System.Exit                    (exitFailure)
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
@@ -44,6 +45,7 @@ data ModifyOptions = ModifyOptions
     , _modifyNewContributors       :: Maybe [ContributorSpec]
     , _modifyJannoRemoveEmptyCols  :: Bool
     , _modifyOnlyLatest            :: Bool
+    , _modifyForce                 :: Bool
     }
 
 data PackageVersionUpdate = PackageVersionUpdate
@@ -66,7 +68,7 @@ runModify (ModifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
                 jannoRemoveEmptyCols
-                onlyLatest
+                onlyLatest force
            ) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
@@ -77,8 +79,21 @@ runModify (ModifyOptions
     allPackages <- readPoseidonPackageCollection
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
-    mapM_ modifyOnePackage allPackages
-    logInfo "Done"
+    case allPackages of
+        []  -> return ()
+        [x] -> do
+            modifyOnePackage x
+            logInfo "Done"
+        xs  -> if force
+               then do
+                   mapM_ modifyOnePackage allPackages
+                   logInfo "Done"
+               else do
+                   logError $ show (length xs) ++
+                              " packages selected for modification.\
+                              \ Run modify with --force if you really want to edit\
+                              \ all of them."
+                   liftIO exitFailure
     where
         modifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         modifyOnePackage inPac = do
