@@ -20,6 +20,8 @@ import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                                      ListOptions (..),
                                                      RepoLocationSpec (..),
                                                      runList)
+import           Poseidon.CLI.Trident.Rectify       (RectifyOptions (..),
+                                                     runRectify)
 import           Poseidon.CLI.Trident.Modify        (ChecksumsToModify (..),
                                                      ModifyOptions (..),
                                                      PackageVersionUpdate (..),
@@ -237,6 +239,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineSurvey testDir checkFilePath
     hPutStrLn stderr "--- genoconvert"
     testPipelineGenoconvert testDir checkFilePath
+    hPutStrLn stderr "--- rectify"
+    testPipelineRectify testDir checkFilePath
     hPutStrLn stderr "--- modify"
     testPipelineModify testDir checkFilePath
     hPutStrLn stderr "--- forge"
@@ -644,6 +648,44 @@ testPipelineGenoconvert testDir checkFilePath = do
         , _genoconvertOutZip     = True
     }
     testLog $ runGenoconvert genoconvertOpts7
+
+testPipelineRectify :: FilePath -> FilePath -> IO ()
+testPipelineRectify testDir checkFilePath = do
+    let rectifyDir    = testDir </> "rectify"
+        changedPac    = rectifyDir </> "Schiffels_2016"
+        unchangedPac  = rectifyDir </> "Wang_2020"
+        changedYaml   = changedPac </> "POSEIDON.yml"
+        unchangedYaml = unchangedPac </> "POSEIDON.yml"
+    copyDirectoryRecursive (testPacsDir </> "Schiffels_2016") changedPac
+    copyDirectoryRecursive (testPacsDir </> "Wang_2020") unchangedPac
+    -- keep the bibliography syntactically valid while invalidating its checksum
+    -- this should make Schiffels_2016 the only package selected for rectification
+    appendFile (changedPac </> "sources.bib") "\n"
+    unchangedYamlBefore <- getChecksum unchangedYaml
+    let rectifyOpts = RectifyOptions {
+          _rectifyBaseDirs = [rectifyDir]
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "rectify test"))
+        , _rectifyNewContributors = Just [ContributorSpec "rectify" "rectify@example.org" Nothing]
+        }
+        action = do
+            -- first run: rectify Schiffels_2016, leave Wang_2020 untouched
+            testLog $ runRectify rectifyOpts
+            patchLastModified testDir ("rectify" </> "Schiffels_2016" </> "POSEIDON.yml")
+            unchangedYamlAfter <- getChecksum unchangedYaml
+            unless (unchangedYamlBefore == unchangedYamlAfter) $
+                fail "rectify modified a package with valid checksums"
+            -- second run: leave Schiffels_2016 also untouched
+            changedYamlAfterFirstRun <- getChecksum changedYaml
+            testLog $ runRectify rectifyOpts
+            changedYamlAfterSecondRun <- getChecksum changedYaml
+            unless (changedYamlAfterFirstRun == changedYamlAfterSecondRun) $
+                fail "rectify was not idempotent after repairing checksums"
+    runAndChecksumFiles checkFilePath testDir action "rectify" [
+          "rectify" </> "Schiffels_2016" </> "POSEIDON.yml"
+        , "rectify" </> "Schiffels_2016" </> "CHANGELOG.md"
+        , "rectify" </> "Schiffels_2016" </> "sources.bib"
+        , "rectify" </> "Wang_2020" </> "POSEIDON.yml"
+        ]
 
 testPipelineModify :: FilePath -> FilePath -> IO ()
 testPipelineModify testDir checkFilePath = do

@@ -2,16 +2,22 @@ poseidonVersion: 2.7.1
 title: Wang_2020
 description: Genetic data published in Wang et al. 2020, Plink test
 contributor:
-  - name: Ke Wang
-    email: wang@institute.org
+- name: Ke Wang
+  email: wang@institute.org
 packageVersion: 0.1.0
 lastModified: 2020-05-20
-bibFile: sources.bib
 genotypeData:
   format: PLINK
   genoFile: Wang_2020.bed
+  genoFileChkSum: ae66d851301f4a761b819f97ec28fa55
   snpFile: Wang_2020.bim
+  snpFileChkSum: f96ea12084830fb43b3a24fd867f0ba7
   indFile: Wang_2020.fam
+  indFileChkSum: 575ea54b293e297b5f354c910fe1610d
   snpSet: Other
 jannoFile: Wang_2020.janno
+jannoFileChkSum: d271413712cf63767fc12dc3761de2e4
 sequencingSourceFile: Wang_2020.ssf
+sequencingSourceFileChkSum: 76f24988a5440fea474308f9151548a3
+bibFile: sources.bib
+bibFileChkSum: 67a9340931939f6d49fefe132c6ae984
