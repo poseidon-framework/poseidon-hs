@@ -12,15 +12,15 @@ packages:
   original:
     hackage: table-layout-0.9.1.0
 - completed:
-    commit: 974eb9ce3fcc0ac2efc1ddbe5aea790fe9af6f41
+    commit: c041087f4f4f563625f141346ef69186cd685c21
     git: https://github.com/stschiff/sequence-formats
     name: sequence-formats
     pantry-tree:
-      sha256: f4a58b2e1950ee0e183e75e87b9b5681f0618a6d819d2385c624ecfba71e92d9
-      size: 3248
+      sha256: 3696aae63bb2ca89160fb36aa0b412220892547f4fb4fcea25f6df43c884c47a
+      size: 3026
     version: 1.11.0.3
   original:
-    commit: 974eb9ce3fcc0ac2efc1ddbe5aea790fe9af6f41
+    commit: c041087f4f4f563625f141346ef69186cd685c21
     git: https://github.com/stschiff/sequence-formats
 - completed:
     hackage: scotty-0.22@sha256:b3c799b3c4896176342062c1140c290ffb9a8d81e6da2ea3e12f7a83cbda78d4,6013
