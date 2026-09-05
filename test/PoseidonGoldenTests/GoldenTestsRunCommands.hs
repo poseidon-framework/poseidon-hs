@@ -20,9 +20,11 @@ import           Poseidon.CLI.Trident.List          (ListEntity (..),
                                                      ListOptions (..),
                                                      RepoLocationSpec (..),
                                                      runList)
-import           Poseidon.CLI.Trident.Rectify       (ChecksumsToRectify (..),
+import           Poseidon.CLI.Trident.Modify        (ChecksumsToModify (..),
+                                                     ModifyOptions (..),
                                                      PackageVersionUpdate (..),
-                                                     RectifyOptions (..),
+                                                     runModify)
+import           Poseidon.CLI.Trident.Rectify       (RectifyOptions (..),
                                                      runRectify)
 import           Poseidon.CLI.Trident.Serve         (ArchiveConfig (..),
                                                      ArchiveSpec (..),
@@ -239,6 +241,8 @@ runCLICommands interactive testDir checkFilePath = do
     testPipelineGenoconvert testDir checkFilePath
     hPutStrLn stderr "--- rectify"
     testPipelineRectify testDir checkFilePath
+    hPutStrLn stderr "--- modify"
+    testPipelineModify testDir checkFilePath
     hPutStrLn stderr "--- forge"
     testPipelineForge testDir checkFilePath
     hPutStrLn stderr "--- chronicle & timetravel"
@@ -647,66 +651,108 @@ testPipelineGenoconvert testDir checkFilePath = do
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do
-    let rectifyOpts1 = RectifyOptions {
-          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _rectifyPoseidonVersion = Nothing
-        , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
-        , _rectifyChecksums = ChecksumNone
-        , _rectifyNewContributors = Nothing
-        , _rectifyJannoRemoveEmptyCols = False
-        , _rectifyOnlyLatest = False
+    let rectifyDir    = testDir </> "rectify"
+        changedPac    = rectifyDir </> "Schiffels_2016"
+        unchangedPac  = rectifyDir </> "Wang_2020"
+        changedYaml   = changedPac </> "POSEIDON.yml"
+        unchangedYaml = unchangedPac </> "POSEIDON.yml"
+    copyDirectoryRecursive (testPacsDir </> "Schiffels_2016") changedPac
+    copyDirectoryRecursive (testPacsDir </> "Wang_2020") unchangedPac
+    -- keep the bibliography syntactically valid while invalidating its checksum
+    -- this should make Schiffels_2016 the only package selected for rectification
+    appendFile (changedPac </> "sources.bib") "\n"
+    unchangedYamlBefore <- getChecksum unchangedYaml
+    let rectifyOpts = RectifyOptions {
+          _rectifyBaseDirs = [rectifyDir]
+        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "rectify test"))
+        , _rectifyNewContributors = Just [ContributorSpec "rectify" "rectify@example.org" Nothing]
         }
-    let action1 = testLog (runRectify rectifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action1 "rectify" [
+        action = do
+            -- first run: rectify Schiffels_2016, leave Wang_2020 untouched
+            testLog $ runRectify rectifyOpts
+            patchLastModified testDir ("rectify" </> "Schiffels_2016" </> "POSEIDON.yml")
+            unchangedYamlAfter <- getChecksum unchangedYaml
+            unless (unchangedYamlBefore == unchangedYamlAfter) $
+                fail "rectify modified a package with valid checksums"
+            -- second run: leave Schiffels_2016 also untouched
+            changedYamlAfterFirstRun <- getChecksum changedYaml
+            testLog $ runRectify rectifyOpts
+            changedYamlAfterSecondRun <- getChecksum changedYaml
+            unless (changedYamlAfterFirstRun == changedYamlAfterSecondRun) $
+                fail "rectify was not idempotent after repairing checksums"
+    runAndChecksumFiles checkFilePath testDir action "rectify" [
+          "rectify" </> "Schiffels_2016" </> "POSEIDON.yml"
+        , "rectify" </> "Schiffels_2016" </> "CHANGELOG.md"
+        , "rectify" </> "Schiffels_2016" </> "sources.bib"
+        , "rectify" </> "Wang_2020" </> "POSEIDON.yml"
+        ]
+
+testPipelineModify :: FilePath -> FilePath -> IO ()
+testPipelineModify testDir checkFilePath = do
+    let modifyOpts1 = ModifyOptions {
+          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _modifyPoseidonVersion = Nothing
+        , _modifyIgnorePoseidonVersion = False
+        , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
+        , _modifyChecksums = ChecksumNone
+        , _modifyNewContributors = Nothing
+        , _modifyJannoRemoveEmptyCols = False
+        , _modifyOnlyLatest = False
+        , _modifyForce = False
+        }
+    let action1 = testLog (runModify modifyOpts1) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action1 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let rectifyOpts2 = RectifyOptions {
-          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _rectifyPoseidonVersion = Just $ makeVersion [2,7,1]
-        , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
-        , _rectifyChecksums = ChecksumAll
-        , _rectifyNewContributors = Nothing
-        , _rectifyJannoRemoveEmptyCols = False
-        , _rectifyOnlyLatest = False
+    let modifyOpts2 = ModifyOptions {
+          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _modifyPoseidonVersion = Just $ makeVersion [2,7,1]
+        , _modifyIgnorePoseidonVersion = False
+        , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
+        , _modifyChecksums = ChecksumAll
+        , _modifyNewContributors = Nothing
+        , _modifyJannoRemoveEmptyCols = False
+        , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
-    let action2 = testLog (runRectify rectifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action2 "rectify" [
+    let action2 = testLog (runModify modifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action2 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let rectifyOpts3 = RectifyOptions {
-          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _rectifyPoseidonVersion = Nothing
-        , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
-        , _rectifyChecksums = ChecksumNone
-        , _rectifyNewContributors = Just [
+    let modifyOpts3 = ModifyOptions {
+          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _modifyPoseidonVersion = Nothing
+        , _modifyIgnorePoseidonVersion = False
+        , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
+        , _modifyChecksums = ChecksumNone
+        , _modifyNewContributors = Just [
               ContributorSpec "Josiah Carberry" "carberry@brown.edu" (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
-        , _rectifyJannoRemoveEmptyCols = False
-        , _rectifyOnlyLatest = False
+        , _modifyJannoRemoveEmptyCols = False
+        , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
-    let action3 = testLog (runRectify rectifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action3 "rectify" [
+    let action3 = testLog (runModify modifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action3 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let rectifyOpts4 = RectifyOptions {
-          _rectifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _rectifyPoseidonVersion = Nothing
-        , _rectifyIgnorePoseidonVersion = False
-        , _rectifyPackageVersionUpdate = Nothing
-        , _rectifyChecksums = ChecksumAll
-        , _rectifyNewContributors = Nothing
-        , _rectifyJannoRemoveEmptyCols = True
-        , _rectifyOnlyLatest = False
+    let modifyOpts4 = ModifyOptions {
+          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
+        , _modifyPoseidonVersion = Nothing
+        , _modifyIgnorePoseidonVersion = False
+        , _modifyPackageVersionUpdate = Nothing
+        , _modifyChecksums = ChecksumAll
+        , _modifyNewContributors = Nothing
+        , _modifyJannoRemoveEmptyCols = True
+        , _modifyOnlyLatest = False
+        , _modifyForce = False
         }
-    let action4 = testLog (runRectify rectifyOpts4) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
-    runAndChecksumFiles checkFilePath testDir action4 "rectify" [
+    let action4 = testLog (runModify modifyOpts4) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action4 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         , "init" </> "Schiffels" </> "Schiffels.janno"

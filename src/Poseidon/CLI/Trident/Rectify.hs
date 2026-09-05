@@ -1,221 +1,87 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Poseidon.CLI.Trident.Rectify (
-    runRectify, RectifyOptions (..), PackageVersionUpdate (..), ChecksumsToRectify (..)
+    runRectify, RectifyOptions (..)
     ) where
 
-import           Poseidon.Core.Contributor     (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
-                                                PacNameAndVersion (..),
-                                                renderNameWithVersion)
-import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
-                                                GenotypeFileSpec (..))
-import           Poseidon.Core.Janno           (makeJannoHeader,
-                                                writeJannoFileWithoutEmptyCols)
-import           Poseidon.Core.Package         (PackageReadOptions (..),
-                                                PoseidonPackage (..),
-                                                defaultPackageReadOptions,
-                                                readPoseidonPackageCollection,
-                                                writePoseidonPackage)
-import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChecksum,
-                                                logDebug, logInfo, logWarning)
-import           Poseidon.Core.Version         (VersionComponent (..),
-                                                updateThreeComponentVersion)
+import           Poseidon.CLI.Trident.Modify (ChecksumsToModify (..),
+                                              PackageVersionUpdate (..),
+                                              addContributors,
+                                              completeAndWritePackage,
+                                              updateChecksums)
+import           Poseidon.Core.Contributor   (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes   (renderNameWithVersion)
+import           Poseidon.Core.GenotypeData  (GenotypeDataSpec (..),
+                                              GenotypeFileSpec (..))
+import           Poseidon.Core.Package       (PackageReadOptions (..),
+                                              PoseidonPackage (..),
+                                              defaultPackageReadOptions,
+                                              readPoseidonPackageCollection)
+import           Poseidon.Core.Utils         (PoseidonIO, getChk, logInfo)
 
-import           Control.DeepSeq               ((<$!!>))
-import           Control.Monad                 (when)
-import           Control.Monad.IO.Class        (MonadIO, liftIO)
-import           Data.List                     (nub)
-import           Data.Maybe                    (fromJust)
-import           Data.Time                     (UTCTime (..), getCurrentTime)
-import           Data.Version                  (Version (..), makeVersion,
-                                                showVersion)
-import           System.Directory              (doesFileExist, removeFile)
-import           System.FilePath               ((</>))
+import           Control.Monad               (filterM)
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
+import           System.Directory            (doesFileExist)
+import           System.FilePath             ((</>))
 
 data RectifyOptions = RectifyOptions
-    { _rectifyBaseDirs              :: [FilePath]
-    , _rectifyIgnorePoseidonVersion :: Bool
-    , _rectifyPoseidonVersion       :: Maybe Version
-    , _rectifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
-    , _rectifyChecksums             :: ChecksumsToRectify
-    , _rectifyNewContributors       :: Maybe [ContributorSpec]
-    , _rectifyJannoRemoveEmptyCols  :: Bool
-    , _rectifyOnlyLatest            :: Bool
-    }
-
-data PackageVersionUpdate = PackageVersionUpdate
-    { _pacVerUpVersionComponent :: VersionComponent
-    , _pacVerUpLog              :: Maybe String
-    }
-
-data ChecksumsToRectify =
-    ChecksumNone |
-    ChecksumAll |
-    ChecksumsDetail
-    { _rectifyChecksumGeno  :: Bool
-    , _rectifyChecksumJanno :: Bool
-    , _rectifyChecksumSSF   :: Bool
-    , _rectifyChecksumBib   :: Bool
+    { _rectifyBaseDirs             :: [FilePath]
+    , _rectifyPackageVersionUpdate :: Maybe PackageVersionUpdate
+    , _rectifyNewContributors      :: Maybe [ContributorSpec]
     }
 
 runRectify :: RectifyOptions -> PoseidonIO ()
-runRectify (RectifyOptions
-                baseDirs
-                ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
-                jannoRemoveEmptyCols
-                onlyLatest
-           ) = do
+runRectify (RectifyOptions baseDirs pacVerUpdate newContributors) = do
     let pacReadOpts = defaultPackageReadOptions {
           _readOptIgnoreChecksums  = True
         , _readOptIgnoreGeno       = True
         , _readOptGenoCheck        = False
-        , _readOptOnlyLatest       = onlyLatest
+        , _readOptOnlyLatest       = False
+        , _readOptIgnorePosVersion = True
     }
-    allPackages <- readPoseidonPackageCollection
-        pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
-        baseDirs
-    logInfo "Starting per-package update procedure"
-    mapM_ rectifyOnePackage allPackages
+    allPackages <- readPoseidonPackageCollection pacReadOpts baseDirs
+    logInfo "Searching packages that need rectification"
+    toRectifyPackages <- filterM needsRectification allPackages
+    case toRectifyPackages of
+        [] -> logInfo "No packages need rectification"
+        xs -> do
+            logInfo $ show (length xs) ++ " packages need rectification"
+            mapM_ rectifyOnePackage xs
     logInfo "Done"
     where
         rectifyOnePackage :: PoseidonPackage -> PoseidonIO ()
-        rectifyOnePackage inPac = do
-            logInfo $ "Rectifying package: " ++ renderNameWithVersion inPac
-            when jannoRemoveEmptyCols $ do
-                case posPacJannoFile inPac of
-                    Nothing   -> do
-                        logWarning "No .janno file to modify with --jannoRemoveEmpty"
-                    Just jannoPath -> do
-                        logInfo "Reordering and removing empty columns from .janno file"
-                        liftIO $ writeJannoFileWithoutEmptyCols
-                                     (posPacBaseDir inPac </> jannoPath)
-                                     (makeJannoHeader (posPacJanno inPac))
-                                     (posPacJanno inPac)
-            updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
-            updatedPacContri <- addContributors newContributors updatedPacPosVer
-            updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
-            completeAndWritePackage pacVerUpdate updatedPacChecksums
+        rectifyOnePackage pac = do
+            logInfo $ "Rectifying package: " ++ renderNameWithVersion pac
+            pure pac >>=
+              updateChecksums ChecksumAll >>=
+              addContributors newContributors >>=
+              completeAndWritePackage pacVerUpdate
 
-updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
-updatePoseidonVersion Nothing    pac = return pac
-updatePoseidonVersion (Just ver) pac = do
-    logDebug "Updating Poseidon version"
-    return pac { posPacPoseidonVersion = PoseidonVersion ver }
+needsRectification :: PoseidonPackage -> PoseidonIO Bool
+needsRectification pac = do
+    let d = posPacBaseDir pac
+        gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
+    goodGeno <- case gFileSpec of
+        GenotypeEigenstrat gf gfc sf sfc if_ ifc ->
+            and <$> sequence [goodChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+        GenotypePlink gf gfc sf sfc if_ ifc ->
+            and <$> sequence [goodChecksum d (Just f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
+        GenotypeVCF gf gfc -> goodChecksum d (Just gf) gfc
+    goodJanno <- goodChecksum d (posPacJannoFile pac) (posPacJannoFileChkSum pac)
+    goodSeqSo <- goodChecksum d (posPacSeqSourceFile pac) (posPacSeqSourceFileChkSum pac)
+    goodBib   <- goodChecksum d (posPacBibFile pac) (posPacBibFileChkSum pac)
+    let needsRect = not $ and [goodGeno, goodJanno, goodSeqSo, goodBib]
+    logInfo $ (if needsRect then "CHANGED " else "OK      ") ++ renderNameWithVersion pac
+    return needsRect
 
-addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
-addContributors Nothing pac = return pac
-addContributors (Just cs) pac = do
-    logDebug "Updating list of contributors"
-    return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
-
-updateChecksums :: ChecksumsToRectify -> PoseidonPackage -> PoseidonIO PoseidonPackage
-updateChecksums checksumSetting pac = do
-    case checksumSetting of
-        ChecksumNone            -> logDebug "Update no checksums" >> return pac
-        ChecksumAll             -> update True True True True
-        ChecksumsDetail g j s b -> update g j s b
-    where
-        update :: Bool -> Bool -> Bool -> Bool -> PoseidonIO PoseidonPackage
-        update g j s b = do
-            let d = posPacBaseDir pac
-            let gFileSpec = genotypeFileSpec . posPacGenotypeData $ pac
-            newGenotypeFileSpec <-
-                if g
-                then do
-                    logDebug "Updating genotype data checksums"
-                    case gFileSpec of
-                        GenotypeEigenstrat gf gfc sf sfc if_ ifc -> do
-                            [genoChkSum, snpChkSum, indChkSum] <-
-                                sequence [testAndGetChecksum (d </> f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
-                            return $ GenotypeEigenstrat gf genoChkSum sf snpChkSum if_ indChkSum
-                        GenotypePlink gf gfc sf sfc if_ ifc -> do
-                            [genoChkSum, snpChkSum, indChkSum] <-
-                                sequence [testAndGetChecksum (d </> f) c | (f, c) <- zip [gf, sf, if_] [gfc, sfc, ifc]]
-                            return $ GenotypePlink gf genoChkSum sf snpChkSum if_ indChkSum
-                        GenotypeVCF gf gfc -> do
-                            genoChkSum <- testAndGetChecksum (d </> gf) gfc
-                            return $ GenotypeVCF gf genoChkSum
-                else return gFileSpec
-            newJannoChkSum <-
-                if j
-                then do
-                    logDebug "Updating .janno file checksums"
-                    case posPacJannoFile pac of
-                        Nothing -> return $ posPacJannoFileChkSum pac
-                        Just fn -> Just <$!!> getChk (d </> fn)
-                else return $ posPacJannoFileChkSum pac
-            newSeqSourceChkSum <-
-                if s
-                then do
-                    logDebug "Updating .ssf file checksums"
-                    case posPacSeqSourceFile pac of
-                        Nothing -> return $ posPacSeqSourceFileChkSum pac
-                        Just fn -> Just <$!!> getChk (d </> fn)
-                else return $ posPacSeqSourceFileChkSum pac
-            newBibChkSum <-
-                if b
-                then do
-                    logDebug "Updating .bib file checksums"
-                    case posPacBibFile pac of
-                        Nothing -> return $ posPacBibFileChkSum pac
-                        Just fn -> Just <$!!> getChk (d </> fn)
-                else return $ posPacBibFileChkSum pac
-            let gd = posPacGenotypeData pac
-            return $ pac {
-                    posPacGenotypeData = gd {genotypeFileSpec = newGenotypeFileSpec},
-                    posPacJannoFileChkSum = newJannoChkSum,
-                    posPacSeqSourceFileChkSum = newSeqSourceChkSum,
-                    posPacBibFileChkSum = newBibChkSum
-                }
-        getChk :: (MonadIO m) => FilePath -> m String
-        getChk = liftIO . getChecksum
-        testAndGetChecksum :: (MonadIO m) => FilePath -> Maybe String -> m (Maybe String)
-        testAndGetChecksum file defaultChkSum = do
-            e <- liftIO . doesFileExist $ file
-            if e then Just <$!!> getChk file else return defaultChkSum
-
-
-completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
-completeAndWritePackage Nothing pac = do
-    logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage pac
-completeAndWritePackage (Just (PackageVersionUpdate component logText)) pac = do
-    updatedPacPacVer <- updatePackageVersion component pac
-    updatePacChangeLog <- writeOrUpdateChangelogFile logText updatedPacPacVer
-    logDebug "Writing rectified POSEIDON.yml file"
-    liftIO $ writePoseidonPackage updatePacChangeLog
-
-updatePackageVersion :: VersionComponent -> PoseidonPackage -> PoseidonIO PoseidonPackage
-updatePackageVersion component pac = do
-    logDebug "Updating package version"
-    (UTCTime today _) <- liftIO getCurrentTime
-    let pacNameAndVer = posPacNameAndVersion pac
-    let outPac = pac {
-        posPacNameAndVersion = pacNameAndVer {panavVersion = maybe (Just $ makeVersion [0, 1, 0])
-                (Just . updateThreeComponentVersion component)
-                (getPacVersion pac)
-            }
-        , posPacLastModified = Just today
-        }
-    return outPac
-
-writeOrUpdateChangelogFile :: Maybe String -> PoseidonPackage -> PoseidonIO PoseidonPackage
-writeOrUpdateChangelogFile Nothing pac = return pac
-writeOrUpdateChangelogFile (Just logText) pac = do
-    case posPacChangelogFile pac of
-        Nothing -> do
-            logDebug "Creating CHANGELOG.md"
-            liftIO $ writeFile (posPacBaseDir pac </> "CHANGELOG.md") $
-                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": " ++
-                logText ++ "\n"
-            return pac { posPacChangelogFile = Just "CHANGELOG.md" }
-        Just x -> do
-            logDebug "Updating CHANGELOG.md"
-            changelogFile <- liftIO $ readFile (posPacBaseDir pac </> x)
-            liftIO $ removeFile (posPacBaseDir pac </> x)
-            liftIO $ writeFile (posPacBaseDir pac </> x) $
-                "- V " ++ showVersion (fromJust $ getPacVersion pac) ++ ": "
-                ++ logText ++ "\n" ++ changelogFile
-            return pac
+goodChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
+goodChecksum _ Nothing _ = return True
+goodChecksum _ _ Nothing = return True
+goodChecksum baseDir (Just file) (Just expectedCheckSum) = do
+    let f = baseDir </> file
+    exists <- liftIO . doesFileExist $ f
+    if exists
+    then do
+        realChecksum <- getChk f
+        return $ realChecksum == expectedCheckSum
+    else return True

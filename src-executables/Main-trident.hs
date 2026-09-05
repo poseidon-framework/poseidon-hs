@@ -15,6 +15,8 @@ import           Poseidon.CLI.Trident.Jannocoalesce              (JannoCoalesceO
                                                                   runJannocoalesce)
 import           Poseidon.CLI.Trident.List                       (ListOptions (..),
                                                                   runList)
+import           Poseidon.CLI.Trident.Modify                     (ModifyOptions (..),
+                                                                  runModify)
 import           Poseidon.CLI.Trident.OptparseApplicativeParsers
 import           Poseidon.CLI.Trident.Rectify                    (RectifyOptions (..),
                                                                   runRectify)
@@ -69,6 +71,7 @@ data Subcommand =
     | CmdSummarise SummariseOptions
     | CmdSurvey SurveyOptions
     | CmdRectify RectifyOptions
+    | CmdModify ModifyOptions
     | CmdValidate ValidateOptions
     | CmdChronicle ChronicleOptions
     | CmdTimetravel TimetravelOptions
@@ -98,6 +101,7 @@ runCmd o = case o of
     CmdInit          opts -> runInit opts
     CmdList          opts -> runList opts
     CmdRectify       opts -> runRectify opts
+    CmdModify        opts -> runModify opts
     CmdServe         opts -> runServerMainThread opts
     CmdSummarise     opts -> runSummarise opts
     CmdSurvey        opts -> runSurvey opts
@@ -137,6 +141,7 @@ subcommandParser = OP.subparser (
         OP.command "genoconvert" genoconvertOptInfo <>
         OP.command "jannocoalesce" jannocoalesceOptInfo <>
         OP.command "rectify" rectifyOptInfo <>
+        OP.command "modify" modifyOptInfo <>
         OP.commandGroup "Package creation and manipulation commands:"
     ) <|>
     OP.subparser (
@@ -179,6 +184,8 @@ subcommandParser = OP.subparser (
             ))
     rectifyOptInfo = OP.info (OP.helper <*> (CmdRectify <$> rectifyOptParser))
         (OP.progDesc "Adjust POSEIDON.yml files automatically to package changes")
+    modifyOptInfo = OP.info (OP.helper <*> (CmdModify <$> modifyOptParser))
+        (OP.progDesc "Modify certain elements of Poseidon packages")
     validateOptInfo = OP.info (OP.helper <*> (CmdValidate <$> validateOptParser))
         (OP.progDesc "Check Poseidon packages or package components for structural correctness")
     chronicleOptInfo = OP.info (OP.helper <*> (CmdChronicle <$> chronicleOptParser))
@@ -244,13 +251,19 @@ surveyOptParser = SurveyOptions <$> parseBasePaths
 
 rectifyOptParser :: OP.Parser RectifyOptions
 rectifyOptParser = RectifyOptions <$> parseBasePaths
-                                  <*> parseIgnorePoseidonVersion
-                                  <*> parseMaybePoseidonVersion
                                   <*> parseMaybePackageVersionUpdate
-                                  <*> parseChecksumsToRectify
                                   <*> parseMaybeContributors
-                                  <*> parseJannoRemoveEmptyCols
-                                  <*> parseOnlyLatest
+
+modifyOptParser :: OP.Parser ModifyOptions
+modifyOptParser = ModifyOptions <$> parseBasePaths
+                                <*> parseIgnorePoseidonVersion
+                                <*> parseMaybePoseidonVersion
+                                <*> parseMaybePackageVersionUpdate
+                                <*> parseChecksumsToRectify
+                                <*> parseMaybeContributors
+                                <*> parseJannoRemoveEmptyCols
+                                <*> parseOnlyLatest
+                                <*> parseForce
 
 validateOptParser :: OP.Parser ValidateOptions
 validateOptParser = ValidateOptions <$> parseValidatePlan

@@ -1,5 +1,5 @@
 name:                poseidon-hs
-version:             2.2.2.1
+version:             2.3.0.0
 synopsis:            A package with tools for working with Poseidon genotype data
 description:         The tools in this package read and analyse Poseidon-formatted genotype databases, a modular system for storing genotype data from thousands of individuals.
 license:             MIT
@@ -28,7 +28,7 @@ library
                         Poseidon.CLI.Trident.Survey, Poseidon.CLI.Trident.Forge, Poseidon.CLI.Trident.Init,
                         Poseidon.CLI.Trident.Rectify, Poseidon.CLI.Trident.Fetch, Poseidon.CLI.Trident.Genoconvert,
                         Poseidon.CLI.Trident.OptparseApplicativeParsers, Poseidon.CLI.Trident.Timetravel,
-                        Poseidon.CLI.Trident.Jannocoalesce,
+                        Poseidon.CLI.Trident.Jannocoalesce, Poseidon.CLI.Trident.Modify
                         -- analysis
                         Poseidon.Analysis.FStatsConfig, Poseidon.Analysis.RASconfig, Poseidon.Analysis.Utils,
                         Poseidon.Analysis.Generator.Parsers, Poseidon.Analysis.Generator.Types,
@@ -40,7 +40,7 @@ library
     build-depends:      base >= 4.7 && < 5, sequence-formats>=1.6.1, text, time, pipes-safe, foldl,
                         exceptions, pipes, bytestring, filepath, yaml, aeson, directory, parsec,
                         vector, pipes-ordered-zip, table-layout<1.0.0.0, mtl, split, warp, warp-tls, wai-cors,
-                        scotty, cassava, pureMD5, wai, githash, attoparsec, pipes-group,
+                        scotty, cassava, cryptohash-md5, base16-bytestring, wai, githash, attoparsec, pipes-group,
                         http-conduit, conduit, http-types, zip-stream, resourcet, MonadRandom, lens-family,
                         unordered-containers, network-uri, optparse-applicative, co-log, regex-tdfa,
                         scientific, country, generics-sop, containers, process, deepseq, template-haskell,
