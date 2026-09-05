@@ -80,7 +80,9 @@ runModify (ModifyOptions
         pacReadOpts {_readOptIgnorePosVersion = ignorePosVer}
         baseDirs
     case allPackages of
-        []  -> return ()
+        []  -> do
+            logWarning "No packages found."
+            logInfo "Done"
         [x] -> do
             modifyOnePackage x
             logInfo "Done"
