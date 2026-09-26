@@ -48,6 +48,8 @@ import           Poseidon.Core.GenotypeData         (GenoDataSource (..),
                                                      GenotypeFileSpec (..),
                                                      GenotypeOutFormatSpec (..),
                                                      SNPSetSpec (..))
+import           Poseidon.Core.Package              (PoseidonYamlStruct (..),
+                                                     readPoseidonYaml)
 import           Poseidon.Core.PoseidonVersion      (VersionedFile (..),
                                                      latestPoseidonVersion)
 import           Poseidon.Core.ServerClient         (AddColSpec (..),
@@ -57,7 +59,6 @@ import           Poseidon.Core.Utils                (LogMode (..),
                                                      testLog, testLogErr,
                                                      usePoseidonLogger)
 import           Poseidon.Core.Version              (VersionComponent (..))
-import Poseidon.Core.Package (readPoseidonYaml, PoseidonYamlStruct (..))
 
 import           Control.Concurrent                 (forkIO, killThread,
                                                      newEmptyMVar)
@@ -66,6 +67,7 @@ import           Control.Exception                  (finally)
 import           Control.Monad                      (forM_, unless, when)
 import           Data.Either                        (fromRight)
 import           Data.Function                      ((&))
+import           Data.Maybe                         (isNothing)
 import qualified Data.Text                          as T
 import qualified Data.Text.IO                       as T
 import           Data.Version                       (makeVersion)
@@ -88,7 +90,6 @@ import           System.IO                          (Handle, IOMode (WriteMode),
                                                      hPutStrLn, openFile,
                                                      stderr, stdout, withFile)
 import           System.Process                     (callCommand)
-import Data.Maybe (isNothing)
 
 -- file paths --
 
