@@ -251,6 +251,12 @@ readContributorString s = case P.runParser contributorSpecParser () "" s of
     Left p  -> Left (showParsecErr p)
     Right x -> Right x
 
+parseUpdateNrSNPs :: OP.Parser Bool
+parseUpdateNrSNPs = OP.switch (
+    OP.long "updateNrSNPs" <>
+    OP.help "..."
+    )
+
 parseJannoRemoveEmptyCols :: OP.Parser Bool
 parseJannoRemoveEmptyCols = OP.switch (
     OP.long "jannoRemoveEmpty" <>

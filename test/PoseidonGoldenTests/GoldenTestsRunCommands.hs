@@ -697,6 +697,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyChecksums = ChecksumNone
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = False
+        , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False
         , _modifyForce = False
         }
@@ -713,6 +714,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyChecksums = ChecksumAll
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = False
+        , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False
         , _modifyForce = False
         }
@@ -732,6 +734,7 @@ testPipelineModify testDir checkFilePath = do
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
         , _modifyJannoRemoveEmptyCols = False
+        , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False
         , _modifyForce = False
         }
@@ -748,6 +751,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyChecksums = ChecksumAll
         , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = True
+        , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False
         , _modifyForce = False
         }
