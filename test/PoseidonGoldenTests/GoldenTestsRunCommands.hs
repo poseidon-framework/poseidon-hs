@@ -57,6 +57,7 @@ import           Poseidon.Core.Utils                (LogMode (..),
                                                      testLog, testLogErr,
                                                      usePoseidonLogger)
 import           Poseidon.Core.Version              (VersionComponent (..))
+import Poseidon.Core.Package (readPoseidonYaml, PoseidonYamlStruct (..))
 
 import           Control.Concurrent                 (forkIO, killThread,
                                                      newEmptyMVar)
@@ -87,6 +88,7 @@ import           System.IO                          (Handle, IOMode (WriteMode),
                                                      hPutStrLn, openFile,
                                                      stderr, stdout, withFile)
 import           System.Process                     (callCommand)
+import Data.Maybe (isNothing)
 
 -- file paths --
 
@@ -651,15 +653,18 @@ testPipelineGenoconvert testDir checkFilePath = do
 
 testPipelineRectify :: FilePath -> FilePath -> IO ()
 testPipelineRectify testDir checkFilePath = do
-    let rectifyDir    = testDir </> "rectify"
-        changedPac    = rectifyDir </> "Schiffels_2016"
-        unchangedPac  = rectifyDir </> "Wang_2020"
-        changedYaml   = changedPac </> "POSEIDON.yml"
-        unchangedYaml = unchangedPac </> "POSEIDON.yml"
+    let rectifyDir     = testDir </> "rectify"
+        noChecksumPac  = rectifyDir </> "Schmid_2028"
+        changedPac     = rectifyDir </> "Schiffels_2016"
+        unchangedPac   = rectifyDir </> "Wang_2020"
+        noChecksumYaml = noChecksumPac </> "POSEIDON.yml"
+        changedYaml    = changedPac </> "POSEIDON.yml"
+        unchangedYaml  = unchangedPac </> "POSEIDON.yml"
+    copyDirectoryRecursive (testPacsDir </> "Schmid_2028") noChecksumPac
     copyDirectoryRecursive (testPacsDir </> "Schiffels_2016") changedPac
     copyDirectoryRecursive (testPacsDir </> "Wang_2020") unchangedPac
     -- keep the bibliography syntactically valid while invalidating its checksum
-    -- this should make Schiffels_2016 the only package selected for rectification
+    -- this should make Schiffels_2016 get selected for rectification
     appendFile (changedPac </> "sources.bib") "\n"
     unchangedYamlBefore <- getChecksum unchangedYaml
     let rectifyOpts = RectifyOptions {
@@ -668,20 +673,26 @@ testPipelineRectify testDir checkFilePath = do
         , _rectifyNewContributors = Just [ContributorSpec "rectify" "rectify@example.org" Nothing]
         }
         action = do
-            -- first run: rectify Schiffels_2016, leave Wang_2020 untouched
+            -- first run: rectify Schmid_2028 and Schiffels_2016, leave Wang_2020 untouched
+            noChecksumYamlStruct <- readPoseidonYaml noChecksumYaml
+            unless (isNothing $ _posYamlJannoFileChkSum noChecksumYamlStruct) $
+                fail "Schmid_2028 seems to have checksums now: that renders this test invalid"
             testLog $ runRectify rectifyOpts
+            patchLastModified testDir ("rectify" </> "Schmid_2028" </> "POSEIDON.yml")
             patchLastModified testDir ("rectify" </> "Schiffels_2016" </> "POSEIDON.yml")
             unchangedYamlAfter <- getChecksum unchangedYaml
             unless (unchangedYamlBefore == unchangedYamlAfter) $
                 fail "rectify modified a package with valid checksums"
-            -- second run: leave Schiffels_2016 also untouched
+            -- second run: leave all untouched
             changedYamlAfterFirstRun <- getChecksum changedYaml
             testLog $ runRectify rectifyOpts
             changedYamlAfterSecondRun <- getChecksum changedYaml
             unless (changedYamlAfterFirstRun == changedYamlAfterSecondRun) $
                 fail "rectify was not idempotent after repairing checksums"
     runAndChecksumFiles checkFilePath testDir action "rectify" [
-          "rectify" </> "Schiffels_2016" </> "POSEIDON.yml"
+          "rectify" </> "Schmid_2028" </> "POSEIDON.yml"
+        , "rectify" </> "Schmid_2028" </> "CHANGELOG.md"
+        , "rectify" </> "Schiffels_2016" </> "POSEIDON.yml"
         , "rectify" </> "Schiffels_2016" </> "CHANGELOG.md"
         , "rectify" </> "Schiffels_2016" </> "sources.bib"
         , "rectify" </> "Wang_2020" </> "POSEIDON.yml"
