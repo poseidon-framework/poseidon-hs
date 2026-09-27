@@ -147,14 +147,16 @@ patchCommitHashes testDir yamlFile = do
             else return l
     T.writeFile (testDir </> yamlFile) (T.unlines patchedLines)
 
-patchValidatePath :: FilePath -> FilePath -> IO ()
-patchValidatePath testDir file = do
+patchValidateCLIOutput :: FilePath -> FilePath -> IO ()
+patchValidateCLIOutput testDir file = do
     lines_ <- T.lines <$> T.readFile (testDir </> file)
     let patchedLines = do
             l <- lines_
             if "Validating:" `T.isPrefixOf` l
             then return "Validating: some/path"
-            else return l
+            else if "In file" `T.isPrefixOf` l
+                 then return "DOI validation"
+                 else return l
     T.writeFile (testDir </> file) (T.unlines patchedLines)
 
 runAndChecksumFiles :: FilePath -> FilePath -> IO () -> String -> [FilePath] -> IO ()
@@ -414,7 +416,7 @@ testPipelineValidate testDir checkFilePath = do
         run nr opts = do
             let action = testLogErr (runValidate opts)
                 -- patching can not be part of the action: race condition
-                unLogged = patchValidatePath testDir ("validate" </> ("validate" ++ show nr))
+                unLogged = patchValidateCLIOutput testDir ("validate" </> ("validate" ++ show nr))
             runAndChecksumStdErr checkFilePath testDir action unLogged "validate" nr
 
 testPipelineList :: FilePath -> FilePath -> IO ()
