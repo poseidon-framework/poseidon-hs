@@ -64,7 +64,7 @@ instance Csv.ToField PoseidonID where
     toField (PoseidonID x) = Csv.toField x
 
 instance FromFieldVersioned PoseidonID where
-    parseFieldVersioned pv = parseTypeCSV pv "PoseidonID"
+    parseFieldVersioned pv = parseTypeCSV pv "Poseidon_ID"
 
 -- the IsString instance allows us to write PoseidonID "MyID" directly, mainly for testing purposes.
 instance IsString PoseidonID where
