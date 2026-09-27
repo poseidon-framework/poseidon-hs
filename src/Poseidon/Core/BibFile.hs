@@ -13,6 +13,8 @@ import           Data.Char                          (toLower)
 import           Data.List                          (intercalate)
 import           Data.List.Split                    (splitOn)
 import           Data.String.Utils                  (strip)
+import           System.FilePath                    (takeDirectory,
+                                                     takeFileName, (</>))
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
@@ -69,11 +71,12 @@ readBibTeXFile bibPath = do
 -- check for missing and suspicious DOIs
 checkDOI :: FilePath -> BibEntry -> PoseidonIO ()
 checkDOI bibPath x@(BibEntry _ i _) = do
+    let displayPath = shortBibPath bibPath
     case extractDOI x of
-        Nothing -> logWarning $ "In file " ++ bibPath ++ " in entry " ++ i ++ ": No DOI"
+        Nothing -> logWarning $ "In file " ++ displayPath ++ " in entry " ++ i ++ ": No DOI"
         Just doiString ->
             unless (validDOI doiString) $ do
-                logWarning $ "In file " ++ bibPath ++ " in entry " ++ i ++ ": " ++
+                logWarning $ "In file " ++ displayPath ++ " in entry " ++ i ++ ": " ++
                              "DOI looks suspicious and may not be valid (" ++
                              doiString ++ ")"
 
@@ -85,6 +88,14 @@ extractDOI (BibEntry _ _ fields) =
 -- derived from https://www.crossref.org/blog/dois-and-matching-regular-expressions
 validDOI :: String -> Bool
 validDOI s = s =~ ("^10\\.[0-9]{4,9}/[-._;()/:A-Za-z0-9]+$" :: String)
+
+shortBibPath :: FilePath -> FilePath
+shortBibPath path =
+    let dir  = takeFileName (takeDirectory path)
+        file = takeFileName path
+    in if dir == "." || null dir
+       then file
+       else dir </> file
 
 {-
 Much of the code below was shamelessly copied from the existing Haskell package "bibtex"
