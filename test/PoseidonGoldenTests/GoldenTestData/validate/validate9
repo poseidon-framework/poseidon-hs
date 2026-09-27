@@ -1,3 +1,6 @@
 Validating: some/path
+In file test/testDat/testPackages/ancient/Schiffels_2016/sources.bib in entry Schiffels2016: No DOI
+In file test/testDat/testPackages/ancient/Schiffels_2016/sources.bib in entry TestPaper1: No DOI
+In file test/testDat/testPackages/ancient/Schiffels_2016/sources.bib in entry TestBook1: No DOI
 All 3 entries are valid
 Validation passed
