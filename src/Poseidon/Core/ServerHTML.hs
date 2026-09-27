@@ -330,7 +330,7 @@ packageVersionPage
     H.div ! A.style "clear: both;" $ H.table ! A.id "currentTable" $ do
       H.thead $ do
         H.tr $ do
-          H.th $ H.b "PoseidonID"
+          H.th $ H.b "Poseidon_ID"
           H.th $ H.b "Genetic_Sex"
           H.th $ H.b "Group_Name"
       forM_ samplesSubset $ \jannoRow -> do

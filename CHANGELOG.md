@@ -1,3 +1,5 @@
+- V ...
+    - Changed "PoseidonID" to the correct "Poseidon_ID" in an error message and on the server website.
 - V 2.2.2.1:
     - Update of the sequence-formats dependency because of a purely technical build issue on windows, caused by a non-standard directory name.
 - V 2.2.2.0:
