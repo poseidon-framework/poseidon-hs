@@ -254,14 +254,13 @@ readContributorString s = case P.runParser contributorSpecParser () "" s of
 parseUpdateNrSNPs :: OP.Parser Bool
 parseUpdateNrSNPs = OP.switch (
     OP.long "updateNrSNPs" <>
-    OP.help "..."
+    OP.help "Count the non-missing SNPs per sample and overwrite/fill the Nr_SNPs column in the .janno file."
     )
 
 parseJannoRemoveEmptyCols :: OP.Parser Bool
 parseJannoRemoveEmptyCols = OP.switch (
     OP.long "jannoRemoveEmpty" <>
-    OP.help "Reorder the .janno file and remove empty colums. \
-            \Remember to pair this option with --checksumJanno to also update the checksum."
+    OP.help "Reorder the .janno file and remove empty colums."
     )
 
 parseMaybeLog :: OP.Parser (Maybe String)
