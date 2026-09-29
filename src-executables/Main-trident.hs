@@ -262,6 +262,7 @@ modifyOptParser = ModifyOptions <$> parseBasePaths
                                 <*> parseChecksumsToRectify
                                 <*> parseMaybeContributors
                                 <*> parseJannoRemoveEmptyCols
+                                <*> parseUpdateNrSNPs
                                 <*> parseOnlyLatest
                                 <*> parseForce
 

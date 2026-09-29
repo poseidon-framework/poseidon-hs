@@ -5,36 +5,51 @@ module Poseidon.CLI.Trident.Modify (
     updateChecksums, addContributors, completeAndWritePackage
     ) where
 
-import           Poseidon.Core.Contributor     (ContributorSpec (..))
-import           Poseidon.Core.EntityTypes     (HasNameAndVersion (..),
-                                                PacNameAndVersion (..),
-                                                renderNameWithVersion)
-import           Poseidon.Core.GenotypeData    (GenotypeDataSpec (..),
-                                                GenotypeFileSpec (..))
-import           Poseidon.Core.Janno           (makeJannoHeader,
-                                                writeJannoFileWithoutEmptyCols)
-import           Poseidon.Core.Package         (PackageReadOptions (..),
-                                                PoseidonPackage (..),
-                                                defaultPackageReadOptions,
-                                                readPoseidonPackageCollection,
-                                                writePoseidonPackage)
-import           Poseidon.Core.PoseidonVersion (PoseidonVersion (..))
-import           Poseidon.Core.Utils           (PoseidonIO, getChk, logDebug,
-                                                logError, logInfo, logWarning)
-import           Poseidon.Core.Version         (VersionComponent (..),
-                                                updateThreeComponentVersion)
+import           Poseidon.Core.Contributor      (ContributorSpec (..))
+import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
+                                                 PacNameAndVersion (..),
+                                                 renderNameWithVersion)
+import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
+                                                 GenotypeFileSpec (..),
+                                                 loadIndividuals,
+                                                 printSNPCopyProgress)
+import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
+                                                 makeJannoHeader,
+                                                 writeJannoFile,
+                                                 writeJannoFileWithoutEmptyCols)
+import           Poseidon.Core.Package          (PackageReadOptions (..),
+                                                 PoseidonException (..),
+                                                 PoseidonPackage (..),
+                                                 defaultPackageReadOptions,
+                                                 getJointGenotypeData,
+                                                 readPoseidonPackageCollection,
+                                                 writePoseidonPackage)
+import           Poseidon.Core.PoseidonVersion  (PoseidonVersion (..))
+import           Poseidon.Core.Utils            (PoseidonIO, envErrorLength,
+                                                 envLogAction, getChk, logDebug,
+                                                 logError, logInfo, logWarning)
+import           Poseidon.Core.Version          (VersionComponent (..),
+                                                 updateThreeComponentVersion)
 
-import           Control.DeepSeq               ((<$!!>))
-import           Control.Monad                 (when)
-import           Control.Monad.IO.Class        (MonadIO, liftIO)
-import           Data.List                     (nub)
-import           Data.Maybe                    (fromJust)
-import           Data.Time                     (UTCTime (..), getCurrentTime)
-import           Data.Version                  (Version (..), makeVersion,
-                                                showVersion)
-import           System.Directory              (doesFileExist, removeFile)
-import           System.Exit                   (exitFailure)
-import           System.FilePath               ((</>))
+import           Control.DeepSeq                ((<$!!>))
+import           Control.Exception              (catch, throwIO)
+import           Control.Monad                  (when)
+import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import           Data.List                      (nub)
+import           Data.Maybe                     (fromJust)
+import           Data.Time                      (UTCTime (..), getCurrentTime)
+import qualified Data.Vector.Unboxed            as VU
+import qualified Data.Vector.Unboxed.Mutable    as VUM
+import           Data.Version                   (Version (..), makeVersion,
+                                                 showVersion)
+import           Pipes                          ((>->))
+import qualified Pipes.Prelude                  as P
+import           Pipes.Safe                     (runSafeT)
+import           Poseidon.CLI.Trident.Forge     (sumNonMissingSNPs)
+import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
+import           System.Directory               (doesFileExist, removeFile)
+import           System.Exit                    (exitFailure)
+import           System.FilePath                ((</>))
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
@@ -44,6 +59,7 @@ data ModifyOptions = ModifyOptions
     , _modifyChecksums             :: ChecksumsToModify
     , _modifyNewContributors       :: Maybe [ContributorSpec]
     , _modifyJannoRemoveEmptyCols  :: Bool
+    , _modifyUpdateNrSNPs          :: Bool
     , _modifyOnlyLatest            :: Bool
     , _modifyForce                 :: Bool
     }
@@ -68,6 +84,7 @@ runModify (ModifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
                 jannoRemoveEmptyCols
+                updateNrSNPs
                 onlyLatest force
            ) = do
     let pacReadOpts = defaultPackageReadOptions {
@@ -100,20 +117,55 @@ runModify (ModifyOptions
         modifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         modifyOnePackage inPac = do
             logInfo $ "Modifying package: " ++ renderNameWithVersion inPac
-            when jannoRemoveEmptyCols $ do
+            -- counting SNPs for .janno column Nr_SNPs
+            let inJannoRows = getJannoRows $ posPacJanno inPac
+            updatedJanno <- if updateNrSNPs
+                            then do
+                                nrSNPs <- countSNPs inPac
+                                nrSNPsFrozen <- liftIO $ VU.freeze nrSNPs
+                                let updatedRows = zipWith
+                                        (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
+                                        inJannoRows (VU.toList nrSNPsFrozen)
+                                return $ JannoRows updatedRows
+                            else return $ JannoRows inJannoRows
+            when (updateNrSNPs || jannoRemoveEmptyCols) $
                 case posPacJannoFile inPac of
-                    Nothing   -> do
-                        logWarning "No .janno file to modify with --jannoRemoveEmpty"
-                    Just jannoPath -> do
-                        logInfo "Reordering and removing empty columns from .janno file"
-                        liftIO $ writeJannoFileWithoutEmptyCols
-                                     (posPacBaseDir inPac </> jannoPath)
-                                     (makeJannoHeader (posPacJanno inPac))
-                                     (posPacJanno inPac)
+                        Nothing -> logError "No .janno file to modify"
+                        Just jannoPath -> do
+                            logInfo "Writing .janno file"
+                            if jannoRemoveEmptyCols
+                            then do
+                                logInfo "Reordering and removing empty .janno columns"
+                                liftIO $ writeJannoFileWithoutEmptyCols
+                                             (posPacBaseDir inPac </> jannoPath)
+                                             (makeJannoHeader updatedJanno)
+                                             updatedJanno
+                            else do
+                                liftIO $ writeJannoFile
+                                             (posPacBaseDir inPac </> jannoPath)
+                                             (makeJannoHeader updatedJanno)
+                                             updatedJanno
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
+
+countSNPs :: PoseidonPackage -> PoseidonIO (VUM.IOVector Int)
+countSNPs pac = do
+    logInfo "Counting SNPs..."
+    inds <- loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
+    logA <- envLogAction
+    currentTime <- liftIO getCurrentTime
+    errLength <- envErrorLength
+    newNrSNPs <- liftIO $ catch (
+        runSafeT $ do
+            eigenstratProd <- getJointGenotypeData logA False False False [pac] Nothing
+            let forgePipe = eigenstratProd >-> printSNPCopyProgress logA currentTime
+            let startAcc = liftIO $ VUM.replicate (length inds) 0
+            P.foldM sumNonMissingSNPs startAcc return forgePipe
+        ) (throwIO . PoseidonGenotypeExceptionForward errLength)
+    logInfo "Done"
+    return newNrSNPs
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
