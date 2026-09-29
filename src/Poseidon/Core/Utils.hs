@@ -14,7 +14,7 @@ module Poseidon.Core.Utils (
     checkFile,
     checkLineEnding,
     checkLineEndingIfNotZipped,
-    getChecksum,
+    getChecksum, getChk,
     logWarning,
     logInfo,
     logDebug,
@@ -38,15 +38,17 @@ import           Colog                  (HasLog (..), LogAction (..), Message,
                                          Msg (..), Severity (..), cfilter,
                                          cmapM, logTextStderr, msgSeverity,
                                          msgText, showSeverity)
-import           Control.Exception      (Exception (..), throwIO)
+import           Control.Exception      (Exception (..), evaluate, throwIO)
 import           Control.Exception.Base (SomeException)
 import           Control.Monad          (unless, when)
 import           Control.Monad.Catch    (throwM)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Reader   (ReaderT, asks, runReaderT)
+import           Crypto.Hash.MD5        as MD5
 import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Lazy   as LB
-import           Data.Digest.Pure.MD5   (md5)
+import           Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Char8  as B8
+import qualified Data.ByteString.Lazy   as BL
 import           Data.List              (isSuffixOf)
 import qualified Data.Set               as Set
 import           Data.Text              (Text, pack)
@@ -297,11 +299,14 @@ checkFile fn maybeChkSum = do
                 when (fnChkSum /= chkSum) $ throwM (PoseidonFileChecksumException fn)
 
 -- helper functions to get the checksum of a file
+getChk :: (MonadIO m) => FilePath -> m String
+getChk = liftIO . getChecksum
 getChecksum :: FilePath -> IO String
-getChecksum f = do
-    fileContent <- LB.readFile f
-    let md5Digest = md5 fileContent
-    return $ show md5Digest
+getChecksum f =
+    withBinaryFile f ReadMode $ \h -> do
+        contents <- BL.hGetContents h
+        digest <- evaluate (MD5.hashlazy contents)
+        pure $ B8.unpack $ B16.encode digest
 
 -- helper function to check line endings of text files
 -- only considers the first line:
