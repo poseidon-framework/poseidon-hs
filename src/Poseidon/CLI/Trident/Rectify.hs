@@ -75,8 +75,11 @@ needsRectification pac = do
     return needsRect
 
 goodChecksum :: (MonadIO m) => FilePath -> Maybe FilePath -> Maybe String -> m Bool
+-- no file: ok
 goodChecksum _ Nothing _ = return True
-goodChecksum _ _ Nothing = return True
+-- no checksum: not ok
+goodChecksum _ _ Nothing = return False
+-- file and checksum: is the checksum correct?
 goodChecksum baseDir (Just file) (Just expectedCheckSum) = do
     let f = baseDir </> file
     exists <- liftIO . doesFileExist $ f

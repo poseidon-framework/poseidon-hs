@@ -1,3 +1,8 @@
+- V 2.3.0.0:
+    - Split the functionality of `rectify` into a new subcommand `modify` that exactly mirrors the former `rectify`, and a new `rectify` that just adds and adjusts checksums and increments version numbers to make recently changed package pass validation again.
+- V 2.2.2.2:
+    - Switched to newer version of sequence-formats, improving genotype data parsing error messages.
+    - Changed "PoseidonID" to the correct "Poseidon_ID" in an error message and on the server website.
 - V 2.2.2.1:
     - Update of the sequence-formats dependency because of a purely technical build issue on windows, caused by a non-standard directory name.
 - V 2.2.2.0:
