@@ -718,54 +718,33 @@ testPipelineModify testDir checkFilePath = do
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let modifyOpts2 = ModifyOptions {
-          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _modifyPoseidonVersion = Just $ makeVersion [2,7,1]
-        , _modifyIgnorePoseidonVersion = False
+    let modifyOpts2 = modifyOpts1 {
+          _modifyPoseidonVersion = Just $ makeVersion [2,7,1]
         , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Minor (Just "test2"))
         , _modifyChecksums = ChecksumAll
-        , _modifyNewContributors = Nothing
-        , _modifyJannoRemoveEmptyCols = False
-        , _modifyUpdateNrSNPs = False
-        , _modifyOnlyLatest = False
-        , _modifyForce = False
         }
     let action2 = testLog (runModify modifyOpts2) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action2 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let modifyOpts3 = ModifyOptions {
-          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _modifyPoseidonVersion = Nothing
-        , _modifyIgnorePoseidonVersion = False
-        , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
-        , _modifyChecksums = ChecksumNone
+    let modifyOpts3 = modifyOpts1 {
+          _modifyPackageVersionUpdate = Just (PackageVersionUpdate Patch Nothing)
         , _modifyNewContributors = Just [
               ContributorSpec "Josiah Carberry" "carberry@brown.edu" (Just $ ORCID {_orcidNums = "000000021825009", _orcidChecksum = '7'})
             , ContributorSpec "Herbert Testmann" "herbert@testmann.tw" Nothing
             ]
-        , _modifyJannoRemoveEmptyCols = False
-        , _modifyUpdateNrSNPs = False
-        , _modifyOnlyLatest = False
-        , _modifyForce = False
         }
     let action3 = testLog (runModify modifyOpts3) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action3 "modify" [
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         ]
-    let modifyOpts4 = ModifyOptions {
-          _modifyBaseDirs = [testDir </> "init" </> "Schiffels"]
-        , _modifyPoseidonVersion = Nothing
-        , _modifyIgnorePoseidonVersion = False
-        , _modifyPackageVersionUpdate = Nothing
+    let modifyOpts4 = modifyOpts1 {
+          _modifyPackageVersionUpdate = Nothing
         , _modifyChecksums = ChecksumAll
-        , _modifyNewContributors = Nothing
         , _modifyJannoRemoveEmptyCols = True
-        , _modifyUpdateNrSNPs = False
-        , _modifyOnlyLatest = False
-        , _modifyForce = False
+        , _modifyUpdateNrSNPs = True
         }
     let action4 = testLog (runModify modifyOpts4) >> patchLastModified testDir ("init" </> "Schiffels" </> "POSEIDON.yml")
     runAndChecksumFiles checkFilePath testDir action4 "modify" [
