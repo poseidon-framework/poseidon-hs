@@ -11,6 +11,7 @@ module Poseidon.Core.Package (
     findAllPoseidonYmlFiles,
     checkJannoIndConsistency,
     checkGenoFiles,
+    readPoseidonYaml,
     readPoseidonPackageCollection,
     readPoseidonPackageCollectionWithSkipIndicator,
     getJointGenotypeData,
@@ -431,6 +432,13 @@ readPoseidonPackageCollectionWithSkipIndicator opts baseDirs = do
         logDebug $ "Package " ++ show numberPackage ++ ": " ++ path
         try . readPoseidonPackage opts $ path
 
+readPoseidonYaml :: FilePath -> IO PoseidonYamlStruct
+readPoseidonYaml path = do
+    bs <- liftIO $ B.readFile path
+    case decodeEither' bs of
+        Left err -> throwM $ PoseidonYamlParseException path err
+        Right x  -> return x
+
 -- | A function to read in a poseidon package from a YAML file. Note that this function calls the addFullPaths function to
 -- make paths absolute.
 readPoseidonPackage :: PackageReadOptions
@@ -438,12 +446,10 @@ readPoseidonPackage :: PackageReadOptions
                     -> PoseidonIO PoseidonPackage -- ^ the returning package returned in the IO monad.
 readPoseidonPackage opts ymlPath = do
     let baseDir = takeDirectory ymlPath
-    bs <- liftIO $ B.readFile ymlPath
 
     -- read yml files
-    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <- case decodeEither' bs of
-        Left err  -> throwM $ PoseidonYamlParseException ymlPath err
-        Right pac -> return pac
+    yml@(PoseidonYamlStruct ver tit des con pacVer mod_ lic geno jannoF jannoC seqSourceF seqSourceC bibF bibC readF changeF) <-
+        liftIO $ readPoseidonYaml ymlPath
     checkYML yml
 
     -- file existence and checksum test
