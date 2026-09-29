@@ -486,7 +486,7 @@ readPoseidonPackage opts ymlPath = do
     -- read bib (or fill with empty list)
     bib <- case poseidonBibFilePath baseDir yml of
         Nothing -> return ([] :: BibTeX)
-        Just p  -> liftIO $ readBibTeXFile p
+        Just p  -> readBibTeXFile p
     liftIO $ checkJannoBibConsistency tit janno bib
 
     when (_readOptFullGeno opts) $ do
