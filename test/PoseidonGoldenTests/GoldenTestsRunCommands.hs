@@ -154,6 +154,12 @@ patchValidateCLIOutput testDir file = do
             l <- lines_
             if "Validating:" `T.isPrefixOf` l
             then return "Validating: some/path"
+            -- the DOI validation warning messages starting with "In file ..." cause an issue for
+            -- our golden test pipeline:
+            -- For whatever reason the order of warnings can differ between systems.
+            -- That means the checksum of the CLI output golden test files differs and the tests fail.
+            -- To avoid this we replace the real warning with "DOI validation" in the test environment
+            -- and thus keep the checksum stable no matter the order.
             else if "In file" `T.isPrefixOf` l
                  then return "DOI validation"
                  else return l
