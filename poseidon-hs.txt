@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.2.2.2
+@version 2.2.3.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -1506,7 +1506,7 @@ instance Data.Aeson.Types.ToJSON.ToJSON Poseidon.Core.Contributor.ORCID
 
 module Poseidon.Core.BibFile
 dummyBibEntry :: BibEntry
-readBibTeXFile :: FilePath -> IO BibTeX
+readBibTeXFile :: FilePath -> PoseidonIO BibTeX
 writeBibTeXFile :: FilePath -> BibTeX -> IO ()
 type BibTeX = [BibEntry]
 data BibEntry
