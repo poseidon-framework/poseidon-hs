@@ -12,6 +12,7 @@ import           Control.Monad.IO.Class             (liftIO)
 import           Data.Char                          (toLower)
 import           Data.List                          (intercalate)
 import           Data.List.Split                    (splitOn)
+import qualified Data.Map.Ordered.Strict            as OM
 import           Data.String.Utils                  (strip)
 import           System.FilePath                    (takeDirectory,
                                                      takeFileName, (</>))
@@ -30,7 +31,7 @@ import           Text.Regex.TDFA                    ((=~))
 data BibEntry = BibEntry
     { bibEntryType   :: String
     , bibEntryId     :: String
-    , bibEntryFields :: [(String, String)]
+    , bibEntryFields :: OM.OMap String String
     }
     deriving (Show)
 
@@ -46,7 +47,7 @@ dummyBibEntry :: BibEntry
 dummyBibEntry = BibEntry
     { bibEntryType   = "article"
     , bibEntryId     = "exampleBibtexKey"
-    , bibEntryFields = [
+    , bibEntryFields = OM.fromList [
        ("title", "Example Paper"),
        ("author", "Doe, John"),
        ("year", "2018"),
@@ -82,8 +83,8 @@ checkDOI bibPath x@(BibEntry _ i _) = do
 
 extractDOI :: BibEntry -> Maybe String
 extractDOI (BibEntry _ _ fields) =
-    let fieldsLowerKeys = map (\(k,x) -> (map toLower k, x)) fields
-    in lookup "doi" fieldsLowerKeys
+    -- let fieldsLowerKeys = map (\(k,x) -> (map toLower k, x)) fields
+    OM.lookup "doi" fields
 
 -- derived from https://www.crossref.org/blog/dois-and-matching-regular-expressions
 validDOI :: String -> Bool
@@ -114,7 +115,7 @@ renderBibEntry (BibEntry entryType bibId items) =
     let formatItem (name, value_) =
             "  " ++ name ++ " = {" ++ value_ ++ "},\n"
     in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
-        concatMap formatItem items ++ "}\n"
+        concatMap formatItem (OM.assocs items) ++ "}\n"
 
 bibFileParser :: Parser [BibEntry]
 bibFileParser = bibCommentParser >> sepEndBy bibEntryParser bibCommentParser
@@ -128,7 +129,7 @@ bibEntryParser =
       braces $
          liftM2 (BibEntry entryType)
             (try bibIdentifier)
-            (comma >> sepEndBy assignment comma)
+            (comma >> (OM.fromList <$> sepEndBy assignment comma))
 
 identifier :: CharParser st String
 identifier = T.identifier lexer
@@ -154,7 +155,7 @@ lexeme = T.lexeme lexer
 assignment :: Parser (String, String)
 assignment =
    liftM2 (,)
-      bibIdentifier
+      (map toLower <$> bibIdentifier)
       (equals >> value)
 
 equals :: CharParser st String
