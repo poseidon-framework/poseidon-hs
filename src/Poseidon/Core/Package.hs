@@ -110,6 +110,7 @@ import qualified Data.HashMap.Strict            as HM
 import           Data.List                      (elemIndex, group, groupBy,
                                                  intercalate, nub, sort, sortOn,
                                                  (\\))
+import qualified Data.Map.Ordered.Strict        as OM
 import           Data.Maybe                     (catMaybes, fromMaybe,
                                                  isNothing, mapMaybe)
 import qualified Data.Text                      as T
@@ -1044,11 +1045,11 @@ getBibliographyInfo allPackages addColSpec = do
                 return ()
         let addBibEntries = case addColSpec of
                 -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
-                AddColAll -> [(k, Just v) | (k, v) <- bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
+                AddColAll -> [(k, Just v) | (k, v) <- OM.assocs bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
                 -- with a selecton of colNames we just query the bib-fields for those exact fields.
-                AddColList colNames -> [(T.unpack colName, T.unpack colName `lookup` bibFields) | colName <- colNames]
-        return $ BibliographyInfo nrSamples bibId ("title" `lookup` bibFields)
-            ("author" `lookup` bibFields) ("year" `lookup` bibFields) ("journal" `lookup` bibFields)
-            ("doi" `lookup` bibFields) addBibEntries
+                AddColList colNames -> [(colName, colName `OM.lookup` bibFields) | colName <- colNames]
+        return $ BibliographyInfo nrSamples bibId ("title" `OM.lookup` bibFields)
+            ("author" `OM.lookup` bibFields) ("year" `OM.lookup` bibFields) ("journal" `OM.lookup` bibFields)
+            ("doi" `OM.lookup` bibFields) addBibEntries
 
 

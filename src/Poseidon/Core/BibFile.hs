@@ -9,10 +9,11 @@ import           Control.Monad                      (forM, forM_, liftM2,
                                                      liftM3, unless)
 import           Control.Monad.Catch                (MonadThrow, throwM)
 import           Control.Monad.IO.Class             (liftIO)
-import           Data.Char                          (toLower)
 import           Data.List                          (intercalate)
 import           Data.List.Split                    (splitOn)
+import qualified Data.Map.Ordered.Strict            as OM
 import           Data.String.Utils                  (strip)
+import qualified Data.Text                          as T
 import           System.FilePath                    (takeDirectory,
                                                      takeFileName, (</>))
 import           System.IO                          (IOMode (..), hPutStrLn,
@@ -23,14 +24,14 @@ import           Text.Parsec                        (between, char, many, many1,
 import           Text.Parsec.Char                   (alphaNum, digit, letter)
 import           Text.Parsec.Language               (emptyDef)
 import           Text.Parsec.String                 (Parser, parseFromFile)
-import qualified Text.Parsec.Token                  as T
+import qualified Text.Parsec.Token                  as TO
 import           Text.ParserCombinators.Parsec.Char (CharParser)
 import           Text.Regex.TDFA                    ((=~))
 
 data BibEntry = BibEntry
     { bibEntryType   :: String
     , bibEntryId     :: String
-    , bibEntryFields :: [(String, String)]
+    , bibEntryFields :: OM.OMap T.Text T.Text
     }
     deriving (Show)
 
@@ -46,7 +47,7 @@ dummyBibEntry :: BibEntry
 dummyBibEntry = BibEntry
     { bibEntryType   = "article"
     , bibEntryId     = "exampleBibtexKey"
-    , bibEntryFields = [
+    , bibEntryFields = OM.fromList [
        ("title", "Example Paper"),
        ("author", "Doe, John"),
        ("year", "2018"),
@@ -78,15 +79,15 @@ checkDOI bibPath x@(BibEntry _ i _) = do
             unless (validDOI doiString) $ do
                 logWarning $ "In file " ++ displayPath ++ " in entry " ++ i ++ ": " ++
                              "DOI looks suspicious and may not be valid (" ++
-                             doiString ++ ")"
+                             T.unpack doiString ++ ")"
 
-extractDOI :: BibEntry -> Maybe String
+extractDOI :: BibEntry -> Maybe T.Text
 extractDOI (BibEntry _ _ fields) =
-    let fieldsLowerKeys = map (\(k,x) -> (map toLower k, x)) fields
-    in lookup "doi" fieldsLowerKeys
+    -- let fieldsLowerKeys = map (\(k,x) -> (map toLower k, x)) fields
+    OM.lookup "doi" fields
 
 -- derived from https://www.crossref.org/blog/dois-and-matching-regular-expressions
-validDOI :: String -> Bool
+validDOI :: T.Text -> Bool
 validDOI s = s =~ ("^10\\.[0-9]{4,9}/[-._;()/:A-Za-z0-9]+$" :: String)
 
 shortBibPath :: FilePath -> FilePath
@@ -112,9 +113,9 @@ writeBibTeXFile path entries = withFile path WriteMode $ \outH -> do
 renderBibEntry :: BibEntry -> String
 renderBibEntry (BibEntry entryType bibId items) =
     let formatItem (name, value_) =
-            "  " ++ name ++ " = {" ++ value_ ++ "},\n"
+            "  " ++ T.unpack name ++ " = {" ++ T.unpack value_ ++ "},\n"
     in  "@" ++ entryType ++ "{" ++ bibId ++ ",\n" ++
-        concatMap formatItem items ++ "}\n"
+        concatMap formatItem (OM.assocs items) ++ "}\n"
 
 bibFileParser :: Parser [BibEntry]
 bibFileParser = bibCommentParser >> sepEndBy bibEntryParser bibCommentParser
@@ -127,45 +128,47 @@ bibEntryParser =
    do entryType <- char '@' >> identifier
       braces $
          liftM2 (BibEntry entryType)
-            (try bibIdentifier)
-            (comma >> sepEndBy assignment comma)
+            (T.unpack <$> try bibIdentifier)
+            (comma >> (OM.fromList <$> sepEndBy assignment comma))
 
 identifier :: CharParser st String
-identifier = T.identifier lexer
+identifier = TO.identifier lexer
 
-lexer :: T.TokenParser st
+lexer :: TO.TokenParser st
 lexer =
-   T.makeTokenParser $ emptyDef {
-      T.commentLine = "%",
-      T.identStart = alphaNum,
-      T.identLetter = alphaNum
+   TO.makeTokenParser $ emptyDef {
+      TO.commentLine = "%",
+      TO.identStart = alphaNum,
+      TO.identLetter = alphaNum
    }
 
 braces :: CharParser st a -> CharParser st a
-braces = T.braces lexer
+braces = TO.braces lexer
 
-bibIdentifier :: Parser String
+bibIdentifier :: Parser T.Text
 bibIdentifier = lexeme $
-   liftM2 (:) (alphaNum <|> char '_') (many (alphaNum <|> oneOf "&;:-_.?+/"))
+   T.pack <$> liftM2 (:) (alphaNum <|> char '_') (many (alphaNum <|> oneOf "&;:-_.?+/"))
 
 lexeme :: CharParser st a -> CharParser st a
-lexeme = T.lexeme lexer
+lexeme = TO.lexeme lexer
 
-assignment :: Parser (String, String)
+assignment :: Parser (T.Text, T.Text)
 assignment =
    liftM2 (,)
-      bibIdentifier
+      (T.toLower <$> bibIdentifier)
       (equals >> value)
 
 equals :: CharParser st String
-equals = T.symbol lexer "="
+equals = TO.symbol lexer "="
 
-value :: Parser String
+value :: Parser T.Text
 value =
-   lexeme (many1 letter) <|> -- for fields like: month = jul
-   lexeme (many1 digit)  <|> -- for fields like: year = 2010
-   braces (texSequence '}') <|>
-   lexeme (between (char '"') (char '"') (texSequence '"'))
+  T.pack <$> (
+     lexeme (many1 letter) <|> -- for fields like: month = jul
+     lexeme (many1 digit)  <|> -- for fields like: year = 2010
+     braces (texSequence '}') <|>
+     lexeme (between (char '"') (char '"') (texSequence '"'))
+   )
 
 texSequence :: Char -> Parser String
 texSequence closeChar =
@@ -182,7 +185,7 @@ texBlock closeChar =
 
 
 comma :: CharParser st String
-comma = T.comma lexer
+comma = TO.comma lexer
 
 parseAuthors :: (MonadThrow m) => String -> m [(String, String)] -- parses a string of authors to a list of first names and last names
 parseAuthors authorString = forM (splitOn " and " (intercalate " " . map strip . lines $ authorString)) $ \singleAuthorStr -> do
