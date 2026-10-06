@@ -1047,7 +1047,7 @@ getBibliographyInfo allPackages addColSpec = do
                 -- with "all" we include all existing additional bib-entries except for the canonical ones that we anyway look up.
                 AddColAll -> [(k, Just v) | (k, v) <- OM.assocs bibFields, k `notElem` ["title", "author", "year", "journal", "doi"]]
                 -- with a selecton of colNames we just query the bib-fields for those exact fields.
-                AddColList colNames -> [(T.unpack colName, T.unpack colName `OM.lookup` bibFields) | colName <- colNames]
+                AddColList colNames -> [(colName, colName `OM.lookup` bibFields) | colName <- colNames]
         return $ BibliographyInfo nrSamples bibId ("title" `OM.lookup` bibFields)
             ("author" `OM.lookup` bibFields) ("year" `OM.lookup` bibFields) ("journal" `OM.lookup` bibFields)
             ("doi" `OM.lookup` bibFields) addBibEntries
