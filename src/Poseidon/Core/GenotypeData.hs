@@ -45,7 +45,7 @@ import           SequenceFormats.Eigenstrat       (EigenstratIndEntry (..),
 import           SequenceFormats.FreqSum          (FreqSumEntry (..))
 import           SequenceFormats.Plink            (plinkFam2EigenstratInd,
                                                    readFamFile, readPlink)
-import SequenceFormats.Utils (unChrom)
+import           SequenceFormats.Utils            (unChrom)
 import           SequenceFormats.VCF              (VCFentry (..),
                                                    VCFheader (..),
                                                    readVCFfromFile,
