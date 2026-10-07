@@ -45,6 +45,7 @@ import           SequenceFormats.Eigenstrat       (EigenstratIndEntry (..),
 import           SequenceFormats.FreqSum          (FreqSumEntry (..))
 import           SequenceFormats.Plink            (plinkFam2EigenstratInd,
                                                    readFamFile, readPlink)
+import SequenceFormats.Utils (unChrom)
 import           SequenceFormats.VCF              (VCFentry (..),
                                                    VCFheader (..),
                                                    readVCFfromFile,
@@ -283,20 +284,24 @@ vcf2eigenstratPipe :: (MonadThrow m) => Pipe VCFentry (EigenstratSnpEntry, GenoL
 vcf2eigenstratPipe = for cat $ \vcfEntry -> do
     -- freqSum is a useful intermediate format.
     -- vcfToFreqSumEntry already does a bunch of checks of the VCF data.
-    (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) <- vcfToFreqSumEntry vcfEntry
-    let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (fromMaybe 0.0 geneticPos) (fromMaybe "" snpId_) ref alt
-    genoLine <- V.fromList <$> forM alleleCounts (\dosage -> do
-        case dosage of
-            Nothing     -> return Missing
-            Just (0, 1) -> return HomRef
-            Just (1, 1) -> return HomAlt
-            Just (0, 2) -> return HomRef
-            Just (1, 2) -> return Het
-            Just (2, 2) -> return HomAlt
-            _ -> throwM . PoseidonGenotypeException $
-                "illegal dosage in VCF file! Make sure genotypes in your VCF \
-                \file are biallelic and either haploid or diploid")
-    yield (eigenstratSnpEntry, genoLine)
+    mFreqSumEntry <- vcfToFreqSumEntry vcfEntry
+    case mFreqSumEntry of
+        Just (FreqSumEntry chrom pos snpId_ geneticPos ref alt alleleCounts) -> do
+            let snpId' = fromMaybe (unChrom chrom <> "_" <> B.pack (show pos)) snpId_
+            let eigenstratSnpEntry = EigenstratSnpEntry chrom pos (fromMaybe 0.0 geneticPos) snpId' ref alt
+            genoLine <- V.fromList <$> forM alleleCounts (\dosage -> do
+                case dosage of
+                    Nothing     -> return Missing
+                    Just (0, 1) -> return HomRef
+                    Just (1, 1) -> return HomAlt
+                    Just (0, 2) -> return HomRef
+                    Just (1, 2) -> return Het
+                    Just (2, 2) -> return HomAlt
+                    _ -> throwM . PoseidonGenotypeException $
+                        "illegal dosage in VCF file! Make sure genotypes in your VCF \
+                        \file are biallelic and either haploid or diploid")
+            yield (eigenstratSnpEntry, genoLine)
+        Nothing -> return ()
 
 joinEntries :: [Int] -> [String] -> Bool -> [Maybe (EigenstratSnpEntry, GenoLine)] -> Either String (Maybe (EigenstratSnpEntry, GenoLine))
 joinEntries _      _        _           [onePac] = Right onePac -- if we only have one package, we can skip the whole consensus and recoding step.

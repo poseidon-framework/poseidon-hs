@@ -1,3 +1,6 @@
+- V 2.2.3.1:
+    - Updated to sequence-formats-1.12.1.0, which greatly improves error messages for binary files (both gzipped files and bed files).
+    - block-wise zip files are now correctly handled.
 - V 2.2.3.0:
     - Added basic DOI validation to `readBibTeXFile`: A warning now reports devitations from a general regex pattern.
 - V 2.2.2.2:
