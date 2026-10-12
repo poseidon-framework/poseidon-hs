@@ -121,10 +121,9 @@ runModify (ModifyOptions
             updatedJanno <- if updateNrSNPs
                             then do
                                 nrSNPs <- countSNPs inPac
-                                nrSNPsFrozen <- liftIO $ VU.freeze nrSNPs
                                 let updatedRows = zipWith
                                         (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
-                                        inJannoRows (VU.toList nrSNPsFrozen)
+                                        inJannoRows (VU.toList nrSNPs)
                                 return $ JannoRows updatedRows
                             else return $ JannoRows inJannoRows
             when (updateNrSNPs || jannoRemoveEmptyCols) $
@@ -149,7 +148,7 @@ runModify (ModifyOptions
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
 
-countSNPs :: PoseidonPackage -> PoseidonIO (VUM.IOVector Int)
+countSNPs :: PoseidonPackage -> PoseidonIO (VU.Vector Int)
 countSNPs pac = do
     logInfo "Counting SNPs..."
     let nrInds = length . getJannoRows . posPacJanno $ pac
@@ -163,8 +162,9 @@ countSNPs pac = do
             let startAcc = liftIO $ VUM.replicate nrInds 0
             P.foldM sumNonMissingSNPs startAcc return forgePipe
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
-    logInfo "Done"
-    return newNrSNPs
+    newNrSNPsFrozen <- liftIO $ VU.freeze newNrSNPs
+    logInfo "Completed SNP count"
+    return newNrSNPsFrozen
 
 updatePoseidonVersion :: Maybe Version -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updatePoseidonVersion Nothing    pac = return pac
