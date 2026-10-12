@@ -8,7 +8,7 @@
 --   databases, a modular system for storing genotype data from thousands
 --   of individuals.
 @package poseidon-hs
-@version 2.2.3.0
+@version 2.3.0.0
 
 module Poseidon.Analysis.Generator.Types
 data IndConcrete
@@ -1186,6 +1186,7 @@ checkFile :: FilePath -> Maybe String -> PoseidonIO ()
 checkLineEnding :: FilePath -> PoseidonIO ()
 checkLineEndingIfNotZipped :: FilePath -> PoseidonIO ()
 getChecksum :: FilePath -> IO String
+getChk :: MonadIO m => FilePath -> m String
 logWarning :: String -> PoseidonIO ()
 logInfo :: String -> PoseidonIO ()
 logDebug :: String -> PoseidonIO ()
@@ -1456,6 +1457,7 @@ printSNPCopyProgress :: MonadIO m => LogA -> UTCTime -> Pipe a a m ()
 selectIndices :: [Int] -> (EigenstratSnpEntry, GenoLine) -> (EigenstratSnpEntry, GenoLine)
 writeVCF :: MonadSafe m => LogA -> [JannoRow] -> FilePath -> Consumer (EigenstratSnpEntry, GenoLine) m ()
 createVCFentry :: MonadIO m => LogA -> [JannoRow] -> (EigenstratSnpEntry, GenoLine) -> m VCFentry
+sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
 instance GHC.Classes.Eq Poseidon.Core.GenotypeData.GenotypeFileSpec
 instance GHC.Show.Show Poseidon.Core.GenotypeData.GenotypeFileSpec
 instance GHC.Classes.Eq Poseidon.Core.GenotypeData.SNPSetSpec
@@ -1975,6 +1977,7 @@ LicenseSpec :: String -> Maybe String -> Maybe FilePath -> LicenseSpec
 findAllPoseidonYmlFiles :: FilePath -> IO [FilePath]
 checkJannoIndConsistency :: String -> JannoRows -> [EigenstratIndEntry] -> Bool -> IO ()
 checkGenoFiles :: Bool -> FilePath -> GenotypeFileSpec -> PoseidonIO ()
+readPoseidonYaml :: FilePath -> IO PoseidonYamlStruct
 readPoseidonPackageCollection :: PackageReadOptions -> [FilePath] -> PoseidonIO [PoseidonPackage]
 
 -- | a utility function to load all poseidon packages found recursively in
@@ -2326,7 +2329,6 @@ pacReadOpts :: PackageReadOptions
 
 -- | The main function running the forge command
 runForge :: ForgeOptions -> PoseidonIO ()
-sumNonMissingSNPs :: IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (IOVector Int)
 filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
 filterBibEntries :: JannoRows -> BibTeX -> BibTeX
 fillMissingSnpSets :: [PoseidonPackage] -> PoseidonIO [SNPSetSpec]
@@ -2507,30 +2509,43 @@ UpdateChron :: FilePath -> ChronOperation
 pacReadOpts :: PackageReadOptions
 runChronicle :: ChronicleOptions -> PoseidonIO ()
 
-module Poseidon.CLI.Trident.Rectify
-runRectify :: RectifyOptions -> PoseidonIO ()
-data RectifyOptions
-RectifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToRectify -> Maybe [ContributorSpec] -> Bool -> Bool -> RectifyOptions
-[_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
-[_rectifyIgnorePoseidonVersion] :: RectifyOptions -> Bool
-[_rectifyPoseidonVersion] :: RectifyOptions -> Maybe Version
-[_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
-[_rectifyChecksums] :: RectifyOptions -> ChecksumsToRectify
-[_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
-[_rectifyJannoRemoveEmptyCols] :: RectifyOptions -> Bool
-[_rectifyOnlyLatest] :: RectifyOptions -> Bool
+module Poseidon.CLI.Trident.Modify
+runModify :: ModifyOptions -> PoseidonIO ()
+data ModifyOptions
+ModifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToModify -> Maybe [ContributorSpec] -> Bool -> Bool -> Bool -> Bool -> ModifyOptions
+[_modifyBaseDirs] :: ModifyOptions -> [FilePath]
+[_modifyIgnorePoseidonVersion] :: ModifyOptions -> Bool
+[_modifyPoseidonVersion] :: ModifyOptions -> Maybe Version
+[_modifyPackageVersionUpdate] :: ModifyOptions -> Maybe PackageVersionUpdate
+[_modifyChecksums] :: ModifyOptions -> ChecksumsToModify
+[_modifyNewContributors] :: ModifyOptions -> Maybe [ContributorSpec]
+[_modifyJannoRemoveEmptyCols] :: ModifyOptions -> Bool
+[_modifyUpdateNrSNPs] :: ModifyOptions -> Bool
+[_modifyOnlyLatest] :: ModifyOptions -> Bool
+[_modifyForce] :: ModifyOptions -> Bool
 data PackageVersionUpdate
 PackageVersionUpdate :: VersionComponent -> Maybe String -> PackageVersionUpdate
 [_pacVerUpVersionComponent] :: PackageVersionUpdate -> VersionComponent
 [_pacVerUpLog] :: PackageVersionUpdate -> Maybe String
-data ChecksumsToRectify
-ChecksumNone :: ChecksumsToRectify
-ChecksumAll :: ChecksumsToRectify
-ChecksumsDetail :: Bool -> Bool -> Bool -> Bool -> ChecksumsToRectify
-[_rectifyChecksumGeno] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumJanno] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumSSF] :: ChecksumsToRectify -> Bool
-[_rectifyChecksumBib] :: ChecksumsToRectify -> Bool
+data ChecksumsToModify
+ChecksumNone :: ChecksumsToModify
+ChecksumAll :: ChecksumsToModify
+ChecksumsDetail :: Bool -> Bool -> Bool -> Bool -> ChecksumsToModify
+[_modifyChecksumGeno] :: ChecksumsToModify -> Bool
+[_modifyChecksumJanno] :: ChecksumsToModify -> Bool
+[_modifyChecksumSSF] :: ChecksumsToModify -> Bool
+[_modifyChecksumBib] :: ChecksumsToModify -> Bool
+updateChecksums :: ChecksumsToModify -> PoseidonPackage -> PoseidonIO PoseidonPackage
+addContributors :: Maybe [ContributorSpec] -> PoseidonPackage -> PoseidonIO PoseidonPackage
+completeAndWritePackage :: Maybe PackageVersionUpdate -> PoseidonPackage -> PoseidonIO ()
+
+module Poseidon.CLI.Trident.Rectify
+runRectify :: RectifyOptions -> PoseidonIO ()
+data RectifyOptions
+RectifyOptions :: [FilePath] -> Maybe PackageVersionUpdate -> Maybe [ContributorSpec] -> RectifyOptions
+[_rectifyBaseDirs] :: RectifyOptions -> [FilePath]
+[_rectifyPackageVersionUpdate] :: RectifyOptions -> Maybe PackageVersionUpdate
+[_rectifyNewContributors] :: RectifyOptions -> Maybe [ContributorSpec]
 
 module Poseidon.CLI.Trident.OptparseApplicativeParsers
 parseChronOperation :: Parser ChronOperation
@@ -2545,13 +2560,14 @@ parseLogMode :: Parser LogMode
 parseTestMode :: Parser TestMode
 parseErrorLength :: Parser ErrorLength
 parseRemoveOld :: Parser Bool
-parseChecksumsToRectify :: Parser ChecksumsToRectify
+parseChecksumsToRectify :: Parser ChecksumsToModify
 parseMaybePackageVersionUpdate :: Parser (Maybe PackageVersionUpdate)
 parseVersionComponent :: Parser VersionComponent
 parseNoChecksumUpdate :: Parser Bool
 parseMaybeContributors :: Parser (Maybe [ContributorSpec])
 parseContributors :: Parser [ContributorSpec]
 readContributorString :: String -> Either String [ContributorSpec]
+parseUpdateNrSNPs :: Parser Bool
 parseJannoRemoveEmptyCols :: Parser Bool
 parseMaybeLog :: Parser (Maybe String)
 parseLog :: Parser String
