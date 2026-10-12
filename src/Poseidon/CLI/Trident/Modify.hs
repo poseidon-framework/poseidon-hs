@@ -11,7 +11,6 @@ import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
                                                  renderNameWithVersion)
 import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
                                                  GenotypeFileSpec (..),
-                                                 loadIndividuals,
                                                  printSNPCopyProgress)
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
                                                  makeJannoHeader,
@@ -153,7 +152,7 @@ runModify (ModifyOptions
 countSNPs :: PoseidonPackage -> PoseidonIO (VUM.IOVector Int)
 countSNPs pac = do
     logInfo "Counting SNPs..."
-    inds <- loadIndividuals (posPacBaseDir pac) (posPacGenotypeData pac)
+    let nrInds = length . getJannoRows . posPacJanno $ pac
     logA <- envLogAction
     currentTime <- liftIO getCurrentTime
     errLength <- envErrorLength
@@ -161,7 +160,7 @@ countSNPs pac = do
         runSafeT $ do
             eigenstratProd <- getJointGenotypeData logA False False False [pac] Nothing
             let forgePipe = eigenstratProd >-> printSNPCopyProgress logA currentTime
-            let startAcc = liftIO $ VUM.replicate (length inds) 0
+            let startAcc = liftIO $ VUM.replicate nrInds 0
             P.foldM sumNonMissingSNPs startAcc return forgePipe
         ) (throwIO . PoseidonGenotypeExceptionForward errLength)
     logInfo "Done"
