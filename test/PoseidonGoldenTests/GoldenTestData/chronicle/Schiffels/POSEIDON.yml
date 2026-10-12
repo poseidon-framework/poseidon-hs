@@ -19,7 +19,7 @@ genotypeData:
   indFileChkSum: f77dc756666dbfef3bb35191ae15a167
   snpSet: Other
 jannoFile: Schiffels.janno
-jannoFileChkSum: 083fe7ef4206c979356a3a2454d780b1
+jannoFileChkSum: 739bfa83c5fc4c6325be34d59078b13a
 bibFile: Schiffels.bib
 bibFileChkSum: 9edc4a757f785a8ecb59c54d16c5690a
 changelogFile: CHANGELOG.md

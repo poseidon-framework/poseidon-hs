@@ -27,7 +27,7 @@ import           Poseidon.Core.GenotypeData     (GenoDataSource (..),
                                                  SNPSetSpec (..),
                                                  printSNPCopyProgress,
                                                  selectIndices, snpSetMergeList,
-                                                 writeVCF)
+                                                 sumNonMissingSNPs, writeVCF)
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
                                                  jannoRows2EigenstratIndEntries,
                                                  makeJannoHeader,
@@ -54,8 +54,7 @@ import           Poseidon.Core.Utils            (PoseidonException (..),
                                                  logInfo, logWarning, uniqueRO)
 
 import           Control.Exception              (catch, throwIO)
-import           Control.Monad                  (filterM, forM, forM_, unless,
-                                                 when)
+import           Control.Monad                  (filterM, forM, unless, when)
 import qualified Data.ByteString                as B
 import qualified Data.ByteString.Char8          as BC
 import qualified Data.HashMap.Strict            as HM
@@ -67,10 +66,8 @@ import qualified Data.Vector.Unboxed            as VU
 import qualified Data.Vector.Unboxed.Mutable    as VUM
 import           Pipes                          (MonadIO (liftIO), cat, (>->))
 import qualified Pipes.Prelude                  as P
-import           Pipes.Safe                     (SafeT, runSafeT)
-import           SequenceFormats.Eigenstrat     (EigenstratSnpEntry (..),
-                                                 GenoEntry (..), GenoLine,
-                                                 writeEigenstrat)
+import           Pipes.Safe                     (runSafeT)
+import           SequenceFormats.Eigenstrat     (writeEigenstrat)
 import           SequenceFormats.Plink          (PlinkPopNameMode,
                                                  eigenstratInd2PlinkFam,
                                                  writePlink)
@@ -353,18 +350,6 @@ runForge (
             liftIO $ writeJannoFile (outPath </> outName <.> "janno")
                          header
                          (JannoRows jannoRowsWithNewSNPNumbers)
-
-sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
-sumNonMissingSNPs accumulator (_, geno) = do
-    forM_ (zip (V.toList geno) [0..]) $ \(g, i) -> do
-        let x = nonMissingToInt g
-        VUM.modify accumulator (+x) i
-    return accumulator
-  where
-    nonMissingToInt :: GenoEntry -> Int
-    nonMissingToInt x
-        | x == Missing = 0
-        | otherwise = 1
 
 filterSeqSourceRows :: JannoRows -> SeqSourceRows -> SeqSourceRows
 filterSeqSourceRows (JannoRows jRows) (SeqSourceRows sRows) =
