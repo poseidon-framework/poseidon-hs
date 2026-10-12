@@ -11,7 +11,8 @@ import           Poseidon.Core.EntityTypes      (HasNameAndVersion (..),
                                                  renderNameWithVersion)
 import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
                                                  GenotypeFileSpec (..),
-                                                 printSNPCopyProgress)
+                                                 printSNPCopyProgress,
+                                                 sumNonMissingSNPs)
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
                                                  writeJannoFile,
                                                  writeJannoFileWithoutEmptyCols)
@@ -45,7 +46,6 @@ import           Data.Version                   (Version (..), makeVersion,
 import           Pipes                          ((>->))
 import qualified Pipes.Prelude                  as P
 import           Pipes.Safe                     (runSafeT)
-import           Poseidon.CLI.Trident.Forge     (sumNonMissingSNPs)
 import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
 import           System.Directory               (doesFileExist, removeFile)
 import           System.Exit                    (exitFailure)
