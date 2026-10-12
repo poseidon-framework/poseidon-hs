@@ -3,6 +3,7 @@ module Poseidon.Core.BibFileSpec (spec) where
 import           Poseidon.Core.BibFile (BibEntry (..), authorAbbrvString,
                                         parseAuthors, readBibTeXFile,
                                         writeBibTeXFile)
+import           Poseidon.Core.Utils   (testLog)
 
 import           Test.Hspec
 
@@ -19,9 +20,9 @@ testBibReadWriteReadCycle = describe
         let testBibFileOut = "/tmp/poseidonBibFileTest.bib"
         it "reading, writing and reading again should maintain (general) consistcency" $ do
             -- perform actions
-            testReferences1 <- readBibTeXFile testBibFileIn
+            testReferences1 <- testLog $ readBibTeXFile testBibFileIn
             writeBibTeXFile testBibFileOut testReferences1
-            testReferences2 <- readBibTeXFile testBibFileOut
+            testReferences2 <- testLog $ readBibTeXFile testBibFileOut
 
             -- test outcome
             map bibEntryId testReferences1 `shouldMatchList` ["A1971", "B2014", "P2020"]

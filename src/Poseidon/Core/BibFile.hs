@@ -2,15 +2,19 @@
 module Poseidon.Core.BibFile (dummyBibEntry, readBibTeXFile, writeBibTeXFile, BibTeX, BibEntry(..), renderBibEntry, parseAuthors, authorAbbrvString) where
 
 import           Poseidon.Core.Utils                (PoseidonException (..),
+                                                     PoseidonIO, logWarning,
                                                      showParsecErr)
 
-import           Control.Exception                  (throwIO)
 import           Control.Monad                      (forM, forM_, liftM2,
-                                                     liftM3)
+                                                     liftM3, unless)
 import           Control.Monad.Catch                (MonadThrow, throwM)
+import           Control.Monad.IO.Class             (liftIO)
+import           Data.Char                          (toLower)
 import           Data.List                          (intercalate)
 import           Data.List.Split                    (splitOn)
 import           Data.String.Utils                  (strip)
+import           System.FilePath                    (takeDirectory,
+                                                     takeFileName, (</>))
 import           System.IO                          (IOMode (..), hPutStrLn,
                                                      withFile)
 import           Text.Parsec                        (between, char, many, many1,
@@ -21,6 +25,7 @@ import           Text.Parsec.Language               (emptyDef)
 import           Text.Parsec.String                 (Parser, parseFromFile)
 import qualified Text.Parsec.Token                  as T
 import           Text.ParserCombinators.Parsec.Char (CharParser)
+import           Text.Regex.TDFA                    ((=~))
 
 data BibEntry = BibEntry
     { bibEntryType   :: String
@@ -54,12 +59,43 @@ dummyBibEntry = BibEntry
       ]
     }
 
-readBibTeXFile :: FilePath -> IO BibTeX
+readBibTeXFile :: FilePath -> PoseidonIO BibTeX
 readBibTeXFile bibPath = do
-    res <- parseFromFile bibFileParser bibPath
+    res <- liftIO $ parseFromFile bibFileParser bibPath
     case res of
-        Left err   -> throwIO . PoseidonBibTeXException $ "In file " ++ bibPath ++ ": " ++ showParsecErr err
-        Right res_ -> return res_
+        Left err   -> throwM . PoseidonBibTeXException $ "In file " ++ bibPath ++ ": " ++ showParsecErr err
+        Right res_ -> do
+            mapM_ (checkDOI bibPath) res_
+            return res_
+
+-- check for missing and suspicious DOIs
+checkDOI :: FilePath -> BibEntry -> PoseidonIO ()
+checkDOI bibPath x@(BibEntry _ i _) = do
+    let displayPath = shortBibPath bibPath
+    case extractDOI x of
+        Nothing -> logWarning $ "In file " ++ displayPath ++ " in entry " ++ i ++ ": No DOI"
+        Just doiString ->
+            unless (validDOI doiString) $ do
+                logWarning $ "In file " ++ displayPath ++ " in entry " ++ i ++ ": " ++
+                             "DOI looks suspicious and may not be valid (" ++
+                             doiString ++ ")"
+
+extractDOI :: BibEntry -> Maybe String
+extractDOI (BibEntry _ _ fields) =
+    let fieldsLowerKeys = map (\(k,x) -> (map toLower k, x)) fields
+    in lookup "doi" fieldsLowerKeys
+
+-- derived from https://www.crossref.org/blog/dois-and-matching-regular-expressions
+validDOI :: String -> Bool
+validDOI s = s =~ ("^10\\.[0-9]{4,9}/[-._;()/:A-Za-z0-9]+$" :: String)
+
+shortBibPath :: FilePath -> FilePath
+shortBibPath path =
+    let dir  = takeFileName (takeDirectory path)
+        file = takeFileName path
+    in if dir == "." || null dir
+       then file
+       else dir </> file
 
 {-
 Much of the code below was shamelessly copied from the existing Haskell package "bibtex"

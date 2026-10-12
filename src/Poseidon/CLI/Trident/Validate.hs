@@ -130,7 +130,7 @@ runValidate (ValidateOptions (ValPlanSSF (VersionedFile pv path)) _ mandatorySSF
 runValidate (ValidateOptions (ValPlanBib path) _ _ noExitCode _) = do
     logInfo $ "Validating: " ++ path
     checkFile path Nothing
-    entries <- liftIO $ readBibTeXFile path
+    entries <- readBibTeXFile path
     logInfo $ "All " ++ show (length entries) ++ " entries are valid"
     conclude True noExitCode
 

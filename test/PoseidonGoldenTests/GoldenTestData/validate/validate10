@@ -4,6 +4,9 @@ Searching POSEIDON.yml files...
 1 found
 Checking Poseidon versions... 
 Initializing packages... 
+DOI validation
+DOI validation
+DOI validation
 Packages loaded: 1
 For packages below Poseidon v3.0.0 (poseidonVersion) values in the .janno columns Endogenous and Damage were rescaled from percent (0-100) to fractions (0-1).
 Validation passed
