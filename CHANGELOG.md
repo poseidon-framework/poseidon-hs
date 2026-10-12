@@ -1,3 +1,6 @@
+ V 2.3.0.0:
+    - Split the functionality of `rectify` into a new subcommand `modify` that mirrors the former `rectify`, and a new `rectify` that just adds and adjusts checksums and increments version numbers to make recently changed package pass validation again.
+    - Added an option `--updateNrSNPs` to `modify` to count the number of non-missing SNPs and add the count to the respective .janno column.
 - V 2.2.3.0:
     - Added basic DOI validation to `readBibTeXFile`: A warning now reports devitations from a general regex pattern.
 - V 2.2.2.2:

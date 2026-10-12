@@ -1,0 +1,11 @@
+Poseidon_ID	Group_Name	Genetic_Sex	Publication	AddCol1	AddCol2
+XXX001	POP1	M	Schiffels2016	v1	v2
+XXX002	POP2	F	Schiffels2016	v1	v2
+XXX003	POP1	M	Schiffels2016	v1	v2
+XXX004	POP2	F	Schiffels2016	v1	v2
+XXX005	POP2	M	Schiffels2016;TestPaper1	v1	v2
+XXX006	POP2	F	Schiffels2016;TestPaper1	v1	v2
+XXX007	POP1	M	Schiffels2016;TestBook1	v1	v2
+XXX008	POP3	F	Schiffels2016;TestBook1	v1	v2
+XXX009	POP1	F	Schiffels2016;TestPaper1;TestBook1	v1	v2
+XXX010	POP3	M	Schiffels2016;TestPaper1;TestBook1	v1	v2
