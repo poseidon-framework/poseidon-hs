@@ -1,0 +1,22 @@
+poseidonVersion: 2.6.0
+title: Schmid_2028
+description: Genetic data that will never be published in Schmid et al. 2028
+contributor:
+- name: Clemens Schmid
+  email: schmid@institute.org
+- name: rectify
+  email: rectify@example.org
+packageVersion: 2.0.0
+lastModified: 1970-01-01
+genotypeData:
+  format: EIGENSTRAT
+  genoFile: geno.txt
+  genoFileChkSum: 70547a0bdb20d07dc8e708a1a8f055e4
+  snpFile: snp.txt
+  snpFileChkSum: d76e3e7a8fc0f1f5e435395424b5aeab
+  indFile: ind.txt
+  indFileChkSum: f335dfd53eb4db511b08dcaccc81505b
+  snpSet: Other
+jannoFile: Schmid_2028.janno
+jannoFileChkSum: ea9d00246c9064ea8f1f35d4b30acb49
+changelogFile: CHANGELOG.md

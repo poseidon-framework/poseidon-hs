@@ -31,11 +31,12 @@ import qualified Data.Text                        as T
 import           Data.Time                        (NominalDiffTime, UTCTime,
                                                    diffUTCTime, getCurrentTime)
 import qualified Data.Vector                      as V
+import qualified Data.Vector.Unboxed.Mutable      as VUM
 import           Data.Version                     (showVersion)
 import           Pipes                            (Consumer, Pipe, Producer,
                                                    cat, for, yield, (>->))
 import qualified Pipes.Prelude                    as P
-import           Pipes.Safe                       (MonadSafe, runSafeT)
+import           Pipes.Safe                       (MonadSafe, SafeT, runSafeT)
 import           SequenceFormats.Eigenstrat       (EigenstratIndEntry (..),
                                                    EigenstratSnpEntry (..),
                                                    GenoEntry (..), GenoLine,
@@ -522,3 +523,15 @@ createVCFentry logA jannoRows (EigenstratSnpEntry chrom pos _ id_ ref alt, genoL
     sampleNames = map jPoseidonID jannoRows
     genoEntries = V.toList genoLine
     ploidyList = map jGenotypePloidy jannoRows
+
+sumNonMissingSNPs :: VUM.IOVector Int -> (EigenstratSnpEntry, GenoLine) -> SafeT IO (VUM.IOVector Int)
+sumNonMissingSNPs accumulator (_, geno) = do
+    forM_ (zip (V.toList geno) [0..]) $ \(g, i) -> do
+        let x = nonMissingToInt g
+        VUM.modify accumulator (+x) i
+    return accumulator
+  where
+    nonMissingToInt :: GenoEntry -> Int
+    nonMissingToInt x
+        | x == Missing = 0
+        | otherwise = 1
