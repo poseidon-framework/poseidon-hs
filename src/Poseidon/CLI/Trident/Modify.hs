@@ -13,7 +13,6 @@ import           Poseidon.Core.GenotypeData     (GenotypeDataSpec (..),
                                                  GenotypeFileSpec (..),
                                                  printSNPCopyProgress)
 import           Poseidon.Core.Janno            (JannoRow (..), JannoRows (..),
-                                                 makeJannoHeader,
                                                  writeJannoFile,
                                                  writeJannoFileWithoutEmptyCols)
 import           Poseidon.Core.Package          (PackageReadOptions (..),
@@ -34,9 +33,11 @@ import           Control.DeepSeq                ((<$!!>))
 import           Control.Exception              (catch, throwIO)
 import           Control.Monad                  (when)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import qualified Data.ByteString                as B
 import           Data.List                      (nub)
 import           Data.Maybe                     (fromJust)
 import           Data.Time                      (UTCTime (..), getCurrentTime)
+import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import qualified Data.Vector.Unboxed.Mutable    as VUM
 import           Data.Version                   (Version (..), makeVersion,
@@ -121,35 +122,39 @@ runModify (ModifyOptions
                 case posPacJannoFile inPac of
                         Nothing -> logError "No .janno file to modify"
                         Just jannoPath -> do
-                            updatedJanno <- updateJanno inPac
+                            (updatedJannoHeader, updatedJanno) <- updateJanno inPac
                             logInfo "Writing .janno file"
                             if jannoRemoveEmptyCols
                             then do
                                 logInfo "Reordering and removing empty .janno columns"
                                 liftIO $ writeJannoFileWithoutEmptyCols
                                              (posPacBaseDir inPac </> jannoPath)
-                                             (makeJannoHeader updatedJanno)
+                                             updatedJannoHeader
                                              updatedJanno
                             else do
                                 liftIO $ writeJannoFile
                                              (posPacBaseDir inPac </> jannoPath)
-                                             (makeJannoHeader updatedJanno)
+                                             updatedJannoHeader
                                              updatedJanno
             updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
-        updateJanno :: PoseidonPackage -> PoseidonIO JannoRows
+        updateJanno :: PoseidonPackage -> PoseidonIO (V.Vector B.ByteString, JannoRows)
         updateJanno inPac = do
-            let inJannoRows = getJannoRows $ posPacJanno inPac
+            let inputJannoHeader = posPacJannoInputHeader inPac
+                inJannoRows = getJannoRows $ posPacJanno inPac
             if updateNrSNPs
             then do
                 nrSNPs <- countSNPs inPac
                 let updatedRows = zipWith
                         (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
                         inJannoRows (VU.toList nrSNPs)
-                return $ JannoRows updatedRows
-            else return $ JannoRows inJannoRows
+                    updatedHeader = if "Nr_SNPs" `V.notElem` inputJannoHeader
+                                    then inputJannoHeader `V.snoc` "Nr_SNPs"
+                                    else inputJannoHeader
+                return (updatedHeader, JannoRows updatedRows)
+            else return (inputJannoHeader, JannoRows inJannoRows)
 
 countSNPs :: PoseidonPackage -> PoseidonIO (VU.Vector Int)
 countSNPs pac = do
