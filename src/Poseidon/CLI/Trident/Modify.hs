@@ -117,19 +117,11 @@ runModify (ModifyOptions
         modifyOnePackage inPac = do
             logInfo $ "Modifying package: " ++ renderNameWithVersion inPac
             -- counting SNPs for .janno column Nr_SNPs
-            let inJannoRows = getJannoRows $ posPacJanno inPac
-            updatedJanno <- if updateNrSNPs
-                            then do
-                                nrSNPs <- countSNPs inPac
-                                let updatedRows = zipWith
-                                        (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
-                                        inJannoRows (VU.toList nrSNPs)
-                                return $ JannoRows updatedRows
-                            else return $ JannoRows inJannoRows
             when (updateNrSNPs || jannoRemoveEmptyCols) $
                 case posPacJannoFile inPac of
                         Nothing -> logError "No .janno file to modify"
                         Just jannoPath -> do
+                            updatedJanno <- updateJanno inPac
                             logInfo "Writing .janno file"
                             if jannoRemoveEmptyCols
                             then do
@@ -147,6 +139,17 @@ runModify (ModifyOptions
             updatedPacContri <- addContributors newContributors updatedPacPosVer
             updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
             completeAndWritePackage pacVerUpdate updatedPacChecksums
+        updateJanno :: PoseidonPackage -> PoseidonIO JannoRows
+        updateJanno inPac = do
+            let inJannoRows = getJannoRows $ posPacJanno inPac
+            if updateNrSNPs
+            then do
+                nrSNPs <- countSNPs inPac
+                let updatedRows = zipWith
+                        (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
+                        inJannoRows (VU.toList nrSNPs)
+                return $ JannoRows updatedRows
+            else return $ JannoRows inJannoRows
 
 countSNPs :: PoseidonPackage -> PoseidonIO (VU.Vector Int)
 countSNPs pac = do
