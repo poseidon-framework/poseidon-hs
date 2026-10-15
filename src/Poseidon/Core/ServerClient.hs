@@ -265,12 +265,12 @@ data AddColSpec = AddColList [T.Text] | AddColAll
 data BibliographyInfo = BibliographyInfo {
     bibInfoNrSamples :: Int,
     bibInfoKey       :: String,
-    bibInfoTitle     :: Maybe String,
-    bibInfoAuthor    :: Maybe String,
-    bibInfoYear      :: Maybe String,
-    bibInfoJournal   :: Maybe String,
-    bibInfoDoi       :: Maybe String,
-    bibInfoAddCols   :: [(String, Maybe String)]
+    bibInfoTitle     :: Maybe T.Text,
+    bibInfoAuthor    :: Maybe T.Text,
+    bibInfoYear      :: Maybe T.Text,
+    bibInfoJournal   :: Maybe T.Text,
+    bibInfoDoi       :: Maybe T.Text,
+    bibInfoAddCols   :: [(T.Text, Maybe T.Text)]
 } deriving (Eq)
 
 instance ToJSON BibliographyInfo where
