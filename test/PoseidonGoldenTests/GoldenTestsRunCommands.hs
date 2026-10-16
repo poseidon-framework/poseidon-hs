@@ -716,6 +716,7 @@ testPipelineModify testDir checkFilePath = do
         , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
         , _modifyChecksums = ChecksumNone
         , _modifyNewContributors = Nothing
+        , _modifyAddJanno = False
         , _modifyJannoRemoveEmptyCols = False
         , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False

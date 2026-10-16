@@ -251,6 +251,14 @@ readContributorString s = case P.runParser contributorSpecParser () "" s of
     Left p  -> Left (showParsecErr p)
     Right x -> Right x
 
+parseAddJanno :: OP.Parser Bool
+parseAddJanno = OP.switch (
+    OP.long "addJanno" <>
+    OP.help "Add and populate a .janno file if none exists already. \
+            \The file is created in the directory where the POSEIDON.yml file is stored \
+            \and named <package_title>.janno."
+    )
+
 parseUpdateNrSNPs :: OP.Parser Bool
 parseUpdateNrSNPs = OP.switch (
     OP.long "updateNrSNPs" <>
