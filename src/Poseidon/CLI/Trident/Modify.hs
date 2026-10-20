@@ -50,6 +50,7 @@ import           System.Directory               (doesFileExist, removeFile)
 import           System.Exit                    (exitFailure)
 import           System.FilePath                ((</>))
 import           System.FilePath.Posix          ((<.>))
+import Control.Applicative ((<|>))
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
@@ -58,6 +59,8 @@ data ModifyOptions = ModifyOptions
     , _modifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _modifyChecksums             :: ChecksumsToModify
     , _modifyNewContributors       :: Maybe [ContributorSpec]
+    , _modifyRefAssemblyName       :: Maybe String
+    , _modifyRefAssemblyURL        :: Maybe String
     , _modifyAddJanno              :: Bool
     , _modifyJannoRemoveEmptyCols  :: Bool
     , _modifyUpdateNrSNPs          :: Bool
@@ -84,6 +87,7 @@ runModify :: ModifyOptions -> PoseidonIO ()
 runModify (ModifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
+                refAssemblyName refAssemblyURL
                 addJanno jannoRemoveEmptyCols updateNrSNPs
                 onlyLatest force
            ) = do
@@ -120,7 +124,8 @@ runModify (ModifyOptions
             updatedJanno <- updateJanno addJanno jannoRemoveEmptyCols updateNrSNPs inPac
             updatedPacPosVer <- updatePoseidonVersion newPosVer updatedJanno
             updatedPacContri <- addContributors newContributors updatedPacPosVer
-            updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
+            updatedRefAssembly <- updateRefAssembly refAssemblyName refAssemblyURL updatedPacContri
+            updatedPacChecksums <- updateChecksums checksumUpdate updatedRefAssembly
             completeAndWritePackage pacVerUpdate updatedPacChecksums
 
 updateJanno :: Bool -> Bool -> Bool -> PoseidonPackage -> PoseidonIO PoseidonPackage
@@ -175,7 +180,6 @@ updateJanno addJanno jannoRemoveEmptyCols updateNrSNPs inPac
                     return (updatedHeader, JannoRows updatedRows)
                 else return (inputJannoHeader, JannoRows inJannoRows)
 
-
 countSNPs :: PoseidonPackage -> PoseidonIO (VU.Vector Int)
 countSNPs pac = do
     logInfo "Counting SNPs..."
@@ -205,6 +209,17 @@ addContributors Nothing pac = return pac
 addContributors (Just cs) pac = do
     logDebug "Updating list of contributors"
     return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+
+updateRefAssembly :: Maybe String -> Maybe String -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updateRefAssembly name url pac = do
+    logDebug "Updating reference assembly information"
+    let gd = posPacGenotypeData pac
+    pure $ pac
+        { posPacGenotypeData = gd
+            { genotypeRefAssemblyName = name <|> genotypeRefAssemblyName gd
+            , genotypeRefAssemblyURL  = url  <|> genotypeRefAssemblyURL gd
+            }
+        }
 
 updateChecksums :: ChecksumsToModify -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updateChecksums checksumSetting pac = do
