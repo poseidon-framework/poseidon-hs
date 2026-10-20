@@ -30,6 +30,7 @@ import           Poseidon.Core.Utils            (PoseidonIO, envErrorLength,
 import           Poseidon.Core.Version          (VersionComponent (..),
                                                  updateThreeComponentVersion)
 
+import           Control.Applicative            ((<|>))
 import           Control.DeepSeq                ((<$!!>))
 import           Control.Exception              (catch, throwIO)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
@@ -50,7 +51,6 @@ import           System.Directory               (doesFileExist, removeFile)
 import           System.Exit                    (exitFailure)
 import           System.FilePath                ((</>))
 import           System.FilePath.Posix          ((<.>))
-import Control.Applicative ((<|>))
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
