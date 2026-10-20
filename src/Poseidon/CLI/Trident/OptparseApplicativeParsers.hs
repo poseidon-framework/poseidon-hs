@@ -238,6 +238,23 @@ parseMaybeContributors = OP.option (Just <$> OP.eitherReader readContributorStri
     OP.value Nothing
     )
 
+parseMaybeRefAssemblyName :: OP.Parser (Maybe String)
+parseMaybeRefAssemblyName = OP.option (Just <$> OP.str) (
+    OP.long "referenceGenomeAssembly" <>
+    OP.metavar "STRING" <>
+    OP.help "Name of a reference genome assembly that should be attached to the genotype data." <>
+    OP.value Nothing
+    )
+
+parseMaybeRefAssemblyURL :: OP.Parser (Maybe String)
+parseMaybeRefAssemblyURL = OP.option (Just <$> OP.str) (
+    OP.long "referenceGenomeAssemblyURL" <>
+    OP.metavar "STRING" <>
+    OP.help "URL to a reference genome assembly dataset/specification that should be attached\
+             \ to the genotype data." <>
+    OP.value Nothing
+    )
+
 parseContributors :: OP.Parser [ContributorSpec]
 parseContributors = OP.option (OP.eitherReader readContributorString) (
     OP.long "newContributors" <>
@@ -250,6 +267,14 @@ readContributorString :: String -> Either String [ContributorSpec]
 readContributorString s = case P.runParser contributorSpecParser () "" s of
     Left p  -> Left (showParsecErr p)
     Right x -> Right x
+
+parseAddJanno :: OP.Parser Bool
+parseAddJanno = OP.switch (
+    OP.long "addJanno" <>
+    OP.help "Add and populate a .janno file if none exists already. \
+            \The file is created in the directory where the POSEIDON.yml file is stored \
+            \and named <package_title>.janno."
+    )
 
 parseUpdateNrSNPs :: OP.Parser Bool
 parseUpdateNrSNPs = OP.switch (

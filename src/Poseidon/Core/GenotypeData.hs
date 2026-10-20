@@ -67,6 +67,7 @@ data GenotypeDataSpec = GenotypeDataSpec {
     genotypeFileSpec        :: GenotypeFileSpec,
     genotypeSnpSet          :: Maybe SNPSetSpec,
     genotypeRefAssemblyName :: Maybe String,
+    -- TODO: Introduce a type/constructor here that ensures that this is indeed a URL
     genotypeRefAssemblyURL  :: Maybe String
 } deriving (Show, Eq)
 

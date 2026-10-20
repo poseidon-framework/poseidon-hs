@@ -716,7 +716,10 @@ testPipelineModify testDir checkFilePath = do
         , _modifyPackageVersionUpdate = Just (PackageVersionUpdate Major (Just "test1"))
         , _modifyChecksums = ChecksumNone
         , _modifyNewContributors = Nothing
+        , _modifyAddJanno = False
         , _modifyJannoRemoveEmptyCols = False
+        , _modifyRefAssemblyName = Nothing
+        , _modifyRefAssemblyURL = Nothing
         , _modifyUpdateNrSNPs = False
         , _modifyOnlyLatest = False
         , _modifyForce = False
@@ -759,6 +762,23 @@ testPipelineModify testDir checkFilePath = do
           "init" </> "Schiffels" </> "POSEIDON.yml"
         , "init" </> "Schiffels" </> "CHANGELOG.md"
         , "init" </> "Schiffels" </> "Schiffels.janno"
+        ]
+    let modifyOpts5 = modifyOpts1 {
+          _modifyBaseDirs = [testDir </> "init" </> "Wang"]
+        , _modifyIgnorePoseidonVersion = False
+        , _modifyPackageVersionUpdate = Nothing
+        , _modifyChecksums = ChecksumsDetail False True False False
+        , _modifyRefAssemblyName = Just "TestName"
+        , _modifyRefAssemblyURL = Just "TestURL"
+        -- Wang was created with with init --minimal, so it does not have a .janno file before this
+        , _modifyAddJanno = True
+        , _modifyJannoRemoveEmptyCols = True
+        , _modifyUpdateNrSNPs = True
+        }
+    let action5 = testLog (runModify modifyOpts5) >> patchLastModified testDir ("init" </> "Wang" </> "POSEIDON.yml")
+    runAndChecksumFiles checkFilePath testDir action5 "modify" [
+          "init" </> "Wang" </> "POSEIDON.yml"
+        , "init" </> "Wang" </> "Wang.janno"
         ]
 
 testPipelineForge :: FilePath -> FilePath -> IO ()
