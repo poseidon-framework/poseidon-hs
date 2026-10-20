@@ -6,3 +6,7 @@ genotypeData:
   snpFile: Wang.snp
   indFile: Wang.ind
   snpSet: Other
+  referenceGenomeAssembly: TestName
+  referenceGenomeAssemblyURL: TestURL
+jannoFile: Wang.janno
+jannoFileChkSum: 0cae28c8fef3aed01135f1ba7d8db827

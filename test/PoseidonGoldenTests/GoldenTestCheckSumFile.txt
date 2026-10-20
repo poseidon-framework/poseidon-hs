@@ -73,6 +73,8 @@ e234a2511ce81ff2002b670c5d931b94 rectify rectify/Wang_2020/POSEIDON.yml
 039b4eccf98334d4295d0eca7de01389 modify init/Schiffels/POSEIDON.yml
 3bb396e099d5b8771a3409f5fe85d70b modify init/Schiffels/CHANGELOG.md
 739bfa83c5fc4c6325be34d59078b13a modify init/Schiffels/Schiffels.janno
+404e60b9b600907d434ccd9b422726dd modify init/Wang/POSEIDON.yml
+0cae28c8fef3aed01135f1ba7d8db827 modify init/Wang/Wang.janno
 5b5c20071f3e53346fdfa04f9dbb0223 forge forge/ForgePac1/POSEIDON.yml
 1286a2580e4bfbed7d804d5f3fe125f7 forge forge/ForgePac1/ForgePac1.geno
 848cf0fab32e4078a88cc17ad8ec3381 forge forge/ForgePac1/ForgePac1.janno
