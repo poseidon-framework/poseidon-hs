@@ -30,9 +30,9 @@ import           Poseidon.Core.Utils            (PoseidonIO, envErrorLength,
 import           Poseidon.Core.Version          (VersionComponent (..),
                                                  updateThreeComponentVersion)
 
+import           Control.Applicative            ((<|>))
 import           Control.DeepSeq                ((<$!!>))
 import           Control.Exception              (catch, throwIO)
-import           Control.Monad                  (when)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import qualified Data.ByteString                as B
 import           Data.List                      (nub)
@@ -50,6 +50,7 @@ import           Poseidon.Core.ColumnTypesJanno (JannoNrSNPs (..))
 import           System.Directory               (doesFileExist, removeFile)
 import           System.Exit                    (exitFailure)
 import           System.FilePath                ((</>))
+import           System.FilePath.Posix          ((<.>))
 
 data ModifyOptions = ModifyOptions
     { _modifyBaseDirs              :: [FilePath]
@@ -58,6 +59,9 @@ data ModifyOptions = ModifyOptions
     , _modifyPackageVersionUpdate  :: Maybe PackageVersionUpdate
     , _modifyChecksums             :: ChecksumsToModify
     , _modifyNewContributors       :: Maybe [ContributorSpec]
+    , _modifyRefAssemblyName       :: Maybe String
+    , _modifyRefAssemblyURL        :: Maybe String
+    , _modifyAddJanno              :: Bool
     , _modifyJannoRemoveEmptyCols  :: Bool
     , _modifyUpdateNrSNPs          :: Bool
     , _modifyOnlyLatest            :: Bool
@@ -83,8 +87,8 @@ runModify :: ModifyOptions -> PoseidonIO ()
 runModify (ModifyOptions
                 baseDirs
                 ignorePosVer newPosVer pacVerUpdate checksumUpdate newContributors
-                jannoRemoveEmptyCols
-                updateNrSNPs
+                refAssemblyName refAssemblyURL
+                addJanno jannoRemoveEmptyCols updateNrSNPs
                 onlyLatest force
            ) = do
     let pacReadOpts = defaultPackageReadOptions {
@@ -117,44 +121,64 @@ runModify (ModifyOptions
         modifyOnePackage :: PoseidonPackage -> PoseidonIO ()
         modifyOnePackage inPac = do
             logInfo $ "Modifying package: " ++ renderNameWithVersion inPac
-            -- counting SNPs for .janno column Nr_SNPs
-            when (updateNrSNPs || jannoRemoveEmptyCols) $
-                case posPacJannoFile inPac of
-                        Nothing -> logError "No .janno file to modify"
-                        Just jannoPath -> do
-                            (updatedJannoHeader, updatedJanno) <- updateJanno inPac
-                            logInfo "Writing .janno file"
-                            if jannoRemoveEmptyCols
-                            then do
-                                logInfo "Reordering and removing empty .janno columns"
-                                liftIO $ writeJannoFileWithoutEmptyCols
-                                             (posPacBaseDir inPac </> jannoPath)
-                                             updatedJannoHeader
-                                             updatedJanno
-                            else do
-                                liftIO $ writeJannoFile
-                                             (posPacBaseDir inPac </> jannoPath)
-                                             updatedJannoHeader
-                                             updatedJanno
-            updatedPacPosVer <- updatePoseidonVersion newPosVer inPac
+            updatedJanno <- updateJanno addJanno jannoRemoveEmptyCols updateNrSNPs inPac
+            updatedPacPosVer <- updatePoseidonVersion newPosVer updatedJanno
             updatedPacContri <- addContributors newContributors updatedPacPosVer
-            updatedPacChecksums <- updateChecksums checksumUpdate updatedPacContri
+            updatedRefAssembly <- updateRefAssembly refAssemblyName refAssemblyURL updatedPacContri
+            updatedPacChecksums <- updateChecksums checksumUpdate updatedRefAssembly
             completeAndWritePackage pacVerUpdate updatedPacChecksums
-        updateJanno :: PoseidonPackage -> PoseidonIO (V.Vector B.ByteString, JannoRows)
-        updateJanno inPac = do
-            let inputJannoHeader = posPacJannoInputHeader inPac
-                inJannoRows = getJannoRows $ posPacJanno inPac
-            if updateNrSNPs
-            then do
-                nrSNPs <- countSNPs inPac
-                let updatedRows = zipWith
-                        (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
-                        inJannoRows (VU.toList nrSNPs)
-                    updatedHeader = if "Nr_SNPs" `V.notElem` inputJannoHeader
-                                    then inputJannoHeader `V.snoc` "Nr_SNPs"
-                                    else inputJannoHeader
-                return (updatedHeader, JannoRows updatedRows)
-            else return (inputJannoHeader, JannoRows inJannoRows)
+
+updateJanno :: Bool -> Bool -> Bool -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updateJanno addJanno jannoRemoveEmptyCols updateNrSNPs inPac
+    | addJanno || jannoRemoveEmptyCols || updateNrSNPs = do
+        modPac <- case posPacJannoFile inPac of
+            Nothing -> do
+                if addJanno
+                then do
+                    let jannoFile = (panavName . posPacNameAndVersion $ inPac) <.> "janno"
+                        modPac = inPac {posPacJannoFile = Just jannoFile}
+                    writeJanno jannoFile
+                    return modPac
+                else do
+                    logError "No .janno file to modify"
+                    return inPac
+            Just jannoFile -> do
+                writeJanno jannoFile
+                return inPac
+        return modPac
+    | otherwise = return inPac
+        where
+            writeJanno :: FilePath -> PoseidonIO ()
+            writeJanno jannoFile = do
+                 (updatedJannoHeader, updatedJanno) <- changeJanno
+                 logInfo "Writing .janno file"
+                 if jannoRemoveEmptyCols
+                 then do
+                    logInfo "Reordering and removing empty .janno columns"
+                    liftIO $ writeJannoFileWithoutEmptyCols
+                                 (posPacBaseDir inPac </> jannoFile)
+                                 updatedJannoHeader
+                                 updatedJanno
+                 else do
+                    liftIO $ writeJannoFile
+                                 (posPacBaseDir inPac </> jannoFile)
+                                 updatedJannoHeader
+                                 updatedJanno
+            changeJanno :: PoseidonIO (V.Vector B.ByteString, JannoRows)
+            changeJanno = do
+                let inputJannoHeader = posPacJannoInputHeader inPac
+                    inJannoRows = getJannoRows $ posPacJanno inPac
+                if updateNrSNPs
+                then do
+                    nrSNPs <- countSNPs inPac
+                    let updatedRows = zipWith
+                            (\x y -> x {jNrSNPs = Just (JannoNrSNPs y)})
+                            inJannoRows (VU.toList nrSNPs)
+                        updatedHeader = if "Nr_SNPs" `V.notElem` inputJannoHeader
+                                        then inputJannoHeader `V.snoc` "Nr_SNPs"
+                                        else inputJannoHeader
+                    return (updatedHeader, JannoRows updatedRows)
+                else return (inputJannoHeader, JannoRows inJannoRows)
 
 countSNPs :: PoseidonPackage -> PoseidonIO (VU.Vector Int)
 countSNPs pac = do
@@ -185,6 +209,17 @@ addContributors Nothing pac = return pac
 addContributors (Just cs) pac = do
     logDebug "Updating list of contributors"
     return pac { posPacContributor = nub (posPacContributor pac ++ cs) }
+
+updateRefAssembly :: Maybe String -> Maybe String -> PoseidonPackage -> PoseidonIO PoseidonPackage
+updateRefAssembly name url pac = do
+    logDebug "Updating reference assembly information"
+    let gd = posPacGenotypeData pac
+    pure $ pac
+        { posPacGenotypeData = gd
+            { genotypeRefAssemblyName = name <|> genotypeRefAssemblyName gd
+            , genotypeRefAssemblyURL  = url  <|> genotypeRefAssemblyURL gd
+            }
+        }
 
 updateChecksums :: ChecksumsToModify -> PoseidonPackage -> PoseidonIO PoseidonPackage
 updateChecksums checksumSetting pac = do

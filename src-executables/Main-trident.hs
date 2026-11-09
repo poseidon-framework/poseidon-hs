@@ -261,6 +261,9 @@ modifyOptParser = ModifyOptions <$> parseBasePaths
                                 <*> parseMaybePackageVersionUpdate
                                 <*> parseChecksumsToRectify
                                 <*> parseMaybeContributors
+                                <*> parseMaybeRefAssemblyName
+                                <*> parseMaybeRefAssemblyURL
+                                <*> parseAddJanno
                                 <*> parseJannoRemoveEmptyCols
                                 <*> parseUpdateNrSNPs
                                 <*> parseOnlyLatest
