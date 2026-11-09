@@ -2512,13 +2512,16 @@ runChronicle :: ChronicleOptions -> PoseidonIO ()
 module Poseidon.CLI.Trident.Modify
 runModify :: ModifyOptions -> PoseidonIO ()
 data ModifyOptions
-ModifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToModify -> Maybe [ContributorSpec] -> Bool -> Bool -> Bool -> Bool -> ModifyOptions
+ModifyOptions :: [FilePath] -> Bool -> Maybe Version -> Maybe PackageVersionUpdate -> ChecksumsToModify -> Maybe [ContributorSpec] -> Maybe String -> Maybe String -> Bool -> Bool -> Bool -> Bool -> Bool -> ModifyOptions
 [_modifyBaseDirs] :: ModifyOptions -> [FilePath]
 [_modifyIgnorePoseidonVersion] :: ModifyOptions -> Bool
 [_modifyPoseidonVersion] :: ModifyOptions -> Maybe Version
 [_modifyPackageVersionUpdate] :: ModifyOptions -> Maybe PackageVersionUpdate
 [_modifyChecksums] :: ModifyOptions -> ChecksumsToModify
 [_modifyNewContributors] :: ModifyOptions -> Maybe [ContributorSpec]
+[_modifyRefAssemblyName] :: ModifyOptions -> Maybe String
+[_modifyRefAssemblyURL] :: ModifyOptions -> Maybe String
+[_modifyAddJanno] :: ModifyOptions -> Bool
 [_modifyJannoRemoveEmptyCols] :: ModifyOptions -> Bool
 [_modifyUpdateNrSNPs] :: ModifyOptions -> Bool
 [_modifyOnlyLatest] :: ModifyOptions -> Bool
@@ -2565,8 +2568,11 @@ parseMaybePackageVersionUpdate :: Parser (Maybe PackageVersionUpdate)
 parseVersionComponent :: Parser VersionComponent
 parseNoChecksumUpdate :: Parser Bool
 parseMaybeContributors :: Parser (Maybe [ContributorSpec])
+parseMaybeRefAssemblyName :: Parser (Maybe String)
+parseMaybeRefAssemblyURL :: Parser (Maybe String)
 parseContributors :: Parser [ContributorSpec]
 readContributorString :: String -> Either String [ContributorSpec]
+parseAddJanno :: Parser Bool
 parseUpdateNrSNPs :: Parser Bool
 parseJannoRemoveEmptyCols :: Parser Bool
 parseMaybeLog :: Parser (Maybe String)
