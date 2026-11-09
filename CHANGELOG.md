@@ -1,3 +1,6 @@
+- V 2.3.1.0:
+    - Added CLI options for `modify` that allow to add `referenceGenomeAssembly` and `referenceGenomeAssemblyURL`.
+    - Added another CLI option `--addJanno` for `modify` that allows to create a .janno file if non exists yet. This triggered some refactoring in Modify.hs, with a new helper `updateJanno` that handles all .janno-related logic.
 - V 2.3.0.1:
     - Updated to sequence-formats-1.12.1.0, which greatly improves error messages for binary files (both gzipped files and bed files).
     - block-wise zip files are now correctly handled.
