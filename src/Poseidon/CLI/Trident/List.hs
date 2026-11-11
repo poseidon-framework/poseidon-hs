@@ -164,7 +164,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
 
             let addBibFieldNames = case addColSpec of
                     AddColAll -> nub . concatMap (map fst . bibInfoAddCols) $ bibInfos
-                    AddColList names -> map T.unpack names
+                    AddColList names -> names
 
             -- warning in case the additional Columns do not exist in the entire janno dataset,
             -- we only output this warning if the columns were requested explicitly. Not if
@@ -178,11 +178,11 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                                 Just (Just _) <- return $ bibFieldKey `lookup` bibInfoAddCols bibInfo
                                 return ()
                         when (null nonEmptyEntries) . logWarning $
-                            "Bibliography field " ++ bibFieldKey ++ "is not present in any bibliography entry"
+                            "Bibliography field " ++ T.unpack bibFieldKey ++ "is not present in any bibliography entry"
                 _ -> return ()
 
             let tableH = ["BibKey", "Title", "Author", "Year", "DOI",
-                          "Nr of samples"] ++ addBibFieldNames
+                          "Nr of samples"] ++ map T.unpack addBibFieldNames
                 tableB = do
                     bibInfo <- bibInfos
                     let addBibFieldColumns = do
@@ -194,7 +194,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
                     return $ [bibInfoKey bibInfo, curateBibField $ bibInfoTitle bibInfo, authorAbbrvString authors,
                               curateBibField $ bibInfoYear bibInfo,
                               curateBibField $ bibInfoDoi bibInfo, show (bibInfoNrSamples bibInfo)] ++
-                              addBibFieldColumns
+                              map T.unpack addBibFieldColumns
             return (tableH, tableB)
 
     if rawOutput then
@@ -210,7 +210,7 @@ runList (ListOptions repoLocation listEntity rawOutput onlyLatest) = do
 
     -- this function is necessary, as BibTeX sometimes has arbitrary line breaks within fields,
     -- which we need to get rid of to avoid down-stream problems
-    curateBibField :: Maybe String -> String
-    curateBibField = T.unpack . T.intercalate " " . map T.strip . T.lines . T.pack . fromMaybe ""
+    curateBibField :: Maybe T.Text -> String
+    curateBibField = T.unpack . T.intercalate " " . map T.strip . T.lines . fromMaybe ""
     showContributor :: ContributorSpec -> String
     showContributor (ContributorSpec n e o) = n ++ " (" ++ e ++ ") ORCID: " ++ maybe "n/a" renderORCID o
