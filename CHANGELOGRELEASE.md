@@ -1,3 +1,32 @@
+### V 2.3.1.0
+
+This release includes a number of important (breaking) changes to trident. Most notably it splits `trident rectify` subcommand into two separate tools: `rectify` for quick updating of packages, and `modify` for more expert-level automatic changes. Beyond that the release adds better genotype parsing error messages and a noticable performance boost for package reading.
+
+#### Breaking changes
+
+We reworked `rectify` into two clearly separated subcommands, following the a long discussed blueprint:
+
+1. `trident modify` is essentially the old `rectify` under a new name. It applies explicit, opt-in edits to one or more packages: package version increments (with optional CHANGELOG.md log entries), checksum updates, Poseidon version changes, contributor additions, `.janno` file manipulation (see below) and the new reference assembly options. As a safety measure it now refuses to edit more than one package at once, unless the new `--force` flag is given. Please note that, by design, `modify` never performs any edits that are not explicitly requested: e.g. after changing a checksummed file the checksums are *not* automatically updated - you have to request this with the respective checksum option.
+2. `trident rectify` is a new, much smaller subcommand with a very focused purpose: it scans the input packages for those with missing or outdated checksums (e.g. because a file in the package was changed) and automatically fixes them, so that the packages pass validation again. Optionally it can also increment the package version number (`--packageVersion` + `--logText`) and/or add contributors (`--newContributors`).
+
+Since the interface of `rectify` was reduced and the old functionality moved to `modify`, scripts and workflows that relied on `rectify`'s old options have to be adapted. In most cases this is a simple replacement of `rectify` with `modify`.
+
+#### New features
+
+`trident modify --updateNrSNPs` finally allows to fill or update the `.janno` column `Nr_SNPs`. The option counts the number of non-missing SNPs for every sample in the package and writes the result to the `Nr_SNPs` column (which is appended to the `.janno` file if it does not exist yet).
+
+Related to that: with `trident modify --addJanno` a missing `.janno` file can be created for a package on demand. The new file is named after the package title (`<package_title>.janno`).
+
+`modify` can also be used to set or change the reference genome assembly information of a package now: the new options `--referenceGenomeAssembly` and `--referenceGenomeAssemblyURL` write the corresponding fields in the `POSEIDON.yml` file.
+
+Beyond `modify`: when reading `.bib` files, trident now carries out a basic validation of the `doi` field entries. Since DOIs are an important part of the Poseidon archive infrastructure, a warning is emitted if a bibliographic entry either has no DOI at all, or has a DOI that does not match a general regex pattern for valid DOIs (derived from the pattern recommended by [Crossref](https://www.crossref.org/blog/dois-and-matching-regular-expressions)).
+
+#### Other improvements
+
+We updated the sequence-formats dependency to version 1.12.1.0. This greatly improves the error messages in case of genotype data parsing problems: instead of unhelpfully printing a large chunk of the broken input data, errors now point exactly to the offending file and line. Relatedly, block-wise zipped files are now correctly handled, and when reading VCF files SNP IDs are now synthesized from chromosome and position in case the VCF contains SNPs without IDs.
+
+One of the most noticable changes for a lot of users may be that we switched to a considerably faster implementation of MD5 checksum validation (`cryptohash-md5`). This means a performance boost for almost every operation that involves reading a Poseidon package.
+
 ### V 2.2.2.1
 
 This is a large omnibus release with many minor bug fixes, new features, and interface changes.
